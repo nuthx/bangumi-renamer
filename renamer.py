@@ -7,6 +7,7 @@ import os
 import shutil
 import logging
 from datetime import datetime
+# import aniparse
 
 
 # 配置日志记录
@@ -57,7 +58,7 @@ inputdir, inputname = os.path.split(inputpath)
 logging.info("动画文件名：" + inputname)
 
 
-# 将输入文件名 inputname 转换为罗马音作品名 animename
+# 使用正则将输入文件名 inputname 转换为罗马音作品名 animename
 pattern = r"\] (.*?)\[|$"
 match = re.search(pattern, str(inputname))
 if match:
@@ -68,6 +69,12 @@ if match:
 else:
     logging.error("非标准的动画文件夹")
     sys.exit(1)
+
+
+# 使用aniparse将输入文件名 inputname 转换为罗马音作品名 animename
+# animeparse = aniparse.parse(str(inputname))
+# animename = animeparse["anime_title"]
+# logging.info("格式化文件名：" + animename)
 
 
 # anilist 查询
