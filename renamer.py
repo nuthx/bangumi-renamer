@@ -38,10 +38,12 @@ logging.debug("==============")
 while True:
     print("请选择文件夹")
     if len(sys.argv) < 2:
-        inputpath = input().strip().replace("\\", "")
+        # inputpath = input().strip().replace("\\", "")
+        inputpath = input().strip().replace("\"", "")
         logging.debug("输入路径：" + inputpath)
     else:
-        inputpath = sys.argv[1].replace("\\", "")
+        # inputpath = sys.argv[1].replace("\\", "")
+        inputpath = sys.argv[1].replace("\"", "")
         logging.debug("输入路径：" + inputpath)
 
     # 确保文件夹路径存在
@@ -94,6 +96,7 @@ logging.debug("向Anilist请求数据")
 anilistresponse = requests.post('https://graphql.anilist.co', json=anilist_json, headers=headers)
 anilistresult = json.loads(anilistresponse.text.encode().decode('unicode_escape'))
 logging.debug("Anilist数据请求成功")
+logging.debug(anilistresult)
 
 # 提取信息: 日文原名、动画形式
 anilistname = anilistresult["data"]["Media"]["title"]["native"]
@@ -105,11 +108,11 @@ logging.info("Anilist动画类型：" + anilistformat)
 if anilistformat in ["tv", "tv_short"]:
     anilistformatcount = "1.TV"
     logging.debug("Anilist动画类型格式化：" + anilistformatcount)
-elif platform_bgm in ["movie"]:
+elif anilistformat in ["movie"]:
     anilistformatcount = "2.MOVIE"
     logging.debug("Anilist动画类型格式化：" + anilistformatcount)
-elif platform_bgm in ["special", "ova", "ona"]:
-    anilistformatcount = "3.OVA"
+elif anilistformat in ["special", "ova", "ona"]:
+    anilistformatcount = "3.SP"
     logging.debug("Anilist动画类型格式化：" + anilistformatcount)
 else:
     anilistformatcount = "XBD"
@@ -144,6 +147,7 @@ bgmresult = bgmpost('https://api.bgm.tv/v0/search/subjects')
 bgmname = bgmresult["data"][0]["name"]
 bgmcnname = bgmresult["data"][0]["name_cn"]
 bgmdate = bgmresult["data"][0]["date"].replace("-", "")
+bgmdate = bgmdate[2:]
 logging.info("Bangumi动画名：" + bgmname)
 logging.info("Bangumi中文译名：" + bgmcnname)
 logging.info("Bangumi上映日期：" + bgmdate)
