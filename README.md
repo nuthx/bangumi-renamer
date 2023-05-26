@@ -1,7 +1,5 @@
 # bangumi-autorenamer
 
-
-
 ### 介绍
 
 为了解决每次下载完动画，都要先搜索中文译名，然后去 网站上手动复制番名，再改名的痛苦
@@ -26,13 +24,19 @@
 
 ### 使用
 
-TBD...
+```
+python3 renamer.py
+```
+
+拖入文件即可完成更名
 
 
 
-### 新增功能
+### GUI
 
-TBD...
+学习&开发中...
+
+See [dev_gui](https://github.com/nuthx/bangumi-autorenamer/tree/dev_gui)
 
 
 
