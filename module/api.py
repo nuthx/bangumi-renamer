@@ -26,7 +26,7 @@ def anilist(name):
         'variables': {'id': name},
     }
 
-    print(f"正在向Anilist请求{name}的数据")
+    print(f"正在通过Anilist搜索{name}")
 
     # 3次重试机会，避免网络原因导致请求失败
     retry = 0
@@ -54,7 +54,9 @@ def anilist(name):
             # 将上述元素放入字典
             a_dict = dict()
             a_dict["a_jp_name"] = a_jp_name
+            print(a_jp_name)
             a_dict["a_type"] = a_type
+            print(a_type)
 
             return a_dict
 
@@ -64,7 +66,7 @@ def anilist(name):
             time.sleep(0.5)
             retry += 1
 
-    print(f"在Anilist中请求{name}数据失败")
+    print(f"在Anilist中搜索{name}失败")
 
 
 # # 向 Bangumi 请求数据(v0/search/subjects)
@@ -120,9 +122,9 @@ def anilist(name):
 #     print(f"在Bangumi中请求{name}数据失败")
 
 
-# 向 Bangumi 请求数据(search/subject/keywords)
+# 向 Bangumi Search 请求数据(search/subject/keywords)
 # https://bangumi.github.io/api/
-def bangumi(name):
+def bangumi_search(name):
     headers = {
         'accept': 'application/json',
         'User-Agent': 'akko/bgm-renamer'
@@ -130,7 +132,7 @@ def bangumi(name):
 
     url = "https://api.bgm.tv/search/subject/" + name + "?type=2&responseGroup=small"
 
-    print(f"正在向Bangumi请求{name}的数据")
+    print(f"正在通过Bangumi搜索{name}")
     
     # 3次重试机会，避免网络原因导致请求失败
     retry = 0
@@ -157,28 +159,67 @@ def bangumi(name):
 
         # 若请求失败，等待0.5秒重试
         else:
-            print("Bangumi请求失败，重试" + str(retry + 1))
+            print("Bangumi搜索失败，重试" + str(retry + 1))
             time.sleep(0.5)
             retry += 1
 
-    print(f"在Bangumi中请求{name}数据失败")
+    print(f"在Bangumi中搜索{name}失败")
+
+
+# 向 Bangumi Previous 请求数据(search/subject/keywords)
+# https://bangumi.github.io/api/
+def bangumi_previous(b_id, cn_name):
+    headers = {
+        'accept': 'application/json',
+        'User-Agent': 'akko/bgm-renamer'
+    }
+
+    url = "https://api.bgm.tv/v0/subjects/" + b_id + "/subjects"
+
+    print(f"正在向Bangumi请求ID {b_id}的数据")
+    
+    # 3次重试机会，避免网络原因导致请求失败
+    retry = 0
+    while retry < 3:
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            result = json.loads(response.text)
+            print(f"成功获取到ID {b_id}的Bangumi数据")
+
+            # 检测改动画 ID 是否有前传内容
+            # 如果有，返回前传 ID 和 cn_name
+            # 如果没有，返回原始 ID 和 cn_name
+            for data in result:
+                if data["relation"] == "前传":
+                    prev_id = str(data["id"])
+                    cn_name = data["name_cn"]
+                    return prev_id, cn_name
+            else:
+                prev_id = b_id
+                return prev_id, cn_name
+
+        # 若请求失败，等待0.5秒重试
+        else:
+            print("Bangumi请求ID失败，重试" + str(retry + 1))
+            time.sleep(0.5)
+            retry += 1
+
+    print(f"在Bangumi中请求ID {b_id}数据失败")
 
 
 
 
 
 
+# idd = str(371546)
+# name = "输入是啥就是啥"
 
-# name = "atashi ni Tenshi ga Maiorita! Precious Friends"
+# bangumi_b_id_result = bangumi_previous(idd, name)
+# b_b_id = bangumi_b_id_result[1]
+# print(bangumi_b_id_result)
 
-# a_result = anilist(name)
-# print(a_result)
 
-# b_result = bangumi(a_result["a_jp_name"])
-# print(b_result)
-
-# result = {**a_result, **b_result}
-# print(result)
 
 
 
