@@ -1,10 +1,11 @@
 import os
 import re
+import requests
 
 from module import api
 
 
-# 输入的动画文件夹 file_name，通过正则提取动画名 romaji_name
+# 正则提取文件夹的罗马名
 def get_romaji_name(name):
     # 加载文件名忽略列表
     ignored = ["BD-BOX", "BD"]
@@ -34,8 +35,8 @@ def get_romaji_name(name):
     return romaji_name
 
 
-# 输入待分析的文件序号
-# 输入动画文件夹 file_name，输出 API 抓取后的所有内容
+# 根据路径获取动画信息
+# 输入序号避免串行
 def get_anime_info(list_id, path):
     this_anime_dict = dict()
 
@@ -98,40 +99,30 @@ def get_anime_info(list_id, path):
     print(f"搜索完成，该动画第一季为{prev_name}")
     this_anime_dict["b_originate_name"] = prev_name
 
+    # 下载下来图片并写入字典
+    # 如果路径不存在则创建路径
+    img_dir = "img"
+    print(f"下载本季封面图到{img_dir}")
 
-    
+    if not os.path.exists(img_dir):
+        os.makedirs(img_dir)
 
+    img_url = this_anime_dict["b_image"]
+    response_img = requests.get(img_url)
+    img_name = os.path.basename(img_url)
 
+    save_path = os.path.join(img_dir, img_name)
+    with open(save_path, "wb") as file:
+        file.write(response_img.content)
 
-
-
-
-    # # 如果获得的 b_sid 与 b_id 不同，说明之前还有前传，则继续执行
-    # while b_temp_id != b_id:
-    #     print("当前轮次似乎有前传，正在获取前传ID")
-    #     bangumi_previous_result = api.bangumi_previous(b_temp_id, b_cn_name)
-    #     b_sid = str(bangumi_sid_result[0])
-    #     print(b_sid)
-    # else:
-    #     print("ok")
-
-    # print("该动画无前传")
-
-
-
-
-
-
-
+    print(f"图片已经保存至{img_dir}/{img_name}")
+    this_anime_dict["b_image_name"] = img_name
 
     return this_anime_dict
 
 
-
-
-
-
-
+#
+#
 # file_name = "[Moozzi2] Watashi ni Tenshi ga Maiorita! Precious Friends [ x265-10Bit Ver. ] - Movie + SP"
 # list_id = 5
 # romaji_name = get_anime_info(list_id, file_name)
