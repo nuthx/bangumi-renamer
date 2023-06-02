@@ -8,7 +8,14 @@
 
 一键将下载的番剧文件夹，通过 Bangumi 和 AniList 查询，重命名为指定名称
 
+### GUI：开发中
 
+- 批量处理
+- 自定义时间格式
+- 自定义重命名格式
+- 支持获取当前动画第一季度的名字（用于放入父文件夹）
+- 展示动画封面及更多详细信息
+- And more...
 
 ### 示例
 
@@ -20,8 +27,6 @@
 
 这个程序可以一键完成上述操作，信息源来自 Bangumi 与 AniList
 
-
-
 ### 使用
 
 ```
@@ -30,16 +35,6 @@ python3 renamer.py
 
 拖入文件即可完成更名
 
-
-
-### GUI
-
-学习&开发中...
-
-See [dev_gui](https://github.com/nuthx/bangumi-autorenamer/tree/dev_gui)
-
-
-
 ### 致谢
 
 [[Bangumi API]](https://github.com/bangumi/api) 官方接口
@@ -47,8 +42,6 @@ See [dev_gui](https://github.com/nuthx/bangumi-autorenamer/tree/dev_gui)
 [[AniList APIv2]](https://anilist.github.io/ApiV2-GraphQL-Docs/) 官方接口
 
 [[ChatGPT]](https://chat.openai.com/) 帮我解答了诸多困惑
-
-
 
 ### 免责
 
