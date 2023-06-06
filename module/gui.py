@@ -1,221 +1,256 @@
-import wx
 import os
-import ctypes  # 高分屏适配
-import asyncio  # 异步IO
+import arrow
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from module import function
 
 
-# ctypes.windll.shcore.SetProcessDpiAwareness(1)
-# ScaleFactor=ctypes.windll.shcore.GetScaleFactorForDevice(0)
-
-
-class MyFrame(wx.Frame):
+class MyWidget(QtWidgets.QWidget):
     def __init__(self):
-        super().__init__(None, title="renamer", size=(1000, 670),
-                         style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
-        self.Center()
-        self.SetBackgroundColour(wx.Colour(245, 245, 245))
+        super().__init__()
+        self.setWindowTitle("Bangumi Renamer")
+        self.resize(1000, -1)
+        # self.setFixedSize(self.size())  # 禁止拉伸窗口
+        self.setAcceptDrops(True)
+        self.setup_ui()
 
-        # 创建列表而非集合，方便排序
-        self.file_path_exist = []
+        self.anime_list = []        # 动画列表，存入所有数据
+        self.file_path_exist = []   # 动画路径列表（仅用于对比是否存在相同项目）
+        self.list_id = 1            # ID 计数器
 
-        # 修正窗口实际宽度
-        win_width, win_height = self.GetClientSize()
-        rule_width = win_width - 30
+    def setup_ui(self) -> None:
+        self.tree = QtWidgets.QTreeWidget(self)
+        self.tree.setFixedHeight(260)
+        self.tree.setColumnCount(5)
+        self.tree.setHeaderLabels(["ID", "文件名", "动画名（本季）", "动画名（首季）", "重命名"])
+        self.tree.setColumnWidth(0, 25)
+        self.tree.setColumnWidth(1, 280)
+        self.tree.setColumnWidth(2, 170)
+        self.tree.setColumnWidth(3, 170)
+        self.tree.setColumnWidth(4, 300)
+        self.tree.setRootIsDecorated(False)  # 禁止展开树
+        self.tree.currentItemChanged.connect(self.show_select_list)
 
-        # ListView 表格
-        self.list_ctrl = wx.ListView(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_EDIT_LABELS)
-        self.list_ctrl.SetMinSize((rule_width, 260))
-        self.list_ctrl.InsertColumn(0, "文件名")
-        self.list_ctrl.InsertColumn(1, "动画名（本季）")
-        self.list_ctrl.InsertColumn(2, "动画名（首季）")
-        self.list_ctrl.InsertColumn(3, "重命名")
-        self.list_ctrl.SetColumnWidth(0, 280)
-        self.list_ctrl.SetColumnWidth(1, 180)
-        self.list_ctrl.SetColumnWidth(2, 180)
-        self.list_ctrl.SetColumnWidth(3, 330)
+        # image_url = "https://lain.bgm.tv/pic/cover/l/98/5e/386809_1yR81.jpg"
+        # image_data = requests.get(image_url).content
+        # self.image = QtGui.QPixmap().scaled(142, 205)
+        # self.image.loadFromData(image_data)
 
-        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.list_selected)
-        self.list_ctrl.SetDropTarget(DropFolder(self.list_ctrl, self.file_path_exist))
+        self.pixmap = QtGui.QPixmap("img/default.png")
+        self.pixmap = self.pixmap.scaledToWidth(142)
 
-        # 标签容器
-        self.edit_frame = wx.StaticBox(self, label="详细信息", size=(rule_width, 0))
+        self.image = QtWidgets.QLabel(self)
+        self.image.setMinimumSize(142, 205)
+        self.image.setMaximumSize(142, 205)
+        self.image.setPixmap(self.pixmap)
 
-        img_url = "img/default.jpg"
-        self.image = wx.Image(img_url, wx.BITMAP_TYPE_ANY)
-        self.scaled = self.image.Scale(142, 205, wx.IMAGE_QUALITY_HIGH)
-        self.bitmap = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(self.scaled))
+        self.info_jp_name = QtWidgets.QLabel("动画：", self)
+        self.info_jp_name.setMaximumWidth(4000)
 
-        # 分割线
-        self.label_line1 = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
-        self.label_line2 = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
+        self.info_cn_name = QtWidgets.QLabel("中文名：", self)
+        self.info_cn_name.setMaximumWidth(4000)
 
-        # 标签
-        label_width = win_width - 230
+        self.b_initial_name = QtWidgets.QLabel("动画系列：", self)
+        self.b_initial_name.setMaximumWidth(4000)
 
-        b_jp_name = ""
-        lbl_b_jp_name = f"动画:{b_jp_name}"
-        self.lb_b_jp_name = wx.StaticText(self, label=lbl_b_jp_name, style=wx.ALIGN_LEFT)
-        self.lb_b_jp_name.SetMinSize((label_width, -1))
+        self.info_type = QtWidgets.QLabel("动画类型：", self)
+        self.info_type.setMaximumWidth(4000)
 
-        b_cn_name = ""
-        lbl_b_cn_name = f"中文名:{b_cn_name}"
-        self.lb_b_cn_name = wx.StaticText(self, label=lbl_b_cn_name, style=wx.ALIGN_LEFT)
-        self.lb_b_cn_name.SetMinSize((label_width, -1))
+        self.info_release_date = QtWidgets.QLabel("放送日期：", self)
+        self.info_release_date.setMaximumWidth(4000)
 
-        b_originate_name = ""
-        lbl_b_originate_name = f"动画系列:{b_originate_name}"
-        self.lb_b_originate_name = wx.StaticText(self, label=lbl_b_originate_name, style=wx.ALIGN_LEFT)
-        self.lb_b_originate_name.SetMinSize((label_width, -1))
+        self.info_file_name = QtWidgets.QLabel("文件名：", self)
+        self.info_file_name.setMaximumWidth(4000)
 
-        a_type = ""
-        lbl_a_type = f"动画类型:{a_type}"
-        self.lb_a_type = wx.StaticText(self, label=lbl_a_type, style=wx.ALIGN_LEFT)
-        self.lb_a_type.SetMinSize((label_width, -1))
+        self.info_final_name = QtWidgets.QLabel("重命名结果：", self)
+        self.info_final_name.setMaximumWidth(4000)
 
-        b_date = ""
-        lbl_b_date = f"放送日期:{b_date}"
-        self.lb_b_date = wx.StaticText(self, label=lbl_b_date, style=wx.ALIGN_LEFT)
-        self.lb_b_date.SetMinSize((label_width, -1))
+        self.label_layout = QtWidgets.QVBoxLayout(self)       # 创建子布局
+        self.label_container = QtWidgets.QWidget()            # 创建子布局控件
+        self.label_container.setLayout(self.label_layout)       # 添加内容到子布局
+        self.label_layout.addWidget(self.info_jp_name)
+        self.label_layout.addWidget(self.info_cn_name)
+        self.label_layout.addWidget(self.b_initial_name)
+        self.label_layout.addWidget(self.info_type)
+        self.label_layout.addWidget(self.info_release_date)
+        self.label_layout.addStretch()
+        self.label_layout.addWidget(self.info_file_name)
+        self.label_layout.addWidget(self.info_final_name)
 
-        file_name = ""
-        lbl_file_name = f"文件名：{file_name}"
-        self.lb_file_name = wx.StaticText(self, label=lbl_file_name, style=wx.ALIGN_LEFT)
-        self.lb_file_name.SetMinSize((label_width, -1))
+        self.info_layout = QtWidgets.QHBoxLayout(self)       # 创建子布局
+        self.info_container = QtWidgets.QWidget()            # 创建子布局控件
+        self.info_container.setLayout(self.info_layout)       # 添加内容到子布局
+        self.info_layout.addWidget(self.image)
+        self.info_layout.addWidget(self.label_container)
 
-        final_rename = ""
-        lbl_final_rename = f"重命名结果:{final_rename}"
-        self.lbl_final_rename = wx.StaticText(self, label=lbl_final_rename, style=wx.ALIGN_LEFT)
-        self.lbl_final_rename.SetMinSize((label_width, -1))
+        self.infobox = QtWidgets.QGroupBox("动画信息", self)
+        self.infobox.setFixedHeight(260)
+        self.infobox.setLayout(self.info_layout)
 
-        # 进度条
-        self.progress_bar = wx.Gauge(self, range=100)
-        process_bar_width = rule_width - 345
-        self.progress_bar.SetMinSize((process_bar_width, 20))
+        # column1 = QtWidgets.QTreeWidgetItem(["1", "Column 2", "Column 3", "Column 4"])
+        # self.tree.addTopLevelItem(column1)
+        #
+        # self.tree.topLevelItem(1).setText(4, "MainWindow")  # 更改内容
 
-        # 清除按钮
-        self.clear_button = wx.Button(self, label="清除全部")
-        self.clear_button.SetMinSize((100, 32))
-        self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_list)
+        self.state = QtWidgets.QLabel("等待拖入文件", self)
+        self.state.setMinimumWidth(400)
+        self.state.setMaximumWidth(4000)
 
-        # 识别按钮
-        self.analysis_button = wx.Button(self, label="开始识别")
-        self.analysis_button.SetMinSize((100, 32))
-        self.analysis_button.Bind(wx.EVT_BUTTON, self.start_analysis)
+        self.progress = QtWidgets.QProgressBar()
 
-        # 重命名按钮
-        self.rename_button = wx.Button(self, label="重命名全部")
-        self.rename_button.SetMinSize((100, 32))
+        self.btn_clear = QtWidgets.QPushButton("print", self)
+        self.btn_clear.setFixedWidth(100)
+        self.btn_clear.clicked.connect(self.print_list)
 
-        # 状态栏
-        self.statusbar = self.CreateStatusBar()
-        self.statusbar.SetStatusText("这是状态栏")
+        self.btn_analysis = QtWidgets.QPushButton("开始识别", self)
+        self.btn_analysis.setFixedWidth(100)
+        self.btn_analysis.clicked.connect(self.start_analysis)
 
-        # 排列窗口
-        LABEL_FRAME = wx.BoxSizer(wx.VERTICAL)
-        LABEL_FRAME.Add(self.lb_b_jp_name, 0, wx.TOP | wx.BOTTOM, border=5)
-        LABEL_FRAME.Add(self.lb_b_cn_name, 0, wx.TOP | wx.BOTTOM, border=5)
-        LABEL_FRAME.Add(self.lb_b_originate_name, 0, wx.TOP | wx.BOTTOM, border=5)
-        LABEL_FRAME.Add(self.lb_a_type, 0, wx.TOP | wx.BOTTOM, border=5)
-        LABEL_FRAME.Add(self.lb_b_date, 0, wx.TOP | wx.BOTTOM, border=5)
-        LABEL_FRAME.Add(self.lb_file_name, 0, wx.TOP, border=25)
-        LABEL_FRAME.Add(self.lbl_final_rename, 0, wx.TOP, border=10)
+        self.btn_rename = QtWidgets.QPushButton("重命名", self)
+        self.btn_rename.setFixedWidth(100)
 
-        EDIT_FRAME = wx.StaticBoxSizer(self.edit_frame, wx.HORIZONTAL)
-        EDIT_FRAME.Add(self.bitmap, 0, wx.ALL, border=10)
-        EDIT_FRAME.Add(LABEL_FRAME, 0, wx.TOP | wx.LEFT, border=10)
+        self.btn_layout = QtWidgets.QHBoxLayout(self)       # 创建子布局
+        self.btn_container = QtWidgets.QWidget()            # 创建子布局控件
+        self.btn_container.setLayout(self.btn_layout)       # 添加内容到子布局
+        self.btn_layout.addWidget(self.state)
+        self.btn_layout.addStretch()
+        self.btn_layout.addWidget(self.btn_clear)
+        self.btn_layout.addWidget(self.btn_analysis)
+        self.btn_layout.addWidget(self.btn_rename)
 
-        CTRL_FRAME = wx.BoxSizer(wx.HORIZONTAL)
-        CTRL_FRAME.Add(self.progress_bar, 0, wx.CENTER)
-        CTRL_FRAME.Add(self.clear_button, 0, wx.LEFT, border=15)
-        CTRL_FRAME.Add(self.analysis_button, 0, wx.LEFT, border=15)
-        CTRL_FRAME.Add(self.rename_button, 0, wx.LEFT, border=15)
+        # 添加布局
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self.tree)
+        self.layout.addWidget(self.infobox)
+        self.layout.addWidget(self.progress)
+        self.layout.addWidget(self.btn_container)
+        self.layout.addStretch()
 
-        WINDOW = wx.BoxSizer(wx.VERTICAL)
-        WINDOW.Add(self.list_ctrl, 0, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=15)
-        WINDOW.Add(EDIT_FRAME, 0, wx.ALIGN_CENTER)
-        WINDOW.Add(CTRL_FRAME, 0, wx.TOP | wx.LEFT, border=15)
+    # 打印列表
+    @QtCore.Slot()
+    def print_list(self):
+        print(f"anime_list: {self.anime_list}")
+        print(f"file_path_exist: {self.file_path_exist}")
+        self.state.setText(str(self.anime_list))
 
-        self.SetSizer(WINDOW)
-        print("窗口创建完成，实际宽度" + str(rule_width) + "像素")
+    # 显示选中动画的详情
+    @QtCore.Slot()
+    def show_select_list(self, current):
+        # 根据选中的行数索引计算 list_id
+        select_order = self.tree.indexOfTopLevelItem(current)
+        list_id = select_order + 1
+        list_count = len(self.anime_list)
 
-    def list_selected(self, event):
-        # 选择文件夹时输出当前选择的文件名
-        selected_item = event.GetItem()
-        file_name = self.list_ctrl.GetItemText(selected_item.GetId(), 0)
-        print(f"当前选择文件夹: {file_name}")
+        # 选中的行是否已经分析过并写入列表
+        if list_id <= list_count:
+            b_jp_name = self.anime_list[select_order]["b_jp_name"]
+            self.info_jp_name.setText(f"动画：{b_jp_name}")
 
-    def start_analysis(self, event):
-        # 调用获取到的文件路径列表
-        file_path_exist = self.list_ctrl.GetDropTarget().file_path_exist
+            b_cn_name = self.anime_list[select_order]["b_cn_name"]
+            self.info_cn_name.setText(f"中文名：{b_cn_name}")
 
-        # 判断列表是否为空
-        if file_path_exist == set():
-            print("请先拖入文件夹")
-            # 禁用按钮
-            # self.analysis_button.Enable(False)
+            b_initial_name = self.anime_list[select_order]["b_initial_name"]
+            self.b_initial_name.setText(f"动画系列：{b_initial_name}")
+
+            b_type = self.anime_list[select_order]["b_type"]
+            self.info_type.setText(f"动画类型：{b_type}")
+
+            b_release_date = self.anime_list[select_order]["b_release_date"]
+            b_release_date = arrow.get(b_release_date, "YYMMDD")
+            b_release_date = b_release_date.format("YYYY年M月D日")
+            self.info_release_date.setText(f"放送日期：{b_release_date}")
+
+            file_name = self.anime_list[select_order]["file_name"]
+            self.info_file_name.setText(f"文件名：{file_name}")
+
+            final_name = self.anime_list[select_order]["file_name"]
+            self.info_final_name.setText(f"重命名结果：{final_name}")
+
+            b_image_name = self.anime_list[select_order]["b_image_name"]
+            pixmap = QtGui.QPixmap(f"img/{b_image_name}")
+            pixmap = pixmap.scaledToWidth(142)
+            self.image.setPixmap(pixmap)
+
         else:
-            # 创建列表，写入所有抓取的数据
-            anime_list = []
+            self.info_jp_name.setText("动画：")
+            self.info_cn_name.setText("中文名：")
+            self.b_initial_name.setText("动画系列：")
+            self.info_type.setText("动画类型：")
+            self.info_release_date.setText("放送日期：")
+            self.info_file_name.setText("文件名：")
+            self.info_final_name.setText("重命名结果：")
+            pixmap = QtGui.QPixmap("img/default.png")
+            pixmap = pixmap.scaledToWidth(142)
+            self.image.setPixmap(pixmap)
 
-            # 循环开始：分析每个文件
-            list_id = 0
-            for file_path in file_path_exist:
+    # 开始分析
+    @QtCore.Slot()
+    def start_analysis(self):
+        # 清空动画列表
+        self.anime_list = []
 
-                # 通过文件路径 file_path 获取数据，合并入列表 anime_list
+        # 判断路径列表是否为空
+        if not self.file_path_exist:
+            print("请先拖入文件夹")
+        else:
+            list_id = 1
+            for file_path in self.file_path_exist:
+
+                # 获取循环内单个动画的数据，并写入 anime_list
                 this_anime_dict = function.get_anime_info(list_id, file_path)
-                anime_list.append(this_anime_dict)
-                print(anime_list)
+                self.anime_list.append(this_anime_dict)
+                print(self.anime_list)
 
-                # 写入listview
-                # 如果没有 b_originate_name 说明没有执行到最后一步
-                # 重写 file_file 并展示在 listview 避免错位
-                this_anime = anime_list[list_id]
-                if "b_originate_name" in this_anime:
-                    file_name = anime_list[list_id]["file_name"]
-                    b_cn_name = anime_list[list_id]["b_cn_name"]
-                    b_originate_name = anime_list[list_id]["b_originate_name"]
-                    self.list_ctrl.SetItem(list_id, 0, file_name)
-                    self.list_ctrl.SetItem(list_id, 1, b_cn_name)
-                    self.list_ctrl.SetItem(list_id, 2, b_originate_name)
+                # 展示在列表中
+                # 如果没有 b_initial_id 说明没执行到最后一步
+                if "b_initial_id" in this_anime_dict:
+                    list_id = this_anime_dict["list_id"]
+                    list_order = list_id - 1
+                    file_name = this_anime_dict["file_name"]
+                    b_cn_name = this_anime_dict["b_cn_name"]
+                    b_initial_name = this_anime_dict["b_initial_name"]
+
+                    self.tree.topLevelItem(list_order).setText(0, str(list_id))
+                    self.tree.topLevelItem(list_order).setText(1, file_name)
+                    self.tree.topLevelItem(list_order).setText(2, b_cn_name)
+                    self.tree.topLevelItem(list_order).setText(3, b_initial_name)
                 else:
                     print("该动画未获取到内容，已跳过")
 
                 # 进入下一轮前修改 ID
                 list_id += 1
 
-    def on_clear_list(self, event):
-        self.list_ctrl.DeleteAllItems()
-        self.file_path_exist = []
-        print("已清除所有文件夹")
+    # 鼠标进入同时，检测对象是否为 URL 并允许拖放
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
 
+    # 鼠标松手以后，在 tree 中展示文件路径，并写入 file_path_exist 列表
+    def dropEvent(self, event):
+        raw_path_list = event.mimeData().urls()
+        for raw_path in raw_path_list:
+            # 转换原始格式到文件路径
+            file_path = raw_path.toLocalFile()
 
-class DropFolder(wx.FileDropTarget):
-    def __init__(self, window, file_path_exist):
-        super().__init__()
-        self.window = window
-        self.file_path_exist = file_path_exist
+            # 解决 macOS 下路径无法识别
+            if file_path.endswith('/'):
+                file_path = file_path[:-1]
 
-    def OnDropFiles(self, x, y, file_path_list):
-        for file_path in file_path_list:
-            # 判断是否为文件夹
+            # 判断是文件夹还是文件
             if os.path.isdir(file_path):
                 file_name = os.path.basename(file_path)
-
-                # 判断是否存在相同文件夹，并写入 file_path_exist 列表
+                # 是否存在相同文件夹
                 if file_path not in self.file_path_exist:
-                    self.window.InsertItem(self.window.GetItemCount(), file_name)
+                    # 写入动画路径列表,用于识别去重
                     self.file_path_exist.append(file_path)
+
+                    # 显示在 tree 中
+                    this_column = QtWidgets.QTreeWidgetItem([str(self.list_id), file_name])
+                    self.tree.addTopLevelItem(this_column)
                     print(f"新增了{file_name}")
+
+                    self.list_id += 1
                 else:
                     print(f"{file_name}已存在")
             else:
                 print(f"已过滤文件{file_path}")
-
-                # 调整第一列宽度以适应内容
-                # width, height = self.window.GetTextExtent(file_name)
-                # width = width + 20
-                # if width > 280:
-                #     self.window.SetColumnWidth(0, width)
-        return True
