@@ -47,15 +47,16 @@ Bangumi Renamer 具备简单 GUI 界面，批量拖入需要更名的文件夹�
 - `AniList`：对动画罗马名的第一搜索结果较为准确
 - `Bangumi`：命名数据的主要来源
 
-### TODO
+## TODO
 
+- 多平台（目前可手动编译运行，支持 macOS）
 - 更优雅的方式实现图片展示
 - 删除列表中指定行的动画文件夹
 - 增加复选框，仅重命名选中的动画文件夹
 - 输出更准确的行为日志到窗口左下角
 - 进度条展示
 
-### 致谢
+## 致谢
 
 [[AniList APIv2]](https://anilist.github.io/ApiV2-GraphQL-Docs/) 官方接口
 
@@ -63,6 +64,6 @@ Bangumi Renamer 具备简单 GUI 界面，批量拖入需要更名的文件夹�
 
 [[ChatGPT]](https://chat.openai.com/) 为我解答了诸多困惑
 
-### 免责
+## 免责
 
 本项目代码仅供学习交流，不得用于商业用途，若侵权请联系

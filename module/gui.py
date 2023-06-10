@@ -7,7 +7,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from module import function
 
-version = "v0.2"
+version = "1.0"
 
 class MyWidget(QtWidgets.QWidget):
     def __init__(self):
