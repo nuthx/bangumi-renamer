@@ -119,7 +119,7 @@ def get_anime_info(list_id, file_path, name_type):
     this_anime_dict["b_image_name"] = img_name
 
     # 检测图片文件夹是否存在
-    img_dir = "img"
+    img_dir = "cover"
     if not os.path.exists(img_dir):
         os.makedirs(img_dir)
 

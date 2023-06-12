@@ -1,0 +1,41 @@
+MyWidget {
+    background: #FAFAFA;
+}
+
+#titleLabel {
+    font-size: 28px;
+    color: #000;
+}
+
+#subtitleLabel {
+    font-size: 13px;
+    color: #666;
+}
+
+#tableFrame {
+    background: #F5F5F5;
+    border: 1px solid #EDEDED;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+#infoFrame {
+    background: #FFF;
+    border: 1px solid #EDEDED;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+#cnLabel {
+    font-size: 20px;
+    color: #000;
+}
+
+#jpLabel {
+    font-size: 13px;
+    color: #666;
+}
+
+#separator {
+    background: #EDEDED;
+}

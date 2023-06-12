@@ -51,7 +51,7 @@ def anilist(romaji_name):
 def bangumi_search(a_jp_name):
     headers = {
         'accept': 'application/json',
-        'User-Agent': 'akko/bgm-renamer'
+        'User-Agent': 'nuthx/bangumi-renamer'
     }
 
     url = "https://api.bgm.tv/search/subject/" + a_jp_name + "?type=2&responseGroup=small"
@@ -87,7 +87,7 @@ def bangumi_search(a_jp_name):
 def bangumi_subject(b_id):
     headers = {
         'accept': 'application/json',
-        'User-Agent': 'akko/bgm-renamer'
+        'User-Agent': 'nuthx/bangumi-renamer'
     }
 
     url = "https://api.bgm.tv/v0/subjects/" + b_id
@@ -135,7 +135,7 @@ def bangumi_subject(b_id):
 def bangumi_previous(b_id, b_cn_name):
     headers = {
         'accept': 'application/json',
-        'User-Agent': 'akko/bgm-renamer'
+        'User-Agent': 'nuthx/bangumi-renamer'
     }
 
     url = "https://api.bgm.tv/v0/subjects/" + b_id + "/subjects"

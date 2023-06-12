@@ -1,0 +1,45 @@
+QTableView {
+    background: transparent;
+    outline: none;
+    border: none;
+    selection-background-color: transparent;
+    alternate-background-color: transparent;
+}
+
+QTableView::item {
+    background: transparent;
+    border: 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    height: 32px;
+}
+
+QHeaderView {
+    background-color: transparent;
+}
+
+QHeaderView::section {
+    background-color: transparent;
+    color: black;
+    padding-left: 4px;
+    padding-right: 4px;
+    border: 1px solid #EDEDED;
+    margin-top: -1px;
+    margin-bottom: 2px;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+QHeaderView::section:horizontal {
+    border-bottom: 1px solid #EDEDED;
+    border-left: none;
+    height: 36px;
+}
+
+QHeaderView::section:horizontal:last {
+    border-right: none;
+}
+
+QHeaderView::section:checked {
+    background-color: transparent;
+}
