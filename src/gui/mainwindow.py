@@ -1,7 +1,7 @@
 from PySide6.QtCore import QMetaObject
-from PySide6.QtGui import QPixmap, QFontDatabase, QFont, QIcon
+from PySide6.QtGui import QPixmap, QFontDatabase, QFont, QIcon, QPainter, QPainterPath
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
-from qfluentwidgets import setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon
+from qfluentwidgets import setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon, ImageLabel
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.resource import getResource
@@ -79,30 +79,35 @@ class MainWindow(object):
 
         # 图片区域
 
-        # 加载图片
-        # pixmap = QPixmap("image/empty.svg")
+        # 方法一：非圆角，效果完美
+        # self.image = QLabel()
+        # self.image.setFixedSize(150, 210)
+        # self.image.setPixmap(QPixmap(getResource("image/1.jpg")))
+        # self.image.setScaledContents(True)
+
+        # 方法二：圆角，有锯齿
+        # class RoundedLabel(QLabel):
+        #     def __init__(self, parent=None):
+        #         super().__init__(parent)
+        #         self.setFixedSize(150, 210)
+        #         self.setPixmap(QPixmap(getResource("image/1.jpg")))
+        #         self.setScaledContents(True)
         #
-        # # 创建遮罩
-        # rounded_pixmap = QPixmap(QSize(400, 566))
-        # rounded_pixmap.fill(Qt.transparent)
-        # mask = QPainterPath()
-        # mask.addRoundedRect(pixmap.rect(), 10, 10)
-        # #
-        # # 绘制形状
-        # painter = QPainter(rounded_pixmap)
-        # painter.setRenderHint(QPainter.Antialiasing)
-        # painter.setClipPath(mask)
-        # painter.drawPixmap(0, 0, pixmap)
-        # painter.end()
+        #     def paintEvent(self, event):
+        #         painter = QPainter(self)
+        #         painter.setRenderHint(QPainter.Antialiasing)  # 抗锯齿
+        #         radius = 6.0  # 圆角半径
+        #         path = QPainterPath()
+        #         path.addRoundedRect(self.rect(), radius, radius)
+        #         painter.setClipPath(path)
+        #         painter.drawPixmap(self.rect(), self.pixmap())
+        #
+        # self.image = RoundedLabel()
 
-        # 方法2：这个会使图片显示模糊
-        # jpg = QPixmap("D:/PixivWallpaper/catavento.png").scaled(self.label.width(), self.label.height())
-        # self.image.setPixmap(jpg)
-
-        self.image = QLabel()
-        self.image.setFixedSize(150, 210)
-        self.image.setPixmap(QPixmap(getResource("image/empty.png")))
-        self.image.setScaledContents(True)
+        # # 方法三：圆角，模糊
+        self.image = ImageLabel(getResource("image/1.jpg"))
+        self.image.scaledToHeight(200)
+        self.image.setBorderRadius(6, 6, 6, 6)
 
         # 右侧标题
 
@@ -166,7 +171,7 @@ class MainWindow(object):
         self.infoFrame = QFrame()
         self.infoFrame.setObjectName("infoFrame")
         self.infoFrame.setLayout(self.infoLayout)
-        self.infoFrame.setMaximumHeight(242)
+        self.infoFrame.setFixedHeight(self.infoFrame.sizeHint().height())  # 高度自适应
 
         # 操作区域
 
