@@ -4,7 +4,6 @@ from PySide6.QtWidgets import QApplication
 
 from src.module import gui
 
-
 if __name__ == "__main__":
     app = QApplication([])
     window = gui.MyWidget()

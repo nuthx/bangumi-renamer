@@ -1,8 +1,98 @@
 import os
 import re
 import requests
+from qfluentwidgets import InfoBar, InfoBarPosition
 
 from src.module import api
+
+
+def initAnimeList(list_id, anime_list, raw_path_list):
+    for raw_path in raw_path_list:
+        # 转换为文件路径
+        file_path = raw_path.toLocalFile()
+
+        # 解决 macOS 下路径无法识别
+        if file_path.endswith('/'):
+            file_path = file_path[:-1]
+
+        # 过滤非文件夹
+        if not os.path.isdir(file_path):
+            continue
+
+        # 去重已存在的文件夹
+        path_exist = any(item['file_path'] == file_path for item in anime_list)
+        if path_exist:
+            continue
+
+        this_anime_dict = dict()
+        this_anime_dict['list_id'] = list_id
+        this_anime_dict['file_name'] = os.path.basename(file_path)
+        this_anime_dict['file_path'] = file_path
+        this_anime_dict['file_dir'] = os.path.dirname(file_path)
+        anime_list.append(this_anime_dict)
+        list_id += 1
+
+    return list_id, anime_list
+
+
+def analysisAnimeList(anime_list, name_type):
+    # 路径列表是否为空
+
+    if not anime_list:
+        InfoBar.warning(title="", content="列表中还没有内容哦", orient=Qt.Horizontal, isClosable=True,
+                        position=InfoBarPosition.TOP, duration=1600, parent=self)
+        return
+
+
+# # 开始分析
+#     @QtCore.Slot()
+#     def start_analysis(self):
+#         name_type = self.type_input.text()
+#         # 路径列表是否为空
+#         if not self.file_path_exist:
+#             self.state.setText("请先拖入文件夹")
+#             return
+#
+#         # 分析过程
+#         self.anime_list = []  # 重置动画列表
+#         list_id = 1
+#         for file_path in self.file_path_exist:
+#             # 在单独的线程中运行get_anime_info函数
+#             thread = threading.Thread(target=self.start_analysis_thread, args=(list_id, file_path, name_type))
+#             thread.start()
+#             # self.state.setText(f"准备识别{list_id}个动画项目")
+#             list_id += 1
+#
+#     # 开始分析线程
+#     def start_analysis_thread(self, list_id, file_path, name_type):
+#         # 获取本线程的动画信息，写入 anime_list
+#         this_anime_dict = function.get_anime_info(list_id, file_path, name_type)
+#         self.anime_list.append(this_anime_dict)
+#
+#         # 重新排序 anime_list 列表，避免串行
+#         self.anime_list = sorted(self.anime_list, key=lambda x: x['list_id'])
+#
+#         # 展示在列表中
+#         # 如果没有 b_initial_id 说明没分析完成
+#         if "b_initial_id" in this_anime_dict:
+#             list_id = this_anime_dict["list_id"]
+#             list_order = list_id - 1
+#             file_name = this_anime_dict["file_name"]
+#             b_cn_name = this_anime_dict["b_cn_name"]
+#             b_initial_name = this_anime_dict["b_initial_name"]
+#             final_name = this_anime_dict["final_name"]
+#
+#             self.tree.topLevelItem(list_order).setText(0, str(list_id))
+#             self.tree.topLevelItem(list_order).setText(1, file_name)
+#             self.tree.topLevelItem(list_order).setText(2, b_cn_name)
+#             self.tree.topLevelItem(list_order).setText(3, b_initial_name)
+#             self.tree.topLevelItem(list_order).setText(4, final_name)
+#         else:
+#             print("该动画未获取到内容，已跳过")
+
+
+
+
 
 
 # 检查花括号是否匹配
