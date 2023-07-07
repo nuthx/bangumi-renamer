@@ -2,7 +2,7 @@ import os
 import re
 import requests
 
-from module import api
+from src.module import api
 
 
 # 检查花括号是否匹配

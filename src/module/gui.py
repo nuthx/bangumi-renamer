@@ -1,13 +1,4 @@
-import os
-import re
-import arrow
-import threading
-import shutil
-from PySide6 import QtCore, QtGui, QtWidgets
-from module import function
-
-
-from PySide6.QtCore import Qt, Signal, QUrl, QEvent
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QTableWidgetItem, QAbstractItemView
 
@@ -43,7 +34,7 @@ class MyWidget(QWidget):
         self.table.setColumnWidth(4, 330)
         # self.table.resizeColumnsToContents()
         styleSheetManager.deregister(self.table)  # 禁用皮肤，启用自定义 QSS
-        with open("style/table.qss", encoding="utf-8") as file:
+        with open("src/style/table.qss", encoding="utf-8") as file:
             self.table.setStyleSheet(file.read())
 
         self.table.setItem(0, 0, QTableWidgetItem("24"))
