@@ -1,19 +1,19 @@
-MyWidget {
-    background: #FAFAFA;
+MyMainWindow {
+    background: #F5F5F5;
 }
 
 #titleLabel {
-    font-size: 28px;
-    color: #000;
+    font-size: 32px;
+    color: #444;
 }
 
 #subtitleLabel {
     font-size: 13px;
-    color: #666;
+    color: #555;
 }
 
 #tableFrame {
-    background: #F5F5F5;
+    background: #FFF;
     border: 1px solid #EDEDED;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -21,21 +21,27 @@ MyWidget {
 
 #infoFrame {
     background: #FFF;
+    margin-top: -1px;
     border: 1px solid #EDEDED;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
 }
 
-#cnLabel {
-    font-size: 20px;
-    color: #000;
+#cnName {
+    font-size: 18px;
+    color: #222;
 }
 
-#jpLabel {
+#jpName {
     font-size: 13px;
-    color: #666;
+    color: #999;
 }
 
 #separator {
     background: #EDEDED;
+}
+
+#detailLabel {
+    font-size: 13px;
+    color: #333;
 }
