@@ -44,37 +44,32 @@ def getApiInfo(anime):
     else:
         return
 
-    # # 向 bangumi Subject 请求数据
-    # b_id = str(bangumi_result["b_id"])
-    # bangumi_info_result = api.bangumi_subject(b_id)
-    # if bangumi_info_result is None:
-    #     print(f"无法请求到{a_jp_name}的Bangumi数据")
-    #     return this_anime_dict
-    # else:
-    #     this_anime_dict.update(bangumi_info_result)
-    #
-    # # 向 Bangumi Previous 请求数据
-    # b_id = str(bangumi_result["b_id"])
-    # b_cn_name = bangumi_result["b_cn_name"]
-    # bangumi_prev_result = api.bangumi_previous(b_id, b_cn_name)
-    # prev_id = bangumi_prev_result[0]
-    # prev_cn_name = bangumi_prev_result[1]
-    # print(f"自身或上一季度是{prev_cn_name}")
-    #
-    # # 如果两个 ID 不同，说明之前还有前传，则循环执行
-    # while b_id != prev_id:
-    #     b_id = prev_id
-    #     b_cn_name = prev_cn_name
-    #     bangumi_prev_result = api.bangumi_previous(b_id, b_cn_name)
-    #     prev_id = bangumi_prev_result[0]
-    #     prev_cn_name = bangumi_prev_result[1]
-    #     print(f"自身或上一季度是{prev_cn_name}")
-    #
-    # # 写入前传数据
-    # this_anime_dict["b_initial_id"] = prev_id
-    # this_anime_dict["b_initial_name"] = prev_cn_name
-    # print(f"搜索完成，该动画第一季为{prev_id} - {prev_cn_name}")
-    #
+    # bangumi Subject
+
+    bangumi_subject = bangumiSubject(anime["bgm_id"])
+    if bangumi_subject:
+        anime["bgm_type"] = bangumi_subject[0]
+        anime["bgm_typecode"] = bangumi_subject[1]
+        anime["release_date"] = bangumi_subject[2]
+        anime["episodes"] = bangumi_subject[3]
+    else:
+        return
+
+    # Bangumi Previous
+    bgm_id = anime["bgm_id"]
+    bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
+    prev_id = bangumi_previous[0]
+    prev_name = bangumi_previous[1]
+
+    while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
+        bgm_id = prev_id
+        bangumi_previous = bangumiPrevious(bgm_id, prev_name)
+        prev_id = bangumi_previous[0]
+        prev_name = bangumi_previous[1]
+
+    anime["initial_id"] = prev_id
+    anime["initial_name"] = prev_name
+
     # # 写入图片文件名到字典
     # img_url = this_anime_dict["b_image"]
     # img_name = os.path.basename(img_url)

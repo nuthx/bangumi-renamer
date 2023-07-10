@@ -81,7 +81,7 @@ def bangumiSubject(b_id):
         'User-Agent': 'nuthx/bangumi-renamer'
     }
 
-    url = "https://api.bgm.tv/v0/subjects/" + b_id
+    url = "https://api.bgm.tv/v0/subjects/" + str(b_id)
     print(f"正在向Bangumi请求ID {b_id}的详细信息")
 
     retry = 0
@@ -91,29 +91,22 @@ def bangumiSubject(b_id):
             result = json.loads(response.text)
             print(f"成功获取到ID {b_id}的详细信息")
 
-            b_type = result["platform"]
-            b_release_date = result["date"]
-            b_release_date = arrow.get(b_release_date).format("YYMMDD")  # 处理时间格式
-            b_episodes = result["eps"]
+            bgm_type = result["platform"]
+            release_date = arrow.get(result["date"]).format("YYMMDD")  # 处理时间格式
+            episodes = result["eps"]
 
             # 格式化 b_type
-            b_type = b_type.lower()
+            b_type = bgm_type.lower()
             if b_type in ["tv"]:
-                b_typecode = "01"
+                bgm_typecode = "01"
             elif b_type in ["剧场版"]:
-                b_typecode = "02"
+                bgm_typecode = "02"
             elif b_type in ["ova", "oad"]:
-                b_typecode = "03"
+                bgm_typecode = "03"
             else:
-                b_typecode = "XBD"
-                print("不兼容的动画类型")
+                bgm_typecode = "XBD"
 
-            b_dict = dict()
-            b_dict["b_type"] = b_type
-            b_dict["b_typecode"] = b_typecode
-            b_dict["b_release_date"] = b_release_date
-            b_dict["b_episodes"] = b_episodes
-            return b_dict
+            return bgm_type, bgm_typecode, release_date, episodes
         else:
             print("Bangumi请求更多失败，重试" + str(retry + 1))
             time.sleep(0.5)
@@ -123,34 +116,31 @@ def bangumiSubject(b_id):
 
 # 向 Bangumi Previous 请求数据(v0/subjects/subjects)
 # https://bangumi.github.io/api/
-def bangumiPrevious(b_id, b_cn_name):
+def bangumiPrevious(initial_id, initial_name):
     headers = {
         'accept': 'application/json',
         'User-Agent': 'nuthx/bangumi-renamer'
     }
 
-    url = "https://api.bgm.tv/v0/subjects/" + b_id + "/subjects"
-    print(f"正在向Bangumi请求{b_cn_name}的上一季度数据")
+    url = "https://api.bgm.tv/v0/subjects/" + str(initial_id) + "/subjects"
 
     retry = 0
     while retry < 3:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             result = json.loads(response.text)
-            print(f"成功获取到{b_cn_name}的上一季数据")
 
             # 检测改动画 ID 是否有前传内容
-            # 如果有，返回前传 prev_id 和 prev_cn_name
-            # 如果没有，返回原始 b_id 和 b_cn_name
+            # 如果有，返回前传 prev_id 和 prev_name
+            # 如果没有，返回原始 initial_id 和 not_now_bro
             for data in result:
                 if data["relation"] == "前传":
                     prev_id = str(data["id"])
-                    prev_cn_name = data["name_cn"]
-                    return prev_id, prev_cn_name
+                    prev_name = data["name_cn"]
+                    return prev_id, prev_name
             else:
-                return b_id, b_cn_name
+                return initial_id, initial_name
         else:
             print("Bangumi请求上一季度信息失败，重试" + str(retry + 1))
             time.sleep(0.5)
             retry += 1
-    print(f"在Bangumi中请求{b_cn_name}上一季度信息失败")
