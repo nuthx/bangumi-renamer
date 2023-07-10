@@ -1,12 +1,12 @@
 import requests
 import json
-import time     # 延迟操作
+import time
 import arrow    # 处理时间格式
 
 
 # 向 Anilist 请求数据
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
-def anilist(romaji_name):
+def anilistSearch(romaji_name):
     query = '''
     query ($id: String) {
         Media (search: $id, type: ANIME) {
@@ -32,13 +32,9 @@ def anilist(romaji_name):
             result = json.loads(response.text.encode().decode('unicode_escape'))  # 特殊转码
             print(f"成功获取到{romaji_name}的Anilist数据")
 
-            a_jp_name = result["data"]["Media"]["title"]["native"]
-            a_type = result["data"]["Media"]["format"]
+            jp_name_anilist = result["data"]["Media"]["title"]["native"]
 
-            a_dict = dict()
-            a_dict["a_jp_name"] = a_jp_name
-            a_dict["a_type"] = a_type
-            return a_dict
+            return jp_name_anilist
         else:
             print("Anilist请求失败，重试" + str(retry + 1))
             time.sleep(0.5)
@@ -48,7 +44,7 @@ def anilist(romaji_name):
 
 # 向 Bangumi Search 请求数据(search/subject/keywords)
 # https://bangumi.github.io/api/
-def bangumi_search(a_jp_name):
+def bangumiSearch(a_jp_name):
     headers = {
         'accept': 'application/json',
         'User-Agent': 'nuthx/bangumi-renamer'
@@ -64,17 +60,12 @@ def bangumi_search(a_jp_name):
             result = json.loads(response.text)
             print(f"成功获取到{a_jp_name}的Bangumi数据")
 
-            b_id = result["list"][0]["id"]
-            b_jp_name = result["list"][0]["name"]
-            b_cn_name = result["list"][0]["name_cn"]
-            b_image = result["list"][0]["images"]["large"]
+            bgm_id = result["list"][0]["id"]
+            bgm_image = result["list"][0]["images"]["large"]
+            jp_name = result["list"][0]["name"]
+            cn_name = result["list"][0]["name_cn"]
 
-            b_dict = dict()
-            b_dict["b_id"] = b_id
-            b_dict["b_jp_name"] = b_jp_name
-            b_dict["b_cn_name"] = b_cn_name
-            b_dict["b_image"] = b_image
-            return b_dict
+            return bgm_id, bgm_image, jp_name, cn_name
         else:
             print("Bangumi搜索失败，重试" + str(retry + 1))
             time.sleep(0.5)
@@ -84,7 +75,7 @@ def bangumi_search(a_jp_name):
 
 # 向 Bangumi Subject 请求数据(/v0/subjects/subject_id)
 # https://bangumi.github.io/api/
-def bangumi_subject(b_id):
+def bangumiSubject(b_id):
     headers = {
         'accept': 'application/json',
         'User-Agent': 'nuthx/bangumi-renamer'
@@ -132,7 +123,7 @@ def bangumi_subject(b_id):
 
 # 向 Bangumi Previous 请求数据(v0/subjects/subjects)
 # https://bangumi.github.io/api/
-def bangumi_previous(b_id, b_cn_name):
+def bangumiPrevious(b_id, b_cn_name):
     headers = {
         'accept': 'application/json',
         'User-Agent': 'nuthx/bangumi-renamer'

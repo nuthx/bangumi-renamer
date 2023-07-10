@@ -1,15 +1,19 @@
 import os
+import platform
 import re
 import requests
-from qfluentwidgets import InfoBar, InfoBarPosition
 
 from src.module import api
 
 
-def initAnimeList(list_id, anime_list, raw_path_list):
-    for raw_path in raw_path_list:
+def initAnimeList(list_id, anime_list, raw_list):
+    for raw_path in raw_list:
         # 转换为文件路径
         file_path = raw_path.toLocalFile()
+
+        # Windows 下调整路径分隔符
+        if platform.system() == 'Windows':
+            file_path = file_path.replace('/', '\\')
 
         # 解决 macOS 下路径无法识别
         if file_path.endswith('/'):
@@ -28,20 +32,16 @@ def initAnimeList(list_id, anime_list, raw_path_list):
         this_anime_dict['list_id'] = list_id
         this_anime_dict['file_name'] = os.path.basename(file_path)
         this_anime_dict['file_path'] = file_path
-        this_anime_dict['file_dir'] = os.path.dirname(file_path)
+
         anime_list.append(this_anime_dict)
         list_id += 1
 
     return list_id, anime_list
 
 
-def analysisAnimeList(anime_list, name_type):
-    # 路径列表是否为空
 
-    if not anime_list:
-        InfoBar.warning(title="", content="列表中还没有内容哦", orient=Qt.Horizontal, isClosable=True,
-                        position=InfoBarPosition.TOP, duration=1600, parent=self)
-        return
+
+
 
 
 # # 开始分析
@@ -94,45 +94,6 @@ def analysisAnimeList(anime_list, name_type):
 
 
 
-
-# 检查花括号是否匹配
-def check_braces(string):
-    stack = []
-    for char in string:
-        if char == '{':
-            stack.append(char)
-        elif char == '}':
-            if len(stack) == 0 or stack[-1] != '{':
-                return False
-            else:
-                stack.pop()
-
-    if len(stack) == 0:
-        return True
-    else:
-        return False
-
-
-# 正则提取文件夹的罗马名
-def get_romaji_name(file_name):
-    # 加载文件名忽略列表
-    ignored = ["BD-BOX", "BD"]
-    print(f"忽略文件名中的{ignored}")
-
-    # 将指定字符加入忽略列表，并更新 file_name为忽略后的名字
-    pattern_ignored = '|'.join(ignored)
-    file_name = re.sub(pattern_ignored, '', file_name)
-
-    # 匹配第一个 ] 开始，到第一个 [ 或 (，若无上述内容，则匹配至末尾
-    pattern_romaji = r"\](.*?)(?:\[|\(|$)"
-    result = re.search(pattern_romaji, file_name)
-
-    # 输出提取的内容，如果没匹配到内容就返回 False
-    if result:
-        romaji_name = result.group(1).strip()  # strip() 去除首尾空格
-        return romaji_name
-    else:
-        return
 
 
 # 获取动画信息
