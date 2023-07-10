@@ -69,7 +69,6 @@ class MainWindow(object):
             self.table.setStyleSheet(file.read())
 
         self.tableLayout = QHBoxLayout()
-        # self.tableLayout.setSpacing(0)
         self.tableLayout.setContentsMargins(0, 0, 0, 0)
         self.tableLayout.addWidget(self.table)
 
@@ -86,28 +85,28 @@ class MainWindow(object):
         # self.image.setScaledContents(True)
 
         # 方法二：圆角，有锯齿
-        # class RoundedLabel(QLabel):
-        #     def __init__(self, parent=None):
-        #         super().__init__(parent)
-        #         self.setFixedSize(150, 210)
-        #         self.setPixmap(QPixmap(getResource("image/1.jpg")))
-        #         self.setScaledContents(True)
-        #
-        #     def paintEvent(self, event):
-        #         painter = QPainter(self)
-        #         painter.setRenderHint(QPainter.Antialiasing)  # 抗锯齿
-        #         radius = 6.0  # 圆角半径
-        #         path = QPainterPath()
-        #         path.addRoundedRect(self.rect(), radius, radius)
-        #         painter.setClipPath(path)
-        #         painter.drawPixmap(self.rect(), self.pixmap())
-        #
-        # self.image = RoundedLabel()
+        class RoundedLabel(QLabel):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.setFixedSize(150, 210)
+                self.setPixmap(QPixmap(getResource("image/1.jpg")))
+                self.setScaledContents(True)
+
+            def paintEvent(self, event):
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing)  # 抗锯齿
+                radius = 6.0  # 圆角半径
+                path = QPainterPath()
+                path.addRoundedRect(self.rect(), radius, radius)
+                painter.setClipPath(path)
+                painter.drawPixmap(self.rect(), self.pixmap())
+
+        self.image = RoundedLabel()
 
         # # 方法三：圆角，模糊
-        self.image = ImageLabel(getResource("image/1.jpg"))
-        self.image.scaledToHeight(200)
-        self.image.setBorderRadius(6, 6, 6, 6)
+        # self.image = ImageLabel(getResource("image/1.jpg"))
+        # self.image.scaledToHeight(200)
+        # self.image.setBorderRadius(6, 6, 6, 6)
 
         # 右侧标题
 
