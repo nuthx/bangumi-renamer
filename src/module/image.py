@@ -3,12 +3,13 @@ from PySide6.QtGui import QPixmap, QPainter, QPainterPath
 from PySide6.QtWidgets import QLabel
 
 
-class roundedLabel(QLabel):
-    def __init__(self, imagePath, radius, parent=None):
+class RoundedLabel(QLabel):
+    def __init__(self, imagePath, parent=None):
         super().__init__(parent)
-        self.setFixedSize(150, 210)
-        self.setPixmap(QPixmap(imagePath))
-        self.radius = radius
+        image = QPixmap(imagePath)
+        width = image.width() * 210 / image.height()
+        self.setFixedSize(width, 210)
+        self.setPixmap(image)
 
     def paintEvent(self, e):
         painter = QPainter(self)
@@ -17,7 +18,7 @@ class roundedLabel(QLabel):
         pixmap = self.pixmap().scaled(
             self.size() * self.devicePixelRatioF(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
 
-        radius = self.radius
+        radius = 8
         path = QPainterPath()
         path.addRoundedRect(QRectF(self.rect()), radius, radius)
         painter.setClipPath(path)

@@ -5,7 +5,7 @@ from qfluentwidgets import setThemeColor, PushButton, ToolButton, TableWidget, P
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.resource import getResource
-from src.module.image import roundedLabel
+from src.module.image import RoundedLabel
 
 
 class MainWindow(object):
@@ -79,7 +79,7 @@ class MainWindow(object):
 
         # 图片区域（从类中定义）
 
-        self.image = roundedLabel(getResource("image/1.jpg"), 8)
+        self.image = RoundedLabel(getResource("image/empty.png"))
 
         # 右侧标题
 
