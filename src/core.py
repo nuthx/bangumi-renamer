@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt, QPoint, QThread, QObject, Signal
 from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
+from src.gui.about import AboutWindow
 from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, getFinalName
 
@@ -17,7 +18,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.initList()
 
     def initUI(self):
-        # self.aboutButton.clicked.connect(self.openAbout)
+        self.aboutButton.clicked.connect(self.openAbout)
         # self.settingButton.clicked.connect(self.openSetting)
         self.clearButton.clicked.connect(self.initList)
         self.analysisButton.clicked.connect(self.startAnalysis)
@@ -28,6 +29,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = []
         self.table.clearContents()
         self.table.setRowCount(0)
+
+    def openAbout(self):
+        about = MyAboutWindow()
+        about.exec()
 
     # def openAbout(self):
     #     about = MyAboutWindow()
@@ -140,3 +145,23 @@ class MyMainWindow(QMainWindow, MainWindow):
                 position=InfoBarPosition.TOP,
                 duration=2000, parent=self
             )
+
+
+class MyAboutWindow(QDialog, AboutWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUI(self)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

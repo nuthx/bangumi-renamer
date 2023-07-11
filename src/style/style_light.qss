@@ -1,4 +1,6 @@
-MyMainWindow {
+MyMainWindow,
+MyAboutWindow,
+MySettingWindow {
     background: #F5F5F5;
 }
 
@@ -44,4 +46,39 @@ MyMainWindow {
 #detailLabel {
     font-size: 13px;
     color: #333;
+}
+
+/* 关于 */
+
+#logoLabel {
+    font-size: 23px;
+    color: #F09199;
+}
+
+#lightLabel {
+    color: #484848;
+}
+
+/* 设置 */
+
+#settingTitle {
+    font-size: 16px;
+    color: #000;
+}
+
+#cardTitleLabel {
+    font-size: 14px;
+    /* font-weight: bold; */
+    color: #000;
+}
+
+#cardInfoLabel {
+    font-size: 12px;
+    color: #777;
+}
+
+#cardFrame {
+    background: #FFF;
+    border: 1px solid #EDEDED;
+    border-radius: 8px;
 }
