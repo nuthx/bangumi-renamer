@@ -1,17 +1,12 @@
 import time
-import anitopy
-import send2trash
-import subprocess
 import threading
-import cProfile
-import pstats
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QPoint, QThread, QObject, Signal
 from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
-from src.function import *
-from src.module.analysis import getRomajiName, getApiInfo
+from src.function import initList
+from src.module.analysis import getRomajiName, getApiInfo, getFinalName
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -48,7 +43,7 @@ class MyMainWindow(QMainWindow, MainWindow):
     def dropEvent(self, event):
         # 获取并格式化本地路径
         raw_list = event.mimeData().urls()
-        result = initAnimeList(self.list_id, self.anime_list, raw_list)
+        result = initList(self.list_id, self.anime_list, raw_list)
 
         self.list_id = result[0]  # 此处的 list_id 已经比实际加了 1
         self.anime_list = result[1]
@@ -78,11 +73,11 @@ class MyMainWindow(QMainWindow, MainWindow):
         for anime in self.anime_list:
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
-            threads.append(thread)
+            # threads.append(thread)
 
         # 等待所有线程执行完毕
-        for thread in threads:
-            thread.join()
+        # for thread in threads:
+        #     thread.join()
 
         used_time = (time.time() - start_time) * 1000
         if used_time > 1000:
@@ -98,21 +93,23 @@ class MyMainWindow(QMainWindow, MainWindow):
         romaji_name = getRomajiName(file_name)
         anime["romaji_name"] = romaji_name
 
-        # 获取并写入当前 anime 字典
+        # 获取并写入分析信息
         getApiInfo(anime)
 
+        # 获取并写入重命名
+        getFinalName(anime)
 
+        # 重新排序 anime_list 列表，避免串行
+        self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
 
+        # 如果没有 jp_name_anilist 说明分析失败
+        if "jp_name_anilist" in anime:
+            self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
+            self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["initial_name"]))
+            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["initial_name"]))
+        else:
+            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
 
-
-
-
-
-
-
-
-
-        print(anime)
 
 
 
