@@ -61,11 +61,6 @@ MySettingWindow {
 
 /* 设置 */
 
-#settingTitle {
-    font-size: 16px;
-    color: #000;
-}
-
 #cardTitleLabel {
     font-size: 14px;
     /* font-weight: bold; */

@@ -1,9 +1,10 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
-from PySide6.QtGui import QIcon, QDesktopServices
-from qfluentwidgets import PushButton, ToolButton, FluentIcon, PrimaryPushButton, EditableComboBox
+from PySide6.QtGui import QIcon
+from qfluentwidgets import PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
 
 from src.module.resource import getResource
-from src.module.config import configPath, posterFolder
+from src.module.config import posterFolder
 
 
 class SettingWindow(object):
@@ -17,12 +18,6 @@ class SettingWindow(object):
         this_window.setWindowIcon(QIcon(getResource("image/icon.png")))
         this_window.resize(850, -1)
         this_window.setFixedSize(self.size())  # 禁止拉伸窗口
-
-        # 标题
-
-        self.basicTitle = QLabel("基础设置")
-        self.basicTitle.setObjectName("settingTitle")
-        self.basicTitle.setIndent(22)  # 缩进
 
         # 命名格式
 
@@ -63,7 +58,23 @@ class SettingWindow(object):
         # 日期格式
 
         self.dateTypeTitle = QLabel("日期格式")
-        self.dateTypeInfo = QLabel("为release_date指定日期格式")
+
+        self.dateTypeInfo = QLabel("指定 release_date 的显示格式，")
+        self.dateTypeInfo.setObjectName("cardInfoLabel")
+
+        self.dateTypeUrl = QLabel("<a href='https://arrow.readthedocs.io/en/latest/guide.html#supported-tokens' "
+                                  "style='font-size:12px;color:#F09199;'>查看在线文档</a>")
+        self.dateTypeUrl.setOpenExternalLinks(True)
+
+        self.dataInfoLayout = QHBoxLayout()
+        self.dataInfoLayout.setSpacing(0)
+        self.dataInfoLayout.setContentsMargins(0, 0, 0, 0)
+        self.dataInfoLayout.setAlignment(Qt.AlignLeft)
+        self.dataInfoLayout.addWidget(self.dateTypeInfo)
+        self.dataInfoLayout.addWidget(self.dateTypeUrl)
+
+        self.dateInfoFrame = QFrame()
+        self.dateInfoFrame.setLayout(self.dataInfoLayout)
 
         self.dateType = EditableComboBox(self)
         self.dateType.setMinimumWidth(200)
@@ -71,27 +82,7 @@ class SettingWindow(object):
         self.dateType.addItems(["YYMMDD", "YYYY-MM", "MMM YYYY"])
         self.dateType.setCurrentIndex(0)
 
-        self.dateToken = ToolButton(FluentIcon.LINK, self)
-        self.dateToken.clicked.connect(self.openDateTypeTokenLink)
-
-        self.dateTypeLayout = QHBoxLayout()
-        self.dateTypeLayout.setSpacing(0)
-        self.dateTypeLayout.setContentsMargins(0, 0, 0, 0)
-        self.dateTypeLayout.addWidget(self.dateType)
-        self.dateTypeLayout.addSpacing(-36)  # 硬算的间距，只要其他宽度不变就不要动
-        self.dateTypeLayout.addWidget(self.dateToken)
-        self.dateTypeLayout.addSpacing(-48)  # 硬算的间距，只要其他宽度不变就不要动
-
-        self.dateTypeFrame = QFrame()
-        self.dateTypeFrame.setLayout(self.dateTypeLayout)
-
-        self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateTypeInfo, self.dateTypeFrame)
-
-        # 标题
-
-        self.folderTitle = QLabel("储存位置")
-        self.folderTitle.setObjectName("settingTitle")
-        self.folderTitle.setIndent(22)  # 缩进
+        self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateInfoFrame, self.dateType)
 
         # 图片缓存
 
@@ -102,16 +93,6 @@ class SettingWindow(object):
         self.posterFolderButton.setFixedWidth(100)
 
         self.posterFolderCard = self.settingCard(self.posterFolderTitle, self.posterFolderInfo, self.posterFolderButton)
-
-        # 配置文件
-
-        self.configFolderTitle = QLabel("配置文件")
-        self.configFolderInfo = QLabel(configPath())
-
-        self.configFolderButton = PushButton("打开", self, FluentIcon.FOLDER)
-        self.configFolderButton.setFixedWidth(100)
-
-        self.configFolderCard = self.settingCard(self.configFolderTitle, self.configFolderInfo, self.configFolderButton)
 
         # 按钮
 
@@ -132,16 +113,10 @@ class SettingWindow(object):
         layout = QVBoxLayout(this_window)
         layout.setSpacing(8)
         layout.setContentsMargins(24, 24, 24, 24)
-        layout.addWidget(self.basicTitle)
-        layout.addSpacing(16)
         layout.addWidget(self.renameTypeCard)
         layout.addWidget(self.renameTutorialCard)
         layout.addWidget(self.dateTypeCard)
-        layout.addSpacing(20)
-        layout.addWidget(self.folderTitle)
-        layout.addSpacing(16)
         layout.addWidget(self.posterFolderCard)
-        layout.addWidget(self.configFolderCard)
         layout.addSpacing(12)
         layout.addLayout(self.buttonLayout)
 
@@ -166,7 +141,3 @@ class SettingWindow(object):
         self.cardFrame.setLayout(self.card)
 
         return self.cardFrame
-
-    def openDateTypeTokenLink(self):
-        url = "https://arrow.readthedocs.io/en/latest/guide.html#supported-tokens"
-        QDesktopServices.openUrl(url)

@@ -161,18 +161,7 @@ class MySettingWindow(QDialog, SettingWindow):
         self.initUI()
 
     def initUI(self):
-        self.configFolderButton.clicked.connect(self.openConfigFolder)
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
-
-    def openConfigFolder(self):
-        config_path = configPath()
-        if config_path != "N/A":
-            if platform.system() == "Windows":
-                subprocess.call(["explorer", config_path])
-            elif platform.system() == "Darwin":
-                subprocess.call(["open", config_path])
-            elif platform.system() == "Linux":
-                subprocess.call(["xdg-open", config_path])
 
     def openPosterFolder(self):
         poster_folder = posterFolder()
