@@ -126,7 +126,7 @@ class AboutWindow(object):
         self.card.addWidget(usage_times)
 
         self.cardFrame = QFrame()
-        self.cardFrame.setObjectName("cardFrame")
+        self.cardFrame.setObjectName("cardFrameFull")
         self.cardFrame.setLayout(self.card)
 
         return self.cardFrame

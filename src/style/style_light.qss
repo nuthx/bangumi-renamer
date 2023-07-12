@@ -72,8 +72,27 @@ MySettingWindow {
     color: #777;
 }
 
-#cardFrame {
+#cardFrameFull {
     background: #FFF;
     border: 1px solid #EDEDED;
     border-radius: 8px;
+}
+
+#cardFrameHalf {
+    background: #FFF;
+    border: 1px solid #EDEDED;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+#cardFrameHalf2 {
+    background: #FFF;
+    border: 1px solid #EDEDED;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+#cardFrameTutorial {
+    background: #F8F8F8;
+    border-radius: 4px;
 }

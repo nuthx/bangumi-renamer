@@ -22,7 +22,7 @@ class SettingWindow(object):
         # 命名格式
 
         self.renameTypeTitle = QLabel("命名格式")
-        self.renameTypeInfo = QLabel("请参考说明填写，避免出现错误")
+        self.renameTypeInfo = QLabel("变量必须包含花括号；单斜杠用于文件夹嵌套")
 
         self.renameType = EditableComboBox(self)
         self.renameType.setMinimumWidth(480)
@@ -30,29 +30,60 @@ class SettingWindow(object):
         self.renameType.addItems(["{initial_name}/[{bgm_typecode}] [{release_date}] {jp_name}",
                                   "[{bgm_type}] [{release_date}] {jp_name}",
                                   "[EP{episodes}] [{release_date}] {cn_name}"])
-        self.renameType.setCurrentIndex(0)
 
-        self.renameTypeCard = self.settingCard(self.renameTypeTitle, self.renameTypeInfo, self.renameType)
+        self.renameTypeCard = self.settingCard(self.renameTypeTitle, self.renameTypeInfo, self.renameType, "half")
 
         # 命名说明
 
-        self.renameTutorial = QLabel("file_name：文件名<br>"
-                                     "bgm_id：Bangumi动画ID<br>"
-                                     "romaji_name：动画罗马名<br>"
-                                     "jp_name：动画日文名<br>"
-                                     "cn_name：动画中文名<br>"
-                                     "initial_name：动画首季度中文名<br>"
-                                     "bgm_type：动画类型<br>"
-                                     "bgm_typecode：动画类型编码<br>"
-                                     "release_date：上映日期<br>"
-                                     "episodes：章节数量")
+        self.t1 = self.tutorialCard("jp_name", "日文名")
+        self.t2 = self.tutorialCard("cn_name", "中文名")
+        self.t3 = self.tutorialCard("initial_name", "首季中文名")
+        self.t4 = self.tutorialCard("romaji_name", "罗马名")
 
-        self.renameTutorialLayout = QHBoxLayout()
+        self.f1 = QHBoxLayout()
+        self.f1.setSpacing(12)
+        self.f1.setContentsMargins(0, 0, 0, 0)
+        self.f1.addWidget(self.t1)
+        self.f1.addWidget(self.t2)
+        self.f1.addWidget(self.t3)
+        self.f1.addWidget(self.t4)
+
+        self.t5 = self.tutorialCard("bgm_type", "动画类型")
+        self.t6 = self.tutorialCard("bgm_typecode", "类型编号")
+        self.t7 = self.tutorialCard("release_date", "上映日期")
+        self.t8 = self.tutorialCard("episodes", "章节数量")
+
+        self.f2 = QHBoxLayout()
+        self.f2.setSpacing(12)
+        self.f2.setContentsMargins(0, 0, 0, 0)
+        self.f2.addWidget(self.t5)
+        self.f2.addWidget(self.t6)
+        self.f2.addWidget(self.t7)
+        self.f2.addWidget(self.t8)
+
+        self.t9 = self.tutorialCard("bgm_score", "当前评分")
+        self.t10 = self.tutorialCard("bgm_id", "Bangumi ID")
+        # self.t11 = self.tutorialCard("", "")
+        # self.t12 = self.tutorialCard("", "")
+
+        self.f3 = QHBoxLayout()
+        self.f3.setSpacing(12)
+        self.f3.setContentsMargins(0, 0, 0, 0)
+        self.f3.addWidget(self.t9)
+        self.f3.addWidget(self.t10)
+        # self.f3.addWidget(self.t11)
+        # self.f3.addWidget(self.t12)
+        self.f3.addStretch(0)
+
+        self.renameTutorialLayout = QVBoxLayout()
+        self.renameTutorialLayout.setSpacing(12)
         self.renameTutorialLayout.setContentsMargins(20, 16, 20, 16)
-        self.renameTutorialLayout.addWidget(self.renameTutorial)
+        self.renameTutorialLayout.addLayout(self.f1)
+        self.renameTutorialLayout.addLayout(self.f2)
+        self.renameTutorialLayout.addLayout(self.f3)
 
         self.renameTutorialCard = QFrame()
-        self.renameTutorialCard.setObjectName("cardFrame")
+        self.renameTutorialCard.setObjectName("cardFrameHalf2")
         self.renameTutorialCard.setLayout(self.renameTutorialLayout)
 
         # 日期格式
@@ -80,9 +111,8 @@ class SettingWindow(object):
         self.dateType.setMinimumWidth(200)
         self.dateType.setMaximumWidth(200)
         self.dateType.addItems(["YYMMDD", "YYYY-MM", "MMM YYYY"])
-        self.dateType.setCurrentIndex(0)
 
-        self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateInfoFrame, self.dateType)
+        self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateInfoFrame, self.dateType, "full")
 
         # 图片缓存
 
@@ -92,7 +122,8 @@ class SettingWindow(object):
         self.posterFolderButton = PushButton("打开", self, FluentIcon.FOLDER)
         self.posterFolderButton.setFixedWidth(100)
 
-        self.posterFolderCard = self.settingCard(self.posterFolderTitle, self.posterFolderInfo, self.posterFolderButton)
+        self.posterFolderCard = self.settingCard(
+            self.posterFolderTitle, self.posterFolderInfo, self.posterFolderButton, "full")
 
         # 按钮
 
@@ -111,16 +142,17 @@ class SettingWindow(object):
         # 叠叠乐
 
         layout = QVBoxLayout(this_window)
-        layout.setSpacing(8)
+        layout.setSpacing(14)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.addWidget(self.renameTypeCard)
+        layout.addSpacing(-15)
         layout.addWidget(self.renameTutorialCard)
         layout.addWidget(self.dateTypeCard)
         layout.addWidget(self.posterFolderCard)
         layout.addSpacing(12)
         layout.addLayout(self.buttonLayout)
 
-    def settingCard(self, card_title, card_info, card_func):
+    def settingCard(self, card_title, card_info, card_func, size):
         card_title.setObjectName("cardTitleLabel")
         card_info.setObjectName("cardInfoLabel")
 
@@ -137,7 +169,31 @@ class SettingWindow(object):
         self.card.addWidget(card_func)
 
         self.cardFrame = QFrame()
-        self.cardFrame.setObjectName("cardFrame")
         self.cardFrame.setLayout(self.card)
 
+        if size == "half":
+            self.cardFrame.setObjectName("cardFrameHalf")
+        elif size == "full":
+            self.cardFrame.setObjectName("cardFrameFull")
+
         return self.cardFrame
+
+    def tutorialCard(self, card_token, card_explain):
+        self.tokenLabel = QLabel(card_token)
+        self.tokenLabel.setObjectName("lightLabel")
+        self.explainLabel = QLabel(card_explain)
+        self.explainLabel.setObjectName("lightLabel")
+
+        self.tutorialLayout = QHBoxLayout()
+        self.tutorialLayout.setContentsMargins(12, 8, 12, 8)
+        self.tutorialLayout.addWidget(self.tokenLabel)
+        self.tutorialLayout.addStretch(0)
+        self.tutorialLayout.addWidget(self.explainLabel)
+
+        self.card = QFrame()
+        self.card.setMinimumWidth(181)
+        self.card.setMaximumWidth(181)
+        self.card.setObjectName("cardFrameTutorial")
+        self.card.setLayout(self.tutorialLayout)
+
+        return self.card

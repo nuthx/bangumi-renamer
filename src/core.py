@@ -12,7 +12,7 @@ from src.gui.setting import SettingWindow
 
 from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, getFinalName
-from src.module.config import configPath, posterFolder
+from src.module.config import configFile, posterFolder, readConfig
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -159,9 +159,27 @@ class MySettingWindow(QDialog, SettingWindow):
         super().__init__()
         self.setupUI(self)
         self.initUI()
+        self.config = readConfig()
+        self.loadConfig()
 
     def initUI(self):
+        self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
+        self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
+
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
+
+    def loadConfig(self):
+        self.renameType.setText(self.config.get("Format", "rename_format"))
+        self.dateType.setText(self.config.get("Format", "date_format"))
+
+    def saveConfig(self):
+        self.config.set("Format", "rename_format", self.renameType.currentText())
+        self.config.set("Format", "date_format", self.dateType.currentText())
+
+        with open(configFile(), "w") as content:
+            self.config.write(content)
+
+        self.close()
 
     def openPosterFolder(self):
         poster_folder = posterFolder()
@@ -172,14 +190,3 @@ class MySettingWindow(QDialog, SettingWindow):
                 subprocess.call(["open", poster_folder])
             elif platform.system() == "Linux":
                 subprocess.call(["xdg-open", poster_folder])
-
-
-
-
-
-
-
-
-
-
-
