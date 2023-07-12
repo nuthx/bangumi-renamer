@@ -1,13 +1,18 @@
 import time
 import threading
+import platform
+import subprocess
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QPoint, QThread, QObject, Signal
 from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
+from src.gui.setting import SettingWindow
+
 from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, getFinalName
+from src.module.config import configPath, posterFolder
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -19,7 +24,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def initUI(self):
         self.aboutButton.clicked.connect(self.openAbout)
-        # self.settingButton.clicked.connect(self.openSetting)
+        self.settingButton.clicked.connect(self.openSetting)
         self.clearButton.clicked.connect(self.initList)
         self.analysisButton.clicked.connect(self.startAnalysis)
         # self.renameButton.clicked.connect(self.startRename)
@@ -34,13 +39,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         about = MyAboutWindow()
         about.exec()
 
-    # def openAbout(self):
-    #     about = MyAboutWindow()
-    #     about.exec()
-    #
-    # def openSetting(self):
-    #     setting = MySettingWindow()
-    #     setting.exec()
+    def openSetting(self):
+        setting = MySettingWindow()
+        setting.exec()
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
@@ -153,7 +154,35 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.setupUI(self)
 
 
+class MySettingWindow(QDialog, SettingWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUI(self)
+        self.initUI()
 
+    def initUI(self):
+        self.configFolderButton.clicked.connect(self.openConfigFolder)
+        self.posterFolderButton.clicked.connect(self.openPosterFolder)
+
+    def openConfigFolder(self):
+        config_path = configPath()
+        if config_path != "N/A":
+            if platform.system() == "Windows":
+                subprocess.call(["explorer", config_path])
+            elif platform.system() == "Darwin":
+                subprocess.call(["open", config_path])
+            elif platform.system() == "Linux":
+                subprocess.call(["xdg-open", config_path])
+
+    def openPosterFolder(self):
+        poster_folder = posterFolder()
+        if poster_folder != "N/A":
+            if platform.system() == "Windows":
+                subprocess.call(["explorer", poster_folder])
+            elif platform.system() == "Darwin":
+                subprocess.call(["open", poster_folder])
+            elif platform.system() == "Linux":
+                subprocess.call(["xdg-open", poster_folder])
 
 
 
