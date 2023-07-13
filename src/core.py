@@ -125,6 +125,11 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请先添加文件夹")
             return
 
+        # 标出分析中
+        anime_len = len(self.anime_list)
+        for i in range(anime_len):
+            self.table.setItem(i, 2, QTableWidgetItem("==> 分析中"))
+
         # 多线程分析
         threads = []
         for anime in self.anime_list:
@@ -153,9 +158,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 获取并写入分析信息
         getApiInfo(anime)
 
-        # 如果没有 jp_name_anilist 说明分析失败
-        if "jp_name_anilist" not in anime:
-            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
+        # 使用 init_name 判断是否分析成功
+        if "init_name" not in anime:
+            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 
         # 下载图片
