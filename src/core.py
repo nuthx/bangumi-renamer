@@ -4,8 +4,9 @@ import threading
 import platform
 import subprocess
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
-from PySide6.QtCore import Qt, QPoint, QThread, QObject, Signal
-from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon, Flyout, InfoBarIcon
+from PySide6.QtCore import Qt, QUrl, Signal
+from PySide6.QtGui import QDesktopServices
+from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon
 
 from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
@@ -15,7 +16,6 @@ from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
 from src.module.resource import getResource
-from src.module.image import RoundedLabel
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -28,6 +28,8 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def initUI(self):
         self.table.itemSelectionChanged.connect(self.selectTable)
+
+        self.linkButton.clicked.connect(self.openUrl)
 
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
@@ -61,6 +63,29 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def closeSetting(self, title):
         self.showInfo("success", title, "请重新开始分析")
+
+    def currentLine(self):
+        rows = []
+        for item in self.table.selectedItems():
+            rows.append(item.row())
+        if rows:
+            this_line = rows[0]
+            return this_line
+        else:
+            return None
+
+    def openUrl(self):
+        this_line = self.currentLine()
+        if this_line is not None or this_line == 0:
+            if "bgm_id" in self.anime_list[this_line]:
+                bgm_id = str(self.anime_list[this_line]["bgm_id"])
+                url = QUrl("https://bgm.tv/subject/" + bgm_id)
+                QDesktopServices.openUrl(url)
+            else:
+                self.showInfo("warning", "链接无效", "请先尝试分析该动画")
+                return
+        else:
+            self.showInfo("warning", "", "请先选择一个动画")
 
     def cleanTable(self):
         if not self.anime_list:
@@ -149,57 +174,53 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
 
     def selectTable(self):
-        # 当前选定的行 ID
-        rows = []
-        for item in self.table.selectedItems():
-            rows.append(item.row())
-        this_row = rows[0]
+        this_line = self.currentLine()
 
-        if "cn_name" in self.anime_list[this_row]:
-            cn_name = self.anime_list[this_row]["cn_name"]
+        if "cn_name" in self.anime_list[this_line]:
+            cn_name = self.anime_list[this_line]["cn_name"]
             self.cnName.setText(cn_name)
         else:
             self.cnName.setText("暂无动画")
 
-        if "jp_name" in self.anime_list[this_row]:
-            jp_name = self.anime_list[this_row]["jp_name"]
+        if "jp_name" in self.anime_list[this_line]:
+            jp_name = self.anime_list[this_line]["jp_name"]
             self.jpName.setText(jp_name)
         else:
             self.jpName.setText("请先选中一个动画以展示详细信息")
 
-        if "types" in self.anime_list[this_row] and "typecode" in self.anime_list[this_row]:
-            types = self.anime_list[this_row]["types"].upper()
-            typecode = self.anime_list[this_row]["typecode"]
+        if "types" in self.anime_list[this_line] and "typecode" in self.anime_list[this_line]:
+            types = self.anime_list[this_line]["types"].upper()
+            typecode = self.anime_list[this_line]["typecode"]
             self.typeLabel.setText(f"类型：{types} ({typecode})")
         else:
             self.typeLabel.setText("类型：")
 
-        if "release" in self.anime_list[this_row]:
-            release = self.anime_list[this_row]["release"]
+        if "release" in self.anime_list[this_line]:
+            release = self.anime_list[this_line]["release"]
             self.dateLabel.setText(f"放送日期：{release}")
         else:
             self.dateLabel.setText("放送日期：")
 
-        if "score" in self.anime_list[this_row]:
-            score = str(self.anime_list[this_row]["score"])
+        if "score" in self.anime_list[this_line]:
+            score = str(self.anime_list[this_line]["score"])
             self.scoreLabel.setText(f"当前评分：{score}")
         else:
             self.scoreLabel.setText("当前评分：")
 
-        if "file_name" in self.anime_list[this_row]:
-            file_name = self.anime_list[this_row]["file_name"]
+        if "file_name" in self.anime_list[this_line]:
+            file_name = self.anime_list[this_line]["file_name"]
             self.fileName.setText(f"文件名：{file_name}")
         else:
             self.fileName.setText("文件名：")
 
-        if "final_name" in self.anime_list[this_row]:
-            final_name = self.anime_list[this_row]["final_name"].replace("/", " / ")
+        if "final_name" in self.anime_list[this_line]:
+            final_name = self.anime_list[this_line]["final_name"].replace("/", " / ")
             self.finalName.setText(f"重命名结果：{final_name}")
         else:
             self.finalName.setText("重命名结果：")
 
-        if "poster" in self.anime_list[this_row]:
-            poster_name = os.path.basename(self.anime_list[this_row]["poster"])
+        if "poster" in self.anime_list[this_line]:
+            poster_name = os.path.basename(self.anime_list[this_line]["poster"])
             poster_path = os.path.join(self.poster_folder, poster_name)
             self.image.updateImage(poster_path)
         else:
