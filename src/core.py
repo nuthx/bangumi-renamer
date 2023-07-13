@@ -4,7 +4,7 @@ import platform
 import subprocess
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QPoint, QThread, QObject, Signal
-from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
+from qfluentwidgets import MessageBox, InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon, Flyout, InfoBarIcon
 
 from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
@@ -25,7 +25,7 @@ class MyMainWindow(QMainWindow, MainWindow):
     def initUI(self):
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
-        self.clearButton.clicked.connect(self.initList)
+        self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         # self.renameButton.clicked.connect(self.startRename)
 
@@ -41,7 +41,18 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def openSetting(self):
         setting = MySettingWindow()
+        setting.closed.connect(self.closeSetting)
         setting.exec()
+
+    def closeSetting(self):
+        self.showInfo("success", "命名格式修改", "请重新开始分析")
+
+    def cleanTable(self):
+        if not self.anime_list:
+            self.showInfo("warning", "", "列表为空")
+        else:
+            self.initList()
+            self.showInfo("success", "", "列表已清空")
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
@@ -102,6 +113,11 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 获取并写入分析信息
         getApiInfo(anime)
 
+        # 如果没有 jp_name_anilist 说明分析失败
+        if "jp_name_anilist" not in anime:
+            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
+            return
+
         # 下载图片
         downloadPoster(anime)
 
@@ -112,13 +128,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 重新排序 anime_list 列表，避免串行
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
 
-        # 如果没有 jp_name_anilist 说明分析失败
-        if "jp_name_anilist" in anime:
-            self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
-            self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
-            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"]))
-        else:
-            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
+        # 在列表中显示
+        self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
+        self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
+        self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"]))
 
     def showInfo(self, state, title, content):
         info_state = {
@@ -144,6 +157,8 @@ class MyAboutWindow(QDialog, AboutWindow):
 
 
 class MySettingWindow(QDialog, SettingWindow):
+    closed = Signal()
+
     def __init__(self):
         super().__init__()
         self.setupUI(self)
@@ -165,11 +180,15 @@ class MySettingWindow(QDialog, SettingWindow):
         # 格式检查
         result = str(formatCheck(self.renameType.currentText()))
         if result != "True":
-            notice = MessageBox("配置错误", result, self)
-            if notice.exec():
-                return
-            else:
-                return
+            Flyout.create(
+                icon=InfoBarIcon.ERROR,
+                title="",
+                content=result,
+                target=self.renameType,
+                parent=self,
+                isClosable=False
+            )
+            return
 
         self.config.set("Format", "rename_format", self.renameType.currentText())
         self.config.set("Format", "date_format", self.dateType.currentText())
@@ -188,3 +207,7 @@ class MySettingWindow(QDialog, SettingWindow):
                 subprocess.call(["open", poster_folder])
             elif platform.system() == "Linux":
                 subprocess.call(["xdg-open", poster_folder])
+
+    def closeEvent(self, event):
+        self.closed.emit()
+        super().closeEvent(event)
