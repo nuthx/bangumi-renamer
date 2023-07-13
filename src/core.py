@@ -123,8 +123,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.table.setItem(list_id, 1, QTableWidgetItem(file_name))
 
     def startAnalysis(self):
-        start_time = time.time()
-
         # 是否存在文件
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加文件夹")
@@ -136,23 +134,9 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.table.setItem(i, 2, QTableWidgetItem("==> 分析中"))
 
         # 多线程分析
-        threads = []
         for anime in self.anime_list:
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
-            # threads.append(thread)
-
-        # 等待所有线程执行完毕
-        # for thread in threads:
-        #     thread.join()
-
-        # used_time = (time.time() - start_time) * 1000
-        # if used_time > 1000:
-        #     used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
-        #     self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
-        # else:
-        #     used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
-        #     self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
 
         self.showInfo("info", "开始分析", "请等待分析完成")
 
