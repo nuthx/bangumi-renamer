@@ -48,6 +48,10 @@ MySettingWindow {
     color: #333;
 }
 
+#image {
+    border: 1px solid red;
+}
+
 /* 关于 */
 
 #logoLabel {

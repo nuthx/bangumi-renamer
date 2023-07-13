@@ -1,24 +1,6 @@
 
 
 
-    # 读取配置
-    def load_text(self):
-        config_file = QtCore.QFileInfo("config.ini")
-        settings = QtCore.QSettings("config.ini", QtCore.QSettings.IniFormat)
-
-        # 如果不存在配置文件，则创建
-        if not config_file.exists():
-            open(config_file.filePath(), "w").write("")  # 创建配置文件，并写入空内容
-            name_type = "{b_initial_name}/[{b_typecode}] [{b_release_date}] {b_jp_name}"  # 默认格式
-            settings.setValue("type", name_type)
-
-        input_text = settings.value("type", "")
-        self.type_input.setText(str(input_text))
-
-
-
-
-
     # 显示选中动画的详情
     @QtCore.Slot()
     def show_select_list(self, current):

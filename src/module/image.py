@@ -6,10 +6,12 @@ from PySide6.QtWidgets import QLabel
 
 
 class RoundedLabel(QLabel):
-    def __init__(self, imagePath, parent=None):
-        super().__init__(parent)
+    def __init__(self, imagePath):
+        super().__init__()
         self.radius = 8
+        self.updateImage(imagePath)
 
+    def updateImage(self, imagePath):
         image = QPixmap(imagePath)
         width = image.width()
         height = image.height()

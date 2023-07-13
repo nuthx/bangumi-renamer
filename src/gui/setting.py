@@ -51,7 +51,7 @@ class SettingWindow(object):
 
         self.t5 = self.tutorialCard("types", "动画类型")
         self.t6 = self.tutorialCard("typecode", "类型编号")
-        self.t7 = self.tutorialCard("release", "上映日期")
+        self.t7 = self.tutorialCard("release", "放送日期")
         self.t8 = self.tutorialCard("episodes", "章节数量")
 
         self.f2 = QHBoxLayout()

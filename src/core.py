@@ -1,3 +1,4 @@
+import os
 import time
 import threading
 import platform
@@ -13,6 +14,8 @@ from src.gui.setting import SettingWindow
 from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
+from src.module.resource import getResource
+from src.module.image import RoundedLabel
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -21,8 +24,11 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.setupUI(self)
         self.initUI()
         self.initList()
+        self.poster_folder = posterFolder()
 
     def initUI(self):
+        self.table.itemSelectionChanged.connect(self.selectTable)
+
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
         self.clearButton.clicked.connect(self.cleanTable)
@@ -34,6 +40,15 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = []
         self.table.clearContents()
         self.table.setRowCount(0)
+
+        self.cnName.setText("暂无动画")
+        self.jpName.setText("请先选中一个动画以展示详细信息")
+        self.typeLabel.setText("类型：")
+        self.dateLabel.setText("放送日期：")
+        self.scoreLabel.setText("当前评分：")
+        self.fileName.setText("文件名：")
+        self.finalName.setText("重命名结果：")
+        self.image.updateImage(getResource("image/empty.png"))
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -131,7 +146,64 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 在列表中显示
         self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
         self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
-        self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"]))
+        self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
+
+    def selectTable(self):
+        # 当前选定的行 ID
+        rows = []
+        for item in self.table.selectedItems():
+            rows.append(item.row())
+        this_row = rows[0]
+
+        if "cn_name" in self.anime_list[this_row]:
+            cn_name = self.anime_list[this_row]["cn_name"]
+            self.cnName.setText(cn_name)
+        else:
+            self.cnName.setText("暂无动画")
+
+        if "jp_name" in self.anime_list[this_row]:
+            jp_name = self.anime_list[this_row]["jp_name"]
+            self.jpName.setText(jp_name)
+        else:
+            self.jpName.setText("请先选中一个动画以展示详细信息")
+
+        if "types" in self.anime_list[this_row] and "typecode" in self.anime_list[this_row]:
+            types = self.anime_list[this_row]["types"].upper()
+            typecode = self.anime_list[this_row]["typecode"]
+            self.typeLabel.setText(f"类型：{types} ({typecode})")
+        else:
+            self.typeLabel.setText("类型：")
+
+        if "release" in self.anime_list[this_row]:
+            release = self.anime_list[this_row]["release"]
+            self.dateLabel.setText(f"放送日期：{release}")
+        else:
+            self.dateLabel.setText("放送日期：")
+
+        if "score" in self.anime_list[this_row]:
+            score = str(self.anime_list[this_row]["score"])
+            self.scoreLabel.setText(f"当前评分：{score}")
+        else:
+            self.scoreLabel.setText("当前评分：")
+
+        if "file_name" in self.anime_list[this_row]:
+            file_name = self.anime_list[this_row]["file_name"]
+            self.fileName.setText(f"文件名：{file_name}")
+        else:
+            self.fileName.setText("文件名：")
+
+        if "final_name" in self.anime_list[this_row]:
+            final_name = self.anime_list[this_row]["final_name"].replace("/", " / ")
+            self.finalName.setText(f"重命名结果：{final_name}")
+        else:
+            self.finalName.setText("重命名结果：")
+
+        if "poster" in self.anime_list[this_row]:
+            poster_name = os.path.basename(self.anime_list[this_row]["poster"])
+            poster_path = os.path.join(self.poster_folder, poster_name)
+            self.image.updateImage(poster_path)
+        else:
+            self.image.updateImage(getResource("image/empty.png"))
 
     def showInfo(self, state, title, content):
         info_state = {
