@@ -240,7 +240,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         this_line = self.currentLine()
 
         # 应对重命名完成后的 initList 操作
-        if not this_line:
+        if this_line is None:
             return
 
         if "cn_name" in self.anime_list[this_line]:
