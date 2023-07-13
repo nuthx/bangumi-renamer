@@ -1,42 +1,7 @@
-import threading
-
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QTableWidgetItem, QAbstractItemView
-from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            InfoBar, InfoBarPosition)
-from qfluentwidgets.common.style_sheet import styleSheetManager
 
 
 
 
-# 写入图片文件名到字典
-img_url = this_anime_dict["b_image"]
-img_name = os.path.basename(img_url)
-this_anime_dict["b_image_name"] = img_name
-
-# 检测图片文件夹是否存在
-img_dir = "cover"
-if not os.path.exists(img_dir):
-    os.makedirs(img_dir)
-
-# 下载此图片
-response_img = requests.get(img_url)
-save_path = os.path.join(img_dir, img_name)
-with open(save_path, "wb") as file:
-    file.write(response_img.content)
-
-
-
-name_type = "{b_initial_name}/[{b_typecode}] [{b_release_date}] {b_jp_name}"
-
-
-
-
-
-
-        # 读取配置
-        self.load_text()
 
     # 保存配置
     def save_config(self):

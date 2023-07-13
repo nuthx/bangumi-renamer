@@ -11,7 +11,7 @@ from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
 
 from src.function import initList
-from src.module.analysis import getRomajiName, getApiInfo, getFinalName
+from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.config import configFile, posterFolder, readConfig
 
 
@@ -102,8 +102,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 获取并写入分析信息
         getApiInfo(anime)
 
+        # 下载图片
+        downloadPoster(anime)
+
         # 获取并写入重命名
         getFinalName(anime)
+        print(anime)
 
         # 重新排序 anime_list 列表，避免串行
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
@@ -111,8 +115,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 如果没有 jp_name_anilist 说明分析失败
         if "jp_name_anilist" in anime:
             self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
-            self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["initial_name"]))
-            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["initial_name"]))
+            self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
+            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["init_name"]))
         else:
             self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
 

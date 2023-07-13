@@ -27,9 +27,10 @@ class SettingWindow(object):
         self.renameType = EditableComboBox(self)
         self.renameType.setMinimumWidth(480)
         self.renameType.setMaximumWidth(400)
-        self.renameType.addItems(["{initial_name}/[{bgm_typecode}] [{release_date}] {jp_name}",
-                                  "[{bgm_type}] [{release_date}] {jp_name}",
-                                  "[EP{episodes}] [{release_date}] {cn_name}"])
+        self.renameType.addItems(["{init_name}/[{score}] [{typecode}] [{release}] {jp_name}",
+                                  "{init_name}/[{typecode}][{release}] {jp_name}",
+                                  "[{types}]/{cn_name} ({jp_name})",
+                                  "[{release}] {cn_name} ({episodes})"])
 
         self.renameTypeCard = self.settingCard(self.renameTypeTitle, self.renameTypeInfo, self.renameType, "half")
 
@@ -37,7 +38,7 @@ class SettingWindow(object):
 
         self.t1 = self.tutorialCard("jp_name", "日文名")
         self.t2 = self.tutorialCard("cn_name", "中文名")
-        self.t3 = self.tutorialCard("initial_name", "首季中文名")
+        self.t3 = self.tutorialCard("init_name", "首季中文名")
         self.t4 = self.tutorialCard("romaji_name", "罗马名")
 
         self.f1 = QHBoxLayout()
@@ -48,9 +49,9 @@ class SettingWindow(object):
         self.f1.addWidget(self.t3)
         self.f1.addWidget(self.t4)
 
-        self.t5 = self.tutorialCard("bgm_type", "动画类型")
-        self.t6 = self.tutorialCard("bgm_typecode", "类型编号")
-        self.t7 = self.tutorialCard("release_date", "上映日期")
+        self.t5 = self.tutorialCard("types", "动画类型")
+        self.t6 = self.tutorialCard("typecode", "类型编号")
+        self.t7 = self.tutorialCard("release", "上映日期")
         self.t8 = self.tutorialCard("episodes", "章节数量")
 
         self.f2 = QHBoxLayout()
@@ -61,7 +62,7 @@ class SettingWindow(object):
         self.f2.addWidget(self.t7)
         self.f2.addWidget(self.t8)
 
-        self.t9 = self.tutorialCard("bgm_score", "当前评分")
+        self.t9 = self.tutorialCard("score", "当前评分")
         self.t10 = self.tutorialCard("bgm_id", "Bangumi ID")
         # self.t11 = self.tutorialCard("", "")
         # self.t12 = self.tutorialCard("", "")
