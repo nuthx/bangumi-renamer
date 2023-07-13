@@ -146,13 +146,15 @@ class MyMainWindow(QMainWindow, MainWindow):
         # for thread in threads:
         #     thread.join()
 
-        used_time = (time.time() - start_time) * 1000
-        if used_time > 1000:
-            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
-            self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
-        else:
-            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
-            self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
+        # used_time = (time.time() - start_time) * 1000
+        # if used_time > 1000:
+        #     used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
+        #     self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
+        # else:
+        #     used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
+        #     self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
+
+        self.showInfo("info", "开始分析", "请等待分析完成")
 
     def analysisThread(self, anime):
         # 获取并写入罗马名
