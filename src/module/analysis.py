@@ -25,6 +25,9 @@ def getRomajiName(file_name):
 
 
 def getApiInfo(anime):
+    config = readConfig()
+    data_format = config.get("Format", "date_format")
+
     romaji_name = anime["romaji_name"]
 
     # Anilist
@@ -48,7 +51,7 @@ def getApiInfo(anime):
 
     # bangumi Subject
 
-    bangumi_subject = bangumiSubject(anime["bgm_id"])
+    bangumi_subject = bangumiSubject(anime["bgm_id"], data_format)
     if bangumi_subject:
         anime["types"] = bangumi_subject[0]
         anime["typecode"] = bangumi_subject[1]
