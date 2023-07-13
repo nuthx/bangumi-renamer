@@ -29,7 +29,7 @@ class SettingWindow(object):
         self.renameType.setMaximumWidth(400)
         self.renameType.addItems(["{init_name}/[{score}] [{typecode}] [{release}] {jp_name}",
                                   "{init_name}/[{typecode}][{release}] {jp_name}",
-                                  "[{types}]/{cn_name} ({jp_name})",
+                                  "{types}/{cn_name} ({jp_name})",
                                   "[{release}] {cn_name} ({episodes})"])
 
         self.renameTypeCard = self.settingCard(self.renameTypeTitle, self.renameTypeInfo, self.renameType, "half")
