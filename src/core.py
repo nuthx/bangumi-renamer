@@ -41,11 +41,11 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def openSetting(self):
         setting = MySettingWindow()
-        setting.closed.connect(self.closeSetting)
+        setting.save_notice.connect(self.closeSetting)
         setting.exec()
 
-    def closeSetting(self):
-        self.showInfo("success", "命名格式修改", "请重新开始分析")
+    def closeSetting(self, title):
+        self.showInfo("success", title, "请重新开始分析")
 
     def cleanTable(self):
         if not self.anime_list:
@@ -157,7 +157,7 @@ class MyAboutWindow(QDialog, AboutWindow):
 
 
 class MySettingWindow(QDialog, SettingWindow):
-    closed = Signal()
+    save_notice = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -196,6 +196,7 @@ class MySettingWindow(QDialog, SettingWindow):
         with open(configFile(), "w") as content:
             self.config.write(content)
 
+        self.save_notice.emit("配置已保存")
         self.close()
 
     def openPosterFolder(self):
@@ -207,7 +208,3 @@ class MySettingWindow(QDialog, SettingWindow):
                 subprocess.call(["open", poster_folder])
             elif platform.system() == "Linux":
                 subprocess.call(["xdg-open", poster_folder])
-
-    def closeEvent(self, event):
-        self.closed.emit()
-        super().closeEvent(event)
