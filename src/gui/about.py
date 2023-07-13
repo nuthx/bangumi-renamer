@@ -24,7 +24,7 @@ class AboutWindow(object):
 
         self.logo = QLabel()
         self.logo.setFixedSize(100, 100)
-        self.logo.setPixmap(QPixmap(getResource("image/icon_mac.png")))
+        self.logo.setPixmap(QPixmap(getResource("image/icon.png")))
         self.logo.setScaledContents(True)
 
         self.logoLayout = QHBoxLayout()
