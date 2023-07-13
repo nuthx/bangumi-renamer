@@ -3,6 +3,7 @@ import time
 import threading
 import platform
 import subprocess
+import shutil
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
@@ -29,13 +30,14 @@ class MyMainWindow(QMainWindow, MainWindow):
     def initUI(self):
         self.table.itemSelectionChanged.connect(self.selectTable)
 
+        self.editButton.clicked.connect(self.openEdit)
         self.linkButton.clicked.connect(self.openUrl)
 
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
-        # self.renameButton.clicked.connect(self.startRename)
+        self.renameButton.clicked.connect(self.startRename)
 
     def initList(self):
         self.list_id = 0
@@ -63,6 +65,9 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def closeSetting(self, title):
         self.showInfo("success", title, "请重新开始分析")
+
+    def openEdit(self):
+        self.showInfo("info", "", "敬请期待")
 
     def currentLine(self):
         rows = []
@@ -178,8 +183,79 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
         self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
 
+    def startRename(self):
+        start_time = time.time()
+
+        # anime_list 是否有数据
+        if not self.anime_list:
+            self.showInfo("warning", "", "请先添加动画")
+            return
+
+        # 是否开始过分析
+        if self.table.item(0, 2) is None:
+            self.showInfo("warning", "", "请先开始分析")
+            return
+
+        # 列出 anime_list 中有 final_name 的索引
+        rename_order_list = []
+        for index, dictionary in enumerate(self.anime_list):
+            if "final_name" in dictionary:
+                rename_order_list.append(index)
+
+        # 是否有需要命名的动画
+        if not rename_order_list:
+            self.showInfo("warning", "", "没有可以命名的动画")
+            return
+
+        # 开始命名
+        for order in rename_order_list:
+            this_anime = self.anime_list[order]
+
+            # 拆分 final_name 文件夹结构
+            final_name = this_anime["final_name"]
+            if '/' in final_name:
+                final_name_list = final_name.split('/')
+                final_name_1 = final_name_list[0]
+                final_name_2 = final_name_list[1]
+            else:
+                final_name_1 = ""
+                final_name_2 = final_name
+
+            # 更名当前文件夹
+            file_path = this_anime["file_path"]
+            file_dir = os.path.dirname(file_path)
+            final_path_2 = os.path.join(file_dir, final_name_2)
+            os.rename(file_path, final_path_2)
+
+            # 是否有父文件夹
+            if final_name_1 == "":
+                return
+
+            # 创建父文件夹
+            final_path_1 = os.path.join(file_dir, final_name_1)
+            if not os.path.exists(final_path_1):
+                os.makedirs(final_path_1)
+
+            # 移动至父文件夹
+            final_path_1 = os.path.join(file_dir, final_name_1)
+            shutil.move(final_path_2, final_path_1)
+
+        self.initList()
+
+        used_time = (time.time() - start_time) * 1000
+        if used_time > 1000:
+            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
+            self.showInfo("success", "重命名完成", f"耗时{used_time_s}s")
+        else:
+            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
+            self.showInfo("success", "重命名完成", f"耗时{used_time_ms}ms")
+
     def selectTable(self):
         this_line = self.currentLine()
+
+        # 应对重命名完成后的 initList 操作
+        if not this_line:
+            return
 
         if "cn_name" in self.anime_list[this_line]:
             cn_name = self.anime_list[this_line]["cn_name"]
