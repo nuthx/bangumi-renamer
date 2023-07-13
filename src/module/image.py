@@ -15,7 +15,6 @@ class RoundedLabel(QLabel):
         height = image.height()
 
         ratio = height / width
-        print(ratio)
 
         # 比例在范围内则固定长宽
         if 1.25 <= ratio <= 1.55:

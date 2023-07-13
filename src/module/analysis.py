@@ -3,7 +3,7 @@ import re
 import anitopy
 
 from src.module.api import *
-from src.module.config import posterFolder
+from src.module.config import posterFolder, readConfig
 
 
 def getRomajiName(file_name):
@@ -90,24 +90,23 @@ def downloadPoster(anime):
         file.write(response.content)
 
 
-
-
-
-
 def getFinalName(anime):
-    # # 写入命名结果
-    # b_id = this_anime_dict["b_id"]
-    # romaji_name = this_anime_dict["romaji_name"]
-    # b_jp_name = this_anime_dict["b_jp_name"]
-    # b_cn_name = this_anime_dict["b_cn_name"]
-    # b_initial_name = this_anime_dict["b_initial_name"]
-    # b_type = this_anime_dict["b_type"]
-    # b_typecode = this_anime_dict["b_typecode"]
-    # b_release_date = this_anime_dict["b_release_date"]
-    # b_episodes = this_anime_dict["b_episodes"]
-    #
-    # final_name = eval(f'f"{name_type}"')  # 保留 string 输出
-    # return final_name
-    #
-    # anime["final_name"] = final_name
-    print(0)
+    config = readConfig()
+    rename_format = config.get("Format", "rename_format")
+
+    jp_name = anime["jp_name"]
+    cn_name = anime["cn_name"]
+    init_name = anime["init_name"]
+    romaji_name = anime["romaji_name"]
+
+    types = anime["types"]
+    typecode = anime["typecode"]
+    release = anime["release"]
+    episodes = anime["episodes"]
+
+    score = anime["score"]
+    bgm_id = anime["bgm_id"]
+
+    # 保留 string 输出
+    final_name = eval(f'f"{rename_format}"')
+    anime["final_name"] = final_name

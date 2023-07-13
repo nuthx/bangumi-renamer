@@ -1,4 +1,5 @@
 import os
+import re
 import platform
 import configparser
 
@@ -54,7 +55,7 @@ def initConfig(config_file):
     config.set("Application", "version", "1.0")
 
     config.add_section("Format")
-    config.set("Format", "rename_format", "{initial_name}/[{bgm_typecode}] [{release_date}] {jp_name}")
+    config.set("Format", "rename_format", "{init_name}/[{score}] [{typecode}] [{release}] {jp_name}")
     config.set("Format", "date_format", "YYMMDD")
 
     config.add_section("Counter")
@@ -67,6 +68,24 @@ def initConfig(config_file):
     # 写入配置内容
     with open(config_file, "w") as content:
         config.write(content)
+
+
+def formatCheck(rename_format):
+    # 花括号内容检查
+    available = ["jp_name", "cn_name", "init_name", "romaji_name",
+                 "types", "typecode", "release", "episodes",
+                 "score", "bgm_id"]
+    pattern = r"\{(.*?)\}"
+    matches = re.findall(pattern, rename_format)
+    for match in matches:
+        if match not in available:
+            return "请检查花括号内的变量拼写"
+
+    # 是否有多个斜杠
+    if rename_format.count("/") > 1:
+        return "仅支持一个单斜杠用于父文件夹嵌套"
+
+    return True
 
 
 # 读取配置

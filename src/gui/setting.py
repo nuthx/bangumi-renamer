@@ -128,16 +128,16 @@ class SettingWindow(object):
 
         # 按钮
 
-        self.cancelButton = PushButton("取消", self)
-        self.cancelButton.setFixedWidth(120)
         self.applyButton = PrimaryPushButton("保存", self)
         self.applyButton.setFixedWidth(120)
+        self.cancelButton = PushButton("取消", self)
+        self.cancelButton.setFixedWidth(120)
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
         self.buttonLayout.addStretch(0)
-        self.buttonLayout.addWidget(self.cancelButton)
         self.buttonLayout.addWidget(self.applyButton)
+        self.buttonLayout.addWidget(self.cancelButton)
         self.buttonLayout.addStretch(0)
 
         # 叠叠乐

@@ -12,7 +12,7 @@ from src.gui.setting import SettingWindow
 
 from src.function import initList
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
-from src.module.config import configFile, posterFolder, readConfig
+from src.module.config import configFile, posterFolder, formatCheck, readConfig
 
 
 class MyMainWindow(QMainWindow, MainWindow):
@@ -116,24 +116,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         if "jp_name_anilist" in anime:
             self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
             self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
-            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["init_name"]))
+            self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"]))
         else:
             self.table.setItem(anime["list_id"], 2, QTableWidgetItem("分析失败..."))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def showInfo(self, state, title, content):
         info_state = {
@@ -177,6 +162,15 @@ class MySettingWindow(QDialog, SettingWindow):
         self.dateType.setText(self.config.get("Format", "date_format"))
 
     def saveConfig(self):
+        # 格式检查
+        result = str(formatCheck(self.renameType.currentText()))
+        if result != "True":
+            notice = MessageBox("配置错误", result, self)
+            if notice.exec():
+                return
+            else:
+                return
+
         self.config.set("Format", "rename_format", self.renameType.currentText())
         self.config.set("Format", "date_format", self.dateType.currentText())
 

@@ -1,8 +1,4 @@
 
-
-
-
-
     # 保存配置
     def save_config(self):
         input_text = self.type_input.text()
@@ -46,40 +42,8 @@
         input_text = settings.value("type", "")
         self.type_input.setText(str(input_text))
 
-    # 警告对话框
-    def warning_dialog(self, message):
-        dialog = QtWidgets.QMessageBox(self)
-        dialog.setWindowTitle("格式错误")
-        dialog.setText(f"命名格式错误：<br>{message}")
-        dialog.setIcon(QtWidgets.QMessageBox.Warning)
-        dialog.exec()
 
-    # 成功对话框
-    def success_dialog(self, message):
-        dialog = QtWidgets.QMessageBox(self)
-        dialog.setWindowTitle("保存成功")
-        dialog.setText(message)
-        dialog.setIcon(QtWidgets.QMessageBox.Information)
-        dialog.exec()
 
-    # 命名指南对话框
-    def show_type_doc(self):
-        dialog = QtWidgets.QMessageBox(self)
-        dialog.setWindowTitle("格式指南")
-        dialog.setText("格式变量请使用花括号 { } 引用<br>"
-                       "父文件夹请使用斜杠 / 分割，仅支持单层父文件夹<br><br>"
-                       "{b_id}：Bangumi Subject ID<br>"
-                       "{romaji_name}：动画罗马名<br>"
-                       "{b_jp_name}：动画日文原名<br>"
-                       "{b_cn_name}：动画中文译名<br>"
-                       "{b_initial_name}：第一季度的中文译名<br>"
-                       "{b_type}：动画类型（TV、剧场版、OVA、OAD）<br>"
-                       "{b_typecode}：动画类型代码（01：TV、02：剧场版、03：OVA与OAD）<br>"
-                       "{b_release_date}：动画放送日期<br>"
-                       "{b_episodes}：动画集数（当前季）<br><br>"
-                       "注意：完成修改后请重新分析")
-        dialog.setIcon(QtWidgets.QMessageBox.Question)
-        dialog.exec()
 
 
     # 显示选中动画的详情
