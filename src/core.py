@@ -5,9 +5,9 @@ import platform
 import subprocess
 import shutil
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
-from PySide6.QtCore import Qt, QUrl, Signal
+from PySide6.QtCore import Qt, QUrl, Signal, QPoint
 from PySide6.QtGui import QDesktopServices
-from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon
+from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
@@ -29,6 +29,8 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def initUI(self):
         self.table.itemSelectionChanged.connect(self.selectTable)
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self.showMenu)
 
         self.editButton.clicked.connect(self.openEdit)
         self.linkButton.clicked.connect(self.openUrl)
@@ -292,6 +294,28 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.image.updateImage(poster_path)
         else:
             self.image.updateImage(getResource("image/empty.png"))
+
+    def showMenu(self, pos):
+        menu = RoundMenu(parent=self)
+        delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
+        menu.addAction(delete_this_anime)
+
+        # 必须选中单元格才会显示
+        if self.table.itemAt(pos) is not None:
+            # 在微调后的位置显示
+            menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)
+
+            # 计算单元格坐标
+            clicked_item = self.table.itemAt(pos)
+            row = self.table.row(clicked_item)
+
+            delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def deleteThisAnime(self, row):
+        print(f"before{self.anime_list}")
+        del self.anime_list[row]
+        self.table.removeRow(row)
+        print(f"after{self.anime_list}")
 
     def showInfo(self, state, title, content):
         info_state = {
