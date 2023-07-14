@@ -13,7 +13,7 @@ from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
 
-from src.function import initList
+from src.function import initList, addTimes
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
 from src.module.resource import getResource
@@ -28,6 +28,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.poster_folder = posterFolder()
 
     def initUI(self):
+        addTimes("open_times")
+
         self.table.itemSelectionChanged.connect(self.selectTable)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.showMenu)
@@ -153,6 +155,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
 
+        addTimes("analysis_times")
         self.showInfo("info", "开始分析", "请等待分析完成")
 
     def analysisThread(self, anime):
@@ -243,6 +246,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             shutil.move(final_path_2, final_path_1)
 
         self.initList()
+        addTimes("rename_times")
 
         used_time = (time.time() - start_time) * 1000
         if used_time > 1000:
@@ -361,6 +365,15 @@ class MyAboutWindow(QDialog, AboutWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
+        self.config = readConfig()
+        self.loadConfig()
+
+    def loadConfig(self):
+        self.openTimes.setText(self.config.get("Counter", "open_times"))
+        self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
+        self.renameTimes.setText(self.config.get("Counter", "rename_times"))
+        self.anilistApi.setText(self.config.get("Counter", "anilist_api"))
+        self.bangumiApi.setText(self.config.get("Counter", "bangumi_api"))
 
 
 class MySettingWindow(QDialog, SettingWindow):

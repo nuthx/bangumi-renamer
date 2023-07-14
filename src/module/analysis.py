@@ -3,6 +3,7 @@ import re
 import anitopy
 
 from src.module.api import *
+from src.function import addTimes
 from src.module.config import posterFolder, readConfig
 
 
@@ -32,6 +33,7 @@ def getApiInfo(anime):
 
     # Anilist
 
+    # addTimes("anilist_api")
     jp_name_anilist = anilistSearch(romaji_name)
     if jp_name_anilist:
         anime["jp_name_anilist"] = jp_name_anilist
@@ -40,6 +42,7 @@ def getApiInfo(anime):
 
     # Bangumi Search
 
+    # addTimes("bangumi_api")
     bangumi_search = bangumiSearch(jp_name_anilist)
     if bangumi_search:
         anime["bgm_id"] = bangumi_search[0]
@@ -51,6 +54,7 @@ def getApiInfo(anime):
 
     # bangumi Subject
 
+    # addTimes("bangumi_api")
     bangumi_subject = bangumiSubject(anime["bgm_id"], data_format)
     if bangumi_subject:
         anime["types"] = bangumi_subject[0]
@@ -70,6 +74,7 @@ def getApiInfo(anime):
 
     while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
         bgm_id = prev_id
+        # addTimes("bangumi_api")
         bangumi_previous = bangumiPrevious(bgm_id, prev_name)
         prev_id = bangumi_previous[0]
         prev_name = bangumi_previous[1]

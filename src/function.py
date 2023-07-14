@@ -1,6 +1,8 @@
 import os
 import platform
 
+from src.module.config import configFile, readConfig
+
 
 def initList(list_id, anime_list, raw_list):
     for raw_path in raw_list:
@@ -33,3 +35,14 @@ def initList(list_id, anime_list, raw_list):
         list_id += 1
 
     return list_id, anime_list
+
+
+def addTimes(counter_name):
+    config = readConfig()
+    config_file = configFile()
+
+    counter = int(config.get("Counter", counter_name)) + 1
+    config.set("Counter", counter_name, str(counter))
+
+    with open(config_file, "w") as content:
+        config.write(content)
