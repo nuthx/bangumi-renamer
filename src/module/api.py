@@ -49,6 +49,10 @@ def bangumiSearch(jp_name):
             result = json.loads(response.text)
             print(f"成功获取{jp_name}数据")
 
+            # 未搜索到内容停止
+            if "code" in result and result["code"] == 404:
+                return
+
             bgm_id = result["list"][0]["id"]
             poster = result["list"][0]["images"]["large"]
             jp_name = result["list"][0]["name"]
@@ -72,6 +76,10 @@ def bangumiSubject(bgm_id, data_format):
         if response.status_code == 200:
             result = json.loads(response.text)
             print(f"成功获取{bgm_id}数据")
+
+            # 未搜索到内容停止
+            if "code" in result and result["code"] == 404:
+                return
 
             types = result["platform"]
             release = arrow.get(result["date"]).format(data_format)  # 处理时间格式
