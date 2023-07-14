@@ -113,6 +113,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = result[1]
 
         self.showInTable()
+        print(f"drop{self.anime_list}")
 
     def showInTable(self):
         self.table.setRowCount(len(self.anime_list))
@@ -120,9 +121,21 @@ class MyMainWindow(QMainWindow, MainWindow):
         for anime in self.anime_list:
             list_id = anime["list_id"]
             anime_id = str(list_id + 1)
-            file_name = anime["file_name"]
-            self.table.setItem(list_id, 0, QTableWidgetItem(anime_id))
-            self.table.setItem(list_id, 1, QTableWidgetItem(file_name))
+
+            if "list_id" in anime:
+                self.table.setItem(list_id, 0, QTableWidgetItem(anime_id))
+
+            if "file_name" in anime:
+                self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
+
+            if "cn_name" in anime:
+                self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
+
+            if "init_name" in anime:
+                self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
+
+            if "final_name" in anime:
+                self.table.setItem(list_id, 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
 
     def startAnalysis(self):
         # 是否存在文件
@@ -167,9 +180,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
 
         # 在列表中显示
-        self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
-        self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
-        self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
+        self.showInTable()
+        # self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
+        # self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
+        # self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
 
     def startRename(self):
         start_time = time.time()
@@ -312,9 +326,18 @@ class MyMainWindow(QMainWindow, MainWindow):
             delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
 
     def deleteThisAnime(self, row):
-        print(f"before{self.anime_list}")
-        del self.anime_list[row]
-        self.table.removeRow(row)
+        # 删除此行
+        self.anime_list.pop(row)
+
+        # 此行后面的 list_id 重新排序
+        for i in range(row, len(self.anime_list)):
+            self.anime_list[i]["list_id"] -= 1
+
+        # 全局 list_id 减一
+        self.list_id -= 1
+
+        self.showInTable()
+
         print(f"after{self.anime_list}")
 
     def showInfo(self, state, title, content):
