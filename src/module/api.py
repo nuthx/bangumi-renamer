@@ -99,6 +99,10 @@ def bangumiSubject(bgm_id, data_format):
             else:
                 typecode = "XBD"
 
+            # 评分保留一位小数
+            score = float(score)
+            score = format(score, ".1f")
+
             return types, typecode, release, episodes, score
         else:
             time.sleep(0.5)
