@@ -47,8 +47,8 @@ def getApiInfo(anime):
     if bangumi_search:
         anime["bgm_id"] = bangumi_search[0]
         anime["poster"] = bangumi_search[1]
-        anime["jp_name"] = bangumi_search[2]
-        anime["cn_name"] = bangumi_search[3]
+        anime["jp_name"] = bangumi_search[2].replace("/", " ")  # 移除结果中的斜杠
+        anime["cn_name"] = bangumi_search[3].replace("/", " ")  # 移除结果中的斜杠
     else:
         return
 
@@ -80,7 +80,7 @@ def getApiInfo(anime):
         prev_name = bangumi_previous[1]
 
     anime["init_id"] = prev_id
-    anime["init_name"] = prev_name
+    anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
 
 def downloadPoster(anime):
