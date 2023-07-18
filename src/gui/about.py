@@ -16,7 +16,7 @@ class AboutWindow(object):
         this_window.setStyleSheet(style_sheet)
 
         this_window.setWindowTitle("关于")
-        this_window.setWindowIcon(QIcon(getResource("image/icon.png")))
+        this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
         this_window.resize(550, -1)
         this_window.setFixedSize(self.size())  # 禁止拉伸窗口
 
@@ -24,7 +24,7 @@ class AboutWindow(object):
 
         self.logo = QLabel()
         self.logo.setFixedSize(100, 100)
-        self.logo.setPixmap(QPixmap(getResource("image/icon.png")))
+        self.logo.setPixmap(QPixmap(getResource("src/image/icon.png")))
         self.logo.setScaledContents(True)
 
         self.logoLayout = QHBoxLayout()

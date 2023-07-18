@@ -56,7 +56,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.scoreLabel.setText("当前评分：")
         self.fileName.setText("文件名：")
         self.finalName.setText("重命名结果：")
-        self.image.updateImage(getResource("image/empty.png"))
+        self.image.updateImage(getResource("src/image/empty.png"))
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -311,7 +311,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             poster_path = os.path.join(self.poster_folder, poster_name)
             self.image.updateImage(poster_path)
         else:
-            self.image.updateImage(getResource("image/empty.png"))
+            self.image.updateImage(getResource("src/image/empty.png"))
 
     def showMenu(self, pos):
         menu = RoundMenu(parent=self)

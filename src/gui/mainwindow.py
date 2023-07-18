@@ -21,7 +21,7 @@ class MainWindow(object):
         this_window.setStyleSheet(style_sheet)
 
         this_window.setWindowTitle("BangumiRenamer")
-        this_window.setWindowIcon(QIcon(getResource("image/icon.png")))
+        this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
         this_window.resize(1100, 720)
         this_window.setAcceptDrops(True)
 
@@ -79,7 +79,7 @@ class MainWindow(object):
 
         # 图片区域（从类中定义）
 
-        self.image = RoundedLabel(getResource("image/empty.png"))
+        self.image = RoundedLabel(getResource("src/image/empty.png"))
 
         # 右侧标题
 
