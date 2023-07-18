@@ -1,8 +1,6 @@
 import os
 import time
 import threading
-import platform
-import subprocess
 import shutil
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
@@ -13,7 +11,7 @@ from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
 
-from src.function import initList, addTimes
+from src.function import initList, addTimes, openFolder
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
 from src.module.resource import getResource
@@ -184,9 +182,6 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 在列表中显示
         self.showInTable()
-        # self.table.setItem(anime["list_id"], 2, QTableWidgetItem(anime["cn_name"]))
-        # self.table.setItem(anime["list_id"], 3, QTableWidgetItem(anime["init_name"]))
-        # self.table.setItem(anime["list_id"], 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
 
     def startRename(self):
         start_time = time.time()
@@ -315,7 +310,12 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def showMenu(self, pos):
         menu = RoundMenu(parent=self)
+        open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
+        open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
+        menu.addAction(open_this_folder)
+        menu.addAction(open_parent_folder)
+        menu.addSeparator()
         menu.addAction(delete_this_anime)
 
         # 必须选中单元格才会显示
@@ -327,7 +327,18 @@ class MyMainWindow(QMainWindow, MainWindow):
             clicked_item = self.table.itemAt(pos)
             row = self.table.row(clicked_item)
 
+            open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
+            open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
             delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def openThisFolder(self, row):
+        path = self.anime_list[row]["file_path"]
+        openFolder(path)
+
+    def openParentFolder(self, row):
+        this_path = self.anime_list[row]["file_path"]
+        parent_path = os.path.dirname(this_path)
+        openFolder(parent_path)
 
     def deleteThisAnime(self, row):
         # 删除此行
@@ -422,9 +433,4 @@ class MySettingWindow(QDialog, SettingWindow):
     def openPosterFolder(self):
         poster_folder = posterFolder()
         if poster_folder != "N/A":
-            if platform.system() == "Windows":
-                subprocess.call(["explorer", poster_folder])
-            elif platform.system() == "Darwin":
-                subprocess.call(["open", poster_folder])
-            elif platform.system() == "Linux":
-                subprocess.call(["xdg-open", poster_folder])
+            openFolder(poster_folder)

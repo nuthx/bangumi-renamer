@@ -1,5 +1,6 @@
 import os
 import platform
+import subprocess
 
 from src.module.config import configFile, readConfig
 
@@ -46,3 +47,12 @@ def addTimes(counter_name):
 
     with open(config_file, "w") as content:
         config.write(content)
+
+
+def openFolder(path):
+    if platform.system() == "Windows":
+        subprocess.call(["explorer", path])
+    elif platform.system() == "Darwin":
+        subprocess.call(["open", path])
+    elif platform.system() == "Linux":
+        subprocess.call(["xdg-open", path])
