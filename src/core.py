@@ -143,10 +143,13 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请先添加文件夹")
             return
 
+        # 开始分析
         addTimes("analysis_times")
         start_time = time.time()
         self.spinner.setVisible(True)
-        self.showInfo("info", "开始分析", "请等待分析完成")
+        self.clearButton.setEnabled(False)
+        self.analysisButton.setEnabled(False)
+        self.renameButton.setEnabled(False)
 
         # 标出分析中
         anime_len = len(self.anime_list)
@@ -162,16 +165,19 @@ class MyMainWindow(QMainWindow, MainWindow):
             while thread.is_alive():
                 QCoreApplication.processEvents()
 
-        # 分析完成的动作
-        self.used_time = (time.time() - start_time) * 1000  # 计时结束
+        # 分析完成
         self.spinner.setVisible(False)
+        self.clearButton.setEnabled(True)
+        self.analysisButton.setEnabled(True)
+        self.renameButton.setEnabled(True)
+        used_time = (time.time() - start_time) * 1000  # 计时结束
 
         # 计时
-        if self.used_time > 1000:
-            used_time_s = "{:.2f}".format(self.used_time / 1000)  # 取 2 位小数
+        if used_time > 1000:
+            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
             self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
         else:
-            used_time_ms = "{:.0f}".format(self.used_time)  # 舍弃小数
+            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
             self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
 
     def analysisThread(self, anime):
