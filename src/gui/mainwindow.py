@@ -163,6 +163,11 @@ class MainWindow(object):
 
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
+
+        self.buttonSeparator = QFrame()
+        self.buttonSeparator.setObjectName("buttonSeparator")
+        self.buttonSeparator.setFixedSize(1, 30)
+
         self.analysisButton = PushButton("开始分析", self)
         self.analysisButton.setFixedWidth(120)
         self.renameButton = PrimaryPushButton("重命名", self)
@@ -170,8 +175,11 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
-        self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addStretch(0)
+        self.buttonLayout.addWidget(self.clearButton)
+        self.buttonLayout.addSpacing(8)
+        self.buttonLayout.addWidget(self.buttonSeparator)
+        self.buttonLayout.addSpacing(8)
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
 
