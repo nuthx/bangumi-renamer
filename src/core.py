@@ -3,7 +3,7 @@ import time
 import threading
 import shutil
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
-from PySide6.QtCore import Qt, QUrl, Signal, QPoint
+from PySide6.QtCore import Qt, QUrl, Signal, QPoint, QCoreApplication
 from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
@@ -143,6 +143,11 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请先添加文件夹")
             return
 
+        addTimes("analysis_times")
+        start_time = time.time()
+        self.spinner.setVisible(True)
+        self.showInfo("info", "开始分析", "请等待分析完成")
+
         # 标出分析中
         anime_len = len(self.anime_list)
         for i in range(anime_len):
@@ -153,8 +158,21 @@ class MyMainWindow(QMainWindow, MainWindow):
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
 
-        addTimes("analysis_times")
-        self.showInfo("info", "开始分析", "请等待分析完成")
+            # 等待线程完成，不阻塞 UI 界面
+            while thread.is_alive():
+                QCoreApplication.processEvents()
+
+        # 分析完成的动作
+        self.used_time = (time.time() - start_time) * 1000  # 计时结束
+        self.spinner.setVisible(False)
+
+        # 计时
+        if self.used_time > 1000:
+            used_time_s = "{:.2f}".format(self.used_time / 1000)  # 取 2 位小数
+            self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
+        else:
+            used_time_ms = "{:.0f}".format(self.used_time)  # 舍弃小数
+            self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
 
     def analysisThread(self, anime):
         # 获取并写入罗马名

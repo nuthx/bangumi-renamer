@@ -1,7 +1,8 @@
 from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
-from qfluentwidgets import setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon
+from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
+                            IndeterminateProgressRing)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.resource import getResource
@@ -40,6 +41,11 @@ class MainWindow(object):
         self.titleLayout.addSpacing(4)
         self.titleLayout.addWidget(self.subtitleLabel)
 
+        self.spinner = IndeterminateProgressRing()
+        self.spinner.setFixedSize(24, 24)
+        self.spinner.setStrokeWidth(3)
+        self.spinner.setVisible(False)
+
         self.aboutButton = ToolButton(FluentIcon.INFO, self)
         self.settingButton = PushButton("设置", self, FluentIcon.SETTING)
 
@@ -47,6 +53,8 @@ class MainWindow(object):
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
         self.headerLayout.addLayout(self.titleLayout)
         self.headerLayout.addStretch(0)
+        self.headerLayout.addWidget(self.spinner, 0)
+        self.headerLayout.addSpacing(16)
         self.headerLayout.addWidget(self.aboutButton, 0)
         self.headerLayout.addSpacing(12)
         self.headerLayout.addWidget(self.settingButton, 0)
