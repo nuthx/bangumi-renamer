@@ -37,11 +37,11 @@ def anilistSearch(romaji_name):
 
 # 向 Bangumi Search 请求数据(search/subject/keywords)
 # https://bangumi.github.io/api/
-def bangumiSearch(jp_name):
+def bangumiSearch(jp_name, season):
     jp_name = jp_name.replace("!", "").replace("-", "")  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
-    url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=small"
+    url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large"
     print(f"开始搜索{jp_name}")
 
     for retry in range(3):
@@ -54,12 +54,38 @@ def bangumiSearch(jp_name):
             if "code" in result and result["code"] == 404:
                 return
 
-            bgm_id = result["list"][0]["id"]
-            poster = result["list"][0]["images"]["large"]
-            jp_name = result["list"][0]["name"]
-            cn_name = result["list"][0]["name_cn"]
+            # 搜索当前季度
+            if season == 2:
+                bgm_id = result["list"][0]["id"]
+                poster = result["list"][0]["images"]["large"]
+                jp_name = result["list"][0]["name"]
+                cn_name = result["list"][0]["name_cn"]
 
-            return bgm_id, poster, jp_name, cn_name
+                return bgm_id, poster, jp_name, cn_name
+
+            # 搜索第一季度
+            elif season == 1:
+                result_full = []
+                result_len = len(result['list'])
+
+                for i in range(result_len):
+                    # 跳过无日期的条目
+                    if result["list"][i]["air_date"] == "0000-00-00":
+                        continue
+
+                    # 跳过无内容的条目
+                    if result["list"][i]["name_cn"] == "":
+                        continue
+
+                    # 添加字典
+                    entry = {"release": result["list"][i]["air_date"], "cn_name": result["list"][i]["name_cn"]}
+                    result_full.append(entry)
+
+                result_full = [item for item in result_full if item]  # 移除空字典
+                result_full = sorted(result_full, key=lambda x: x["release"])  # 按放送日期排序
+
+                return result_full
+
         else:
             time.sleep(0.5)
     print(f"搜索{jp_name}失败")

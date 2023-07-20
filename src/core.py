@@ -3,7 +3,7 @@ import time
 import threading
 import shutil
 import arrow
-from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
+from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint, QCoreApplication
 from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
@@ -32,7 +32,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.showMenu)
 
-        self.editButton.clicked.connect(self.openEdit)
         self.linkButton.clicked.connect(self.openUrl)
 
         self.aboutButton.clicked.connect(self.openAbout)
@@ -57,6 +56,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.fileName.setText("文件名：")
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
+        self.searchList.clear()
+        self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -73,9 +74,6 @@ class MyMainWindow(QMainWindow, MainWindow):
     def openGithub(self):
         url = QUrl("https://github.com/nuthx/bangumi-renamer/releases")
         QDesktopServices.openUrl(url)
-
-    def openEdit(self):
-        self.showInfo("info", "", "敬请期待")
 
     def currentLine(self):
         rows = []
@@ -328,9 +326,9 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         if "final_name" in self.anime_list[this_line]:
             final_name = self.anime_list[this_line]["final_name"].replace("/", " / ")
-            self.finalName.setText(f"重命名结果：{final_name}")
+            self.finalName.setText(f"重命名：{final_name}")
         else:
-            self.finalName.setText("重命名结果：")
+            self.finalName.setText("重命名：")
 
         if "poster" in self.anime_list[this_line]:
             poster_name = os.path.basename(self.anime_list[this_line]["poster"])
@@ -338,6 +336,18 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.image.updateImage(poster_path)
         else:
             self.image.updateImage(getResource("src/image/empty.png"))
+
+        if "result" in self.anime_list[this_line]:
+
+            self.searchList.clear()
+            for this in self.anime_list[this_line]["result"]:
+                release = arrow.get(this['release']).format("YY-MM-DD")
+                cn_name = this['cn_name']
+                item = f"[{release}] {cn_name}"
+                self.searchList.addItem(QListWidgetItem(item))
+        else:
+            self.searchList.clear()
+            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
         menu = RoundMenu(parent=self)

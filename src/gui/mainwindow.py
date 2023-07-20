@@ -1,8 +1,8 @@
-from PySide6.QtCore import QMetaObject
+from PySide6.QtCore import QMetaObject, Qt
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView, QListWidgetItem
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, TransparentPushButton)
+                            IndeterminateProgressRing, TransparentPushButton, ListWidget)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -24,7 +24,7 @@ class MainWindow(object):
 
         this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
-        this_window.resize(1100, 720)
+        this_window.resize(1280, 720)
         this_window.setAcceptDrops(True)
 
         # 标题区域
@@ -69,11 +69,11 @@ class MainWindow(object):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止双击编辑
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["ID", "文件夹", "动画名（本季）", "动画名（首季）", "重命名"])
-        self.table.setColumnWidth(0, 36)  # 1028
-        self.table.setColumnWidth(1, 200)
-        self.table.setColumnWidth(2, 180)
-        self.table.setColumnWidth(3, 180)
-        self.table.setColumnWidth(4, 430)
+        self.table.setColumnWidth(0, 36)  # 1206
+        self.table.setColumnWidth(1, 250)
+        self.table.setColumnWidth(2, 220)
+        self.table.setColumnWidth(3, 220)
+        self.table.setColumnWidth(4, 480)
         styleSheetManager.deregister(self.table)  # 禁用皮肤，启用自定义 QSS
         with open(getResource("src/style/table.qss"), encoding="utf-8") as file:
             self.table.setStyleSheet(file.read())
@@ -86,11 +86,11 @@ class MainWindow(object):
         self.tableFrame.setObjectName("tableFrame")
         self.tableFrame.setLayout(self.tableLayout)
 
-        # 图片区域（从类中定义）
+        # 1 => 图片
 
         self.image = RoundedLabel(getResource("src/image/empty.png"))
 
-        # 右侧标题
+        # 2.1 => 标题
 
         self.cnName = QLabel("暂无动画")
         self.cnName.setObjectName("cnName")
@@ -104,18 +104,16 @@ class MainWindow(object):
         self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
-        self.editButton = ToolButton(FluentIcon.EDIT, self)
         self.linkButton = ToolButton(FluentIcon.LINK, self)
 
         self.titleLayout = QHBoxLayout()
         self.titleLayout.setSpacing(12)
         self.titleLayout.addLayout(self.nameLayout, 0)
         self.titleLayout.addStretch(0)
-        self.titleLayout.addWidget(self.editButton)
         self.titleLayout.addWidget(self.linkButton)
         self.titleLayout.addSpacing(12)
 
-        # 右侧详细
+        # 2.2 => 详情
 
         self.separator = QFrame()
         self.separator.setObjectName("separator")
@@ -132,28 +130,43 @@ class MainWindow(object):
         self.scoreLabel.setObjectName("detailLabel")
         self.fileName = QLabel("文件名：")
         self.fileName.setObjectName("detailLabel")
-        self.finalName = QLabel("重命名结果：")
+        self.finalName = QLabel("重命名：")
         self.finalName.setObjectName("detailLabel")
 
-        self.rightLayout = QVBoxLayout()
-        self.rightLayout.setSpacing(10)
-        self.rightLayout.addLayout(self.titleLayout)
-        self.rightLayout.addSpacing(4)
-        self.rightLayout.addWidget(self.separator)
-        self.rightLayout.addSpacing(4)
-        self.rightLayout.addWidget(self.typeLabel)
-        self.rightLayout.addWidget(self.dateLabel)
-        # self.rightLayout.addWidget(self.episodeLabel)
-        self.rightLayout.addWidget(self.scoreLabel)
-        self.rightLayout.addWidget(self.fileName)
-        self.rightLayout.addWidget(self.finalName)
-        self.rightLayout.addStretch(0)
+        self.detailLayout = QVBoxLayout()
+        self.detailLayout.setSpacing(10)
+        self.detailLayout.addLayout(self.titleLayout)
+        self.detailLayout.addSpacing(4)
+        self.detailLayout.addWidget(self.separator)
+        self.detailLayout.addSpacing(4)
+        self.detailLayout.addWidget(self.typeLabel)
+        self.detailLayout.addWidget(self.dateLabel)
+        # self.detailLayout.addWidget(self.episodeLabel)
+        self.detailLayout.addWidget(self.scoreLabel)
+        self.detailLayout.addWidget(self.fileName)
+        self.detailLayout.addWidget(self.finalName)
+        self.detailLayout.addStretch(0)
+
+        # 3 => 列表
+
+        self.separator2 = QFrame()
+        self.separator2.setObjectName("separator")
+        self.separator2.setFixedSize(1, 210)
+
+        self.searchList = ListWidget(self)
+        self.searchList.setFixedWidth(300)
+        styleSheetManager.deregister(self.searchList)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/list.qss"), encoding="utf-8") as file:
+            self.searchList.setStyleSheet(file.read())
 
         self.infoLayout = QHBoxLayout()
         self.infoLayout.setSpacing(20)
         self.infoLayout.setContentsMargins(16, 16, 16, 16)
         self.infoLayout.addWidget(self.image)
-        self.infoLayout.addLayout(self.rightLayout, 0)
+        self.infoLayout.addLayout(self.detailLayout)
+        self.infoLayout.addWidget(self.separator2)
+        self.infoLayout.addSpacing(-8)
+        self.infoLayout.addWidget(self.searchList)
 
         self.infoFrame = QFrame()
         self.infoFrame.setObjectName("infoFrame")

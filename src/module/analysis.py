@@ -31,17 +31,15 @@ def getApiInfo(anime):
 
     # Anilist
 
-    # addTimes("anilist_api")
     jp_name_anilist = anilistSearch(romaji_name)
     if jp_name_anilist:
         anime["jp_name_anilist"] = jp_name_anilist
     else:
         return
 
-    # Bangumi Search
+    # Bangumi 搜索
 
-    # addTimes("bangumi_api")
-    bangumi_search = bangumiSearch(jp_name_anilist)
+    bangumi_search = bangumiSearch(jp_name_anilist, 2)
     if bangumi_search:
         anime["bgm_id"] = bangumi_search[0]
         anime["poster"] = bangumi_search[1]
@@ -50,9 +48,8 @@ def getApiInfo(anime):
     else:
         return
 
-    # bangumi Subject
+    # bangumi 条目
 
-    # addTimes("bangumi_api")
     bangumi_subject = bangumiSubject(anime["bgm_id"])
     if bangumi_subject:
         anime["types"] = bangumi_subject[0]
@@ -63,7 +60,7 @@ def getApiInfo(anime):
     else:
         return
 
-    # Bangumi Previous
+    # Bangumi 前传
 
     bgm_id = anime["bgm_id"]
     bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
@@ -79,6 +76,11 @@ def getApiInfo(anime):
 
     anime["init_id"] = prev_id
     anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
+
+    # bangumi 本名搜索
+
+    bangumi_search_full = bangumiSearch(anime["init_name"], 1)
+    anime["result"] = bangumi_search_full
 
 
 def downloadPoster(anime):
