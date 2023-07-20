@@ -23,11 +23,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.setupUI(self)
         self.initUI()
         self.initList()
+        addTimes("open_times")
         self.poster_folder = posterFolder()
 
     def initUI(self):
-        addTimes("open_times")
-
         self.table.itemSelectionChanged.connect(self.selectTable)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.showMenu)
@@ -37,6 +36,8 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
+
+        self.newVersionButton.clicked.connect(self.openGithub)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -67,6 +68,10 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def closeSetting(self, title):
         self.showInfo("success", title, "请重新开始分析")
+
+    def openGithub(self):
+        url = QUrl("https://github.com/nuthx/bangumi-renamer/releases")
+        QDesktopServices.openUrl(url)
 
     def openEdit(self):
         self.showInfo("info", "", "敬请期待")

@@ -2,9 +2,10 @@ from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing)
+                            IndeterminateProgressRing, TransparentPushButton)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
+from src.module.version import currentVersion
 from src.module.resource import getResource
 from src.module.image import RoundedLabel
 
@@ -21,7 +22,7 @@ class MainWindow(object):
             style_sheet = file.read()
         this_window.setStyleSheet(style_sheet)
 
-        this_window.setWindowTitle("BangumiRenamer")
+        this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
         this_window.resize(1100, 720)
         this_window.setAcceptDrops(True)
@@ -161,6 +162,9 @@ class MainWindow(object):
 
         # 操作区域
 
+        self.newVersionButton = TransparentPushButton("有新版本", self, FluentIcon.SYNC)
+        self.newVersionButton.setVisible(False)
+
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
 
@@ -175,6 +179,7 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
+        self.buttonLayout.addWidget(self.newVersionButton)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)

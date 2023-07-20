@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtGui import QFontDatabase, QFont, QIcon, QPixmap
 
 from src.module.resource import getResource
-from src.module.update import getVersion
+from src.module.version import currentVersion
 
 
 class AboutWindow(object):
@@ -83,9 +83,7 @@ class AboutWindow(object):
 
         # Github
 
-        version = getVersion()
-
-        self.versionLabel = QLabel(f"Version {version}")
+        self.versionLabel = QLabel(f"Version {currentVersion()}")
         self.versionLabel.setObjectName("lightLabel")
 
         self.githubLabel = QLabel("Github: ")
@@ -112,7 +110,7 @@ class AboutWindow(object):
         layout.setSpacing(12)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.addLayout(self.titleLayout)
-        layout.addSpacing(28)
+        layout.addSpacing(20)
         layout.addLayout(self.usageCardLayout)
         layout.addLayout(self.apiCardLayout)
         layout.addSpacing(24)
