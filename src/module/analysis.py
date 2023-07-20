@@ -1,6 +1,7 @@
 import os
 import re
 import anitopy
+import arrow
 
 from src.module.api import *
 from src.function import addTimes
@@ -26,9 +27,6 @@ def getRomajiName(file_name):
 
 
 def getApiInfo(anime):
-    config = readConfig()
-    data_format = config.get("Format", "date_format")
-
     romaji_name = anime["romaji_name"]
 
     # Anilist
@@ -55,7 +53,7 @@ def getApiInfo(anime):
     # bangumi Subject
 
     # addTimes("bangumi_api")
-    bangumi_subject = bangumiSubject(anime["bgm_id"], data_format)
+    bangumi_subject = bangumiSubject(anime["bgm_id"])
     if bangumi_subject:
         anime["types"] = bangumi_subject[0]
         anime["typecode"] = bangumi_subject[1]
@@ -100,6 +98,7 @@ def downloadPoster(anime):
 
 def getFinalName(anime):
     config = readConfig()
+    data_format = config.get("Format", "date_format")
     rename_format = config.get("Format", "rename_format")
 
     jp_name = anime["jp_name"]
@@ -109,7 +108,7 @@ def getFinalName(anime):
 
     types = anime["types"]
     typecode = anime["typecode"]
-    release = anime["release"]
+    release = arrow.get(anime["release"]).format(data_format)
     episodes = anime["episodes"]
 
     score = anime["score"]

@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import shutil
+import arrow
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint, QCoreApplication
 from PySide6.QtGui import QDesktopServices
@@ -308,6 +309,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         if "release" in self.anime_list[this_line]:
             release = self.anime_list[this_line]["release"]
+            release = arrow.get(release).format("YYYY年M月D日")
             self.dateLabel.setText(f"放送日期：{release}")
         else:
             self.dateLabel.setText("放送日期：")

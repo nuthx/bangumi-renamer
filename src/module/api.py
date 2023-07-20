@@ -1,7 +1,6 @@
 import requests
 import json
 import time
-import arrow    # 处理时间格式
 
 
 # 向 Anilist 请求数据
@@ -68,7 +67,7 @@ def bangumiSearch(jp_name):
 
 # 向 Bangumi Subject 请求数据(/v0/subjects/subject_id)
 # https://bangumi.github.io/api/
-def bangumiSubject(bgm_id, data_format):
+def bangumiSubject(bgm_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(bgm_id)
     print(f"开始搜索{bgm_id}")
@@ -84,7 +83,7 @@ def bangumiSubject(bgm_id, data_format):
                 return
 
             types = result["platform"]
-            release = arrow.get(result["date"]).format(data_format)  # 处理时间格式
+            release = result["date"]
             episodes = result["eps"]
             score = result["rating"]["score"]
 
