@@ -78,7 +78,9 @@ def bangumiSearch(jp_name, season):
                         continue
 
                     # 添加字典
-                    entry = {"release": result["list"][i]["air_date"], "cn_name": result["list"][i]["name_cn"]}
+                    entry = {"bgm_id": result["list"][i]["id"],
+                             "cn_name": result["list"][i]["name_cn"],
+                             "release": result["list"][i]["air_date"]}
                     result_full.append(entry)
 
                 result_full = [item for item in result_full if item]  # 移除空字典
