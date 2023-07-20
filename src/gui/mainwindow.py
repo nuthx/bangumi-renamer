@@ -1,9 +1,11 @@
 from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
-from qfluentwidgets import setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon
+from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
+                            IndeterminateProgressRing, TransparentPushButton)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
+from src.module.version import currentVersion
 from src.module.resource import getResource
 from src.module.image import RoundedLabel
 
@@ -20,7 +22,7 @@ class MainWindow(object):
             style_sheet = file.read()
         this_window.setStyleSheet(style_sheet)
 
-        this_window.setWindowTitle("BangumiRenamer")
+        this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
         this_window.resize(1100, 720)
         this_window.setAcceptDrops(True)
@@ -40,6 +42,11 @@ class MainWindow(object):
         self.titleLayout.addSpacing(4)
         self.titleLayout.addWidget(self.subtitleLabel)
 
+        self.spinner = IndeterminateProgressRing()
+        self.spinner.setFixedSize(24, 24)
+        self.spinner.setStrokeWidth(3)
+        self.spinner.setVisible(False)
+
         self.aboutButton = ToolButton(FluentIcon.INFO, self)
         self.settingButton = PushButton("设置", self, FluentIcon.SETTING)
 
@@ -47,6 +54,8 @@ class MainWindow(object):
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
         self.headerLayout.addLayout(self.titleLayout)
         self.headerLayout.addStretch(0)
+        self.headerLayout.addWidget(self.spinner, 0)
+        self.headerLayout.addSpacing(16)
         self.headerLayout.addWidget(self.aboutButton, 0)
         self.headerLayout.addSpacing(12)
         self.headerLayout.addWidget(self.settingButton, 0)
@@ -153,8 +162,16 @@ class MainWindow(object):
 
         # 操作区域
 
+        self.newVersionButton = TransparentPushButton("有新版本", self, FluentIcon.SYNC)
+        self.newVersionButton.setVisible(False)
+
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
+
+        self.buttonSeparator = QFrame()
+        self.buttonSeparator.setObjectName("buttonSeparator")
+        self.buttonSeparator.setFixedSize(1, 30)
+
         self.analysisButton = PushButton("开始分析", self)
         self.analysisButton.setFixedWidth(120)
         self.renameButton = PrimaryPushButton("重命名", self)
@@ -162,8 +179,12 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
-        self.buttonLayout.addWidget(self.clearButton)
+        self.buttonLayout.addWidget(self.newVersionButton)
         self.buttonLayout.addStretch(0)
+        self.buttonLayout.addWidget(self.clearButton)
+        self.buttonLayout.addSpacing(8)
+        self.buttonLayout.addWidget(self.buttonSeparator)
+        self.buttonLayout.addSpacing(8)
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
 

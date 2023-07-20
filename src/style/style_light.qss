@@ -43,6 +43,10 @@ MySettingWindow {
     background: #EDEDED;
 }
 
+#buttonSeparator {
+    background: #D8D8D8;
+}
+
 #detailLabel {
     font-size: 13px;
     color: #333;

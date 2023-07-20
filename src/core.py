@@ -3,7 +3,7 @@ import time
 import threading
 import shutil
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog
-from PySide6.QtCore import Qt, QUrl, Signal, QPoint
+from PySide6.QtCore import Qt, QUrl, Signal, QPoint, QCoreApplication
 from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
@@ -23,11 +23,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.setupUI(self)
         self.initUI()
         self.initList()
+        addTimes("open_times")
         self.poster_folder = posterFolder()
 
     def initUI(self):
-        addTimes("open_times")
-
         self.table.itemSelectionChanged.connect(self.selectTable)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.showMenu)
@@ -37,6 +36,8 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
+
+        self.newVersionButton.clicked.connect(self.openGithub)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -67,6 +68,10 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def closeSetting(self, title):
         self.showInfo("success", title, "请重新开始分析")
+
+    def openGithub(self):
+        url = QUrl("https://github.com/nuthx/bangumi-renamer/releases")
+        QDesktopServices.openUrl(url)
 
     def openEdit(self):
         self.showInfo("info", "", "敬请期待")
@@ -143,6 +148,14 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请先添加文件夹")
             return
 
+        # 开始分析
+        addTimes("analysis_times")
+        start_time = time.time()
+        self.spinner.setVisible(True)
+        self.clearButton.setEnabled(False)
+        self.analysisButton.setEnabled(False)
+        self.renameButton.setEnabled(False)
+
         # 标出分析中
         anime_len = len(self.anime_list)
         for i in range(anime_len):
@@ -153,8 +166,24 @@ class MyMainWindow(QMainWindow, MainWindow):
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
 
-        addTimes("analysis_times")
-        self.showInfo("info", "开始分析", "请等待分析完成")
+            # 等待线程完成，不阻塞 UI 界面
+            while thread.is_alive():
+                QCoreApplication.processEvents()
+
+        # 分析完成
+        self.spinner.setVisible(False)
+        self.clearButton.setEnabled(True)
+        self.analysisButton.setEnabled(True)
+        self.renameButton.setEnabled(True)
+        used_time = (time.time() - start_time) * 1000  # 计时结束
+
+        # 计时
+        if used_time > 1000:
+            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
+            self.showInfo("success", "分析完成", f"耗时{used_time_s}s")
+        else:
+            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
+            self.showInfo("success", "分析完成", f"耗时{used_time_ms}ms")
 
     def analysisThread(self, anime):
         # 获取并写入罗马名
