@@ -67,13 +67,12 @@ class MainWindow(object):
         self.table.horizontalHeader().setHighlightSections(False)  # 选中时表头不加粗
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)  # 单选模式
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止双击编辑
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID", "文件夹", "动画名（本季）", "动画名（首季）", "重命名"])
-        self.table.setColumnWidth(0, 36)  # 1206
-        self.table.setColumnWidth(1, 250)
-        self.table.setColumnWidth(2, 220)
-        self.table.setColumnWidth(3, 220)
-        self.table.setColumnWidth(4, 480)
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["ID", "动画文件夹", "动画名", "首季动画名"])
+        self.table.setColumnWidth(0, 46)  # 1206
+        self.table.setColumnWidth(1, 540)
+        self.table.setColumnWidth(2, 320)
+        self.table.setColumnWidth(3, 300)
         styleSheetManager.deregister(self.table)  # 禁用皮肤，启用自定义 QSS
         with open(getResource("src/style/table.qss"), encoding="utf-8") as file:
             self.table.setStyleSheet(file.read())

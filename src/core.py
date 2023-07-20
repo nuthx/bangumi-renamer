@@ -138,9 +138,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             if "init_name" in anime:
                 self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
 
-            if "final_name" in anime:
-                self.table.setItem(list_id, 4, QTableWidgetItem(anime["final_name"].replace("/", " / ")))
-
     def startAnalysis(self):
         # 是否存在文件
         if not self.anime_list:
@@ -166,10 +163,10 @@ class MyMainWindow(QMainWindow, MainWindow):
             thread.start()
 
             # 等待线程完成，不阻塞 UI 界面
-            while thread.is_alive():
-                QCoreApplication.processEvents()
+            # while thread.is_alive():
+            #     QCoreApplication.processEvents()
 
-        # 分析完成
+        # 分析完成（暂时无效）
         self.spinner.setVisible(False)
         self.clearButton.setEnabled(True)
         self.analysisButton.setEnabled(True)
