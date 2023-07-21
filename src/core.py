@@ -30,19 +30,18 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.poster_folder = posterFolder()
 
     def initUI(self):
-        self.table.itemSelectionChanged.connect(self.selectTable)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.table.customContextMenuRequested.connect(self.showMenu)
+        self.table.itemSelectionChanged.connect(self.selectTable)
 
         self.searchList.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.searchList.customContextMenuRequested.connect(self.showMenu2)
 
-        self.linkButton.clicked.connect(self.openUrl)
-
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
 
-        self.newVersionButton.clicked.connect(self.openGithub)
+        self.linkButton.clicked.connect(self.openUrl)
+
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -52,6 +51,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = []
         self.table.clearContents()
         self.table.setRowCount(0)
+        self.searchList.clear()
+        self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
         self.cnName.setText("暂无动画")
         self.jpName.setText("请先选中一个动画以展示详细信息")
@@ -61,8 +62,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.fileName.setText("文件名：")
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
-        self.searchList.clear()
-        self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -76,25 +75,16 @@ class MyMainWindow(QMainWindow, MainWindow):
     def closeSetting(self, title):
         self.showInfo("success", title, "请重新开始分析")
 
-    def openGithub(self):
-        url = QUrl("https://github.com/nuthx/bangumi-renamer/releases")
-        QDesktopServices.openUrl(url)
-
-    def currentLine(self):
-        rows = []
-        for item in self.table.selectedItems():
-            rows.append(item.row())
-        if rows:
-            this_line = rows[0]
-            return this_line
-        else:
-            return None
+    def RowInTable(self):
+        for selected in self.table.selectedRanges():
+            row = selected.topRow()
+            return row
 
     def openUrl(self):
-        this_line = self.currentLine()
-        if this_line is not None or this_line == 0:
-            if "bgm_id" in self.anime_list[this_line]:
-                bgm_id = str(self.anime_list[this_line]["bgm_id"])
+        row = self.RowInTable()
+        if row or row == 0:
+            if "bgm_id" in self.anime_list[row]:
+                bgm_id = str(self.anime_list[row]["bgm_id"])
                 url = QUrl("https://bgm.tv/subject/" + bgm_id)
                 QDesktopServices.openUrl(url)
             else:
@@ -122,7 +112,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = result[1]
 
         self.showInTable()
-        print(f"drop{self.anime_list}")
 
     def showInTable(self):
         self.table.setRowCount(len(self.anime_list))
@@ -185,6 +174,162 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
 
         # 在列表中显示
+        self.showInTable()
+
+    def selectTable(self):
+        row = self.RowInTable()
+
+        # 应对重命名完成后的 initList 操作
+        if row is None:
+            return
+
+        if "cn_name" in self.anime_list[row]:
+            cn_name = self.anime_list[row]["cn_name"]
+            self.cnName.setText(cn_name)
+        else:
+            self.cnName.setText("暂无动画")
+
+        if "jp_name" in self.anime_list[row]:
+            jp_name = self.anime_list[row]["jp_name"]
+            self.jpName.setText(jp_name)
+        else:
+            self.jpName.setText("请先选中一个动画以展示详细信息")
+
+        if "types" in self.anime_list[row] and "typecode" in self.anime_list[row]:
+            types = self.anime_list[row]["types"].upper()
+            typecode = self.anime_list[row]["typecode"]
+            self.typeLabel.setText(f"类型：{types} ({typecode})")
+        else:
+            self.typeLabel.setText("类型：")
+
+        if "release" in self.anime_list[row]:
+            release = self.anime_list[row]["release"]
+            release = arrow.get(release).format("YYYY年M月D日")
+            self.dateLabel.setText(f"放送日期：{release}")
+        else:
+            self.dateLabel.setText("放送日期：")
+
+        if "score" in self.anime_list[row]:
+            score = str(self.anime_list[row]["score"])
+            self.scoreLabel.setText(f"当前评分：{score}")
+        else:
+            self.scoreLabel.setText("当前评分：")
+
+        if "file_name" in self.anime_list[row]:
+            file_name = self.anime_list[row]["file_name"]
+            self.fileName.setText(f"文件名：{file_name}")
+        else:
+            self.fileName.setText("文件名：")
+
+        if "final_name" in self.anime_list[row]:
+            final_name = self.anime_list[row]["final_name"].replace("/", " / ")
+            self.finalName.setText(f"重命名：{final_name}")
+        else:
+            self.finalName.setText("重命名：")
+
+        if "poster" in self.anime_list[row]:
+            poster_name = os.path.basename(self.anime_list[row]["poster"])
+            poster_path = os.path.join(self.poster_folder, poster_name)
+            self.image.updateImage(poster_path)
+        else:
+            self.image.updateImage(getResource("src/image/empty.png"))
+
+        if "result" in self.anime_list[row]:
+
+            self.searchList.clear()
+            for this in self.anime_list[row]["result"]:
+                release = arrow.get(this['release']).format("YY-MM-DD")
+                cn_name = this['cn_name']
+                item = f"[{release}] {cn_name}"
+                self.searchList.addItem(QListWidgetItem(item))
+        else:
+            self.searchList.clear()
+            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
+
+    def showMenu(self, pos):
+        menu = RoundMenu(parent=self)
+        open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
+        open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
+        delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
+        menu.addAction(open_this_folder)
+        menu.addAction(open_parent_folder)
+        menu.addSeparator()
+        menu.addAction(delete_this_anime)
+
+        # 必须选中单元格才会显示
+        if self.table.itemAt(pos) is not None:
+            clicked_item = self.table.itemAt(pos)  # 计算坐标
+            row = self.table.row(clicked_item)  # 计算行数
+            menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
+
+            open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
+            open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
+            delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def openThisFolder(self, row):
+        path = self.anime_list[row]["file_path"]
+        openFolder(path)
+
+    def openParentFolder(self, row):
+        this_path = self.anime_list[row]["file_path"]
+        parent_path = os.path.dirname(this_path)
+        openFolder(parent_path)
+
+    def deleteThisAnime(self, row):
+        # 删除此行
+        self.anime_list.pop(row)
+
+        # 此行后面的 list_id 重新排序
+        for i in range(row, len(self.anime_list)):
+            self.anime_list[i]["list_id"] -= 1
+
+        # 全局 list_id 减一
+        self.list_id -= 1
+
+        self.showInTable()
+
+    def showMenu2(self, pos):
+        menu = RoundMenu(parent=self)
+        instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
+        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
+        menu.addAction(instead_this_anime)
+        menu.addSeparator()
+        menu.addAction(view_on_bangumi)
+
+        # 必须选中才会显示
+        if self.searchList.itemAt(pos) is not None:
+            clicked_item = self.searchList.itemAt(pos)  # 计算坐标
+            row = self.searchList.row(clicked_item)  # 计算行数
+
+            # 不出现在默认列表中
+            if self.searchList.item(row).text() != "暂无搜索结果":
+                menu.exec(self.searchList.mapToGlobal(pos), ani=True)
+
+                table_row = self.RowInTable()
+                bgm_id = self.anime_list[table_row]["result"][row]["bgm_id"]
+
+                instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
+                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(bgm_id))
+
+    def openBgmUrl(self, bgm_id):
+        bgm_id = str(bgm_id)
+        url = QUrl("https://bgm.tv/subject/" + bgm_id)
+        QDesktopServices.openUrl(url)
+
+    def correctThisAnime(self, row, bgm_id):
+        result = bangumiSubject(bgm_id)
+
+        self.anime_list[row]["poster"] = result[0]
+        self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
+        self.anime_list[row]["cn_name"] = result[2].replace("/", " ")  # 移除结果中的斜杠
+        self.anime_list[row]["types"] = result[3]
+        self.anime_list[row]["typecode"] = result[4]
+        self.anime_list[row]["release"] = result[5]
+        self.anime_list[row]["episodes"] = result[6]
+        self.anime_list[row]["score"] = result[7]
+
+        downloadPoster(self.anime_list[row])
+        getFinalName(self.anime_list[row])
         self.showInTable()
 
     def startRename(self):
@@ -254,167 +399,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
             self.showInfo("success", "重命名完成", f"耗时{used_time_ms}ms")
-
-    def selectTable(self):
-        this_line = self.currentLine()
-
-        # 应对重命名完成后的 initList 操作
-        if this_line is None:
-            return
-
-        if "cn_name" in self.anime_list[this_line]:
-            cn_name = self.anime_list[this_line]["cn_name"]
-            self.cnName.setText(cn_name)
-        else:
-            self.cnName.setText("暂无动画")
-
-        if "jp_name" in self.anime_list[this_line]:
-            jp_name = self.anime_list[this_line]["jp_name"]
-            self.jpName.setText(jp_name)
-        else:
-            self.jpName.setText("请先选中一个动画以展示详细信息")
-
-        if "types" in self.anime_list[this_line] and "typecode" in self.anime_list[this_line]:
-            types = self.anime_list[this_line]["types"].upper()
-            typecode = self.anime_list[this_line]["typecode"]
-            self.typeLabel.setText(f"类型：{types} ({typecode})")
-        else:
-            self.typeLabel.setText("类型：")
-
-        if "release" in self.anime_list[this_line]:
-            release = self.anime_list[this_line]["release"]
-            release = arrow.get(release).format("YYYY年M月D日")
-            self.dateLabel.setText(f"放送日期：{release}")
-        else:
-            self.dateLabel.setText("放送日期：")
-
-        if "score" in self.anime_list[this_line]:
-            score = str(self.anime_list[this_line]["score"])
-            self.scoreLabel.setText(f"当前评分：{score}")
-        else:
-            self.scoreLabel.setText("当前评分：")
-
-        if "file_name" in self.anime_list[this_line]:
-            file_name = self.anime_list[this_line]["file_name"]
-            self.fileName.setText(f"文件名：{file_name}")
-        else:
-            self.fileName.setText("文件名：")
-
-        if "final_name" in self.anime_list[this_line]:
-            final_name = self.anime_list[this_line]["final_name"].replace("/", " / ")
-            self.finalName.setText(f"重命名：{final_name}")
-        else:
-            self.finalName.setText("重命名：")
-
-        if "poster" in self.anime_list[this_line]:
-            poster_name = os.path.basename(self.anime_list[this_line]["poster"])
-            poster_path = os.path.join(self.poster_folder, poster_name)
-            self.image.updateImage(poster_path)
-        else:
-            self.image.updateImage(getResource("src/image/empty.png"))
-
-        if "result" in self.anime_list[this_line]:
-
-            self.searchList.clear()
-            for this in self.anime_list[this_line]["result"]:
-                release = arrow.get(this['release']).format("YY-MM-DD")
-                cn_name = this['cn_name']
-                item = f"[{release}] {cn_name}"
-                self.searchList.addItem(QListWidgetItem(item))
-        else:
-            self.searchList.clear()
-            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
-
-    def showMenu(self, pos):
-        menu = RoundMenu(parent=self)
-        open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
-        open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
-        delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
-        menu.addAction(open_this_folder)
-        menu.addAction(open_parent_folder)
-        menu.addSeparator()
-        menu.addAction(delete_this_anime)
-
-        # 必须选中单元格才会显示
-        if self.table.itemAt(pos) is not None:
-            clicked_item = self.table.itemAt(pos)  # 计算坐标
-            row = self.table.row(clicked_item)  # 计算行数
-            menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
-
-            open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
-            open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
-            delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
-
-    def openThisFolder(self, row):
-        path = self.anime_list[row]["file_path"]
-        openFolder(path)
-
-    def openParentFolder(self, row):
-        this_path = self.anime_list[row]["file_path"]
-        parent_path = os.path.dirname(this_path)
-        openFolder(parent_path)
-
-    def deleteThisAnime(self, row):
-        # 删除此行
-        self.anime_list.pop(row)
-
-        # 此行后面的 list_id 重新排序
-        for i in range(row, len(self.anime_list)):
-            self.anime_list[i]["list_id"] -= 1
-
-        # 全局 list_id 减一
-        self.list_id -= 1
-
-        self.showInTable()
-
-        print(f"after{self.anime_list}")
-
-    def showMenu2(self, pos):
-        menu = RoundMenu(parent=self)
-        instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
-        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
-        menu.addAction(instead_this_anime)
-        menu.addSeparator()
-        menu.addAction(view_on_bangumi)
-
-        # 必须选中才会显示
-        if self.searchList.itemAt(pos) is not None:
-            clicked_item = self.searchList.itemAt(pos)  # 计算坐标
-            row = self.searchList.row(clicked_item)  # 计算行数
-
-            # 不出现在默认列表中
-            if self.searchList.item(row).text() != "暂无搜索结果":
-                menu.exec(self.searchList.mapToGlobal(pos), ani=True)
-
-                # 当前选中的表格行
-                for selected in self.table.selectedRanges():
-                    table_row = selected.topRow()
-
-                bgm_id = self.anime_list[table_row]["result"][row]["bgm_id"]
-
-                instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
-                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(bgm_id))
-
-    def openBgmUrl(self, bgm_id):
-        bgm_id = str(bgm_id)
-        url = QUrl("https://bgm.tv/subject/" + bgm_id)
-        QDesktopServices.openUrl(url)
-
-    def correctThisAnime(self, row, bgm_id):
-        result = bangumiSubject(bgm_id)
-
-        self.anime_list[row]["poster"] = result[0]
-        self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
-        self.anime_list[row]["cn_name"] = result[2].replace("/", " ")  # 移除结果中的斜杠
-        self.anime_list[row]["types"] = result[3]
-        self.anime_list[row]["typecode"] = result[4]
-        self.anime_list[row]["release"] = result[5]
-        self.anime_list[row]["episodes"] = result[6]
-        self.anime_list[row]["score"] = result[7]
-
-        downloadPoster(self.anime_list[row])
-        getFinalName(self.anime_list[row])
-        self.showInTable()
 
     def showInfo(self, state, title, content):
         info_state = {
