@@ -3,3 +3,4 @@ PySide6-Fluent-Widgets
 requests
 arrow
 anitopy
+jieba

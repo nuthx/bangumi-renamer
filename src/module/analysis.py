@@ -2,9 +2,9 @@ import os
 import re
 import anitopy
 import arrow
+import jieba
 
 from src.module.api import *
-from src.function import addTimes
 from src.module.config import posterFolder, readConfig
 
 
@@ -79,8 +79,44 @@ def getApiInfo(anime):
 
     # bangumi 本名搜索
 
-    bangumi_search_full = bangumiSearch(anime["init_name"], 1)
-    anime["result"] = bangumi_search_full
+    search_result = bangumiSearch(anime["init_name"], 1)
+    search_result_clean = removeUnrelatedAnime(anime["init_name"], search_result)
+    anime["result"] = search_result_clean
+
+
+def removeUnrelatedAnime(init_name, search_list):
+    # 获取列表
+    name_list = []
+    for item in search_list:
+        anime = item["cn_name"].lower()
+        name_list.append(anime)
+
+    # jieba 分词，并计算余弦相似度
+    def similarity(s1, s2):
+        tokens1 = set(jieba.cut(s1))
+        tokens2 = set(jieba.cut(s2))
+        intersection = tokens1 & tokens2
+        union = tokens1 | tokens2
+        similarity_threshold = len(intersection) / len(union)
+        # print(similarity_threshold)
+        return similarity_threshold
+
+    # 过滤动画列表
+    result1 = []
+    result2 = []
+    for result in name_list:
+        if similarity(result, init_name) >= 0.15:
+            result1.append(result)
+        else:
+            result2.append(result)
+
+    # 在 search_list 中删除排除的动画
+    search_list = [item for item in search_list if item["cn_name"].lower() not in result2]
+
+    # print(result1)
+    # print(result2)
+
+    return search_list
 
 
 def downloadPoster(anime):
@@ -119,3 +155,8 @@ def getFinalName(anime):
     # 保留 string 输出
     final_name = eval(f'f"{rename_format}"')
     anime["final_name"] = final_name
+
+
+# word = "名侦探柯南"
+# search_result = bangumiSearch(word, 1)
+# search_result_clean = removeUnrelatedAnime(word, search_result)

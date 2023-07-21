@@ -41,7 +41,7 @@ def bangumiSearch(jp_name, season):
     jp_name = jp_name.replace("!", "").replace("-", "")  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
-    url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large"
+    url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
     print(f"开始搜索{jp_name}")
 
     for retry in range(3):
