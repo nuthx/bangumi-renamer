@@ -65,29 +65,26 @@ class AboutWindow(object):
         self.usageCardLayout.addWidget(self.analysisTimesCard)
         self.usageCardLayout.addWidget(self.renameTimescard)
 
-        # API
+        # PING
 
-        self.anilistApiTitle = QLabel("AniList API 使用")
-        self.anilistApi = QLabel("0")
-        self.anilistApiCard = self.usageCard(self.anilistApiTitle, self.anilistApi)
+        self.anilistPingTitle = QLabel("AniList PING")
+        self.anilistPing = QLabel("测试中...")
+        self.anilistPingCard = self.usageCard(self.anilistPingTitle, self.anilistPing)
 
-        self.bangumiApiTitle = QLabel("Bangumi API 使用")
-        self.bangumiApi = QLabel("0")
-        self.bangumiApiCard = self.usageCard(self.bangumiApiTitle, self.bangumiApi)
+        self.bangumiPingTitle = QLabel("Bangumi PING")
+        self.bangumiPing = QLabel("测试中...")
+        self.bangumiPingCard = self.usageCard(self.bangumiPingTitle, self.bangumiPing)
 
-        self.apiCardLayout = QHBoxLayout()
-        self.apiCardLayout.setSpacing(12)
-        self.apiCardLayout.setContentsMargins(0, 0, 0, 0)
-        self.apiCardLayout.addWidget(self.anilistApiCard)
-        self.apiCardLayout.addWidget(self.bangumiApiCard)
+        self.PingCardLayout = QHBoxLayout()
+        self.PingCardLayout.setSpacing(12)
+        self.PingCardLayout.setContentsMargins(0, 0, 0, 0)
+        self.PingCardLayout.addWidget(self.anilistPingCard)
+        self.PingCardLayout.addWidget(self.bangumiPingCard)
 
         # Github
 
         self.versionLabel = QLabel(f"Version {currentVersion()}")
         self.versionLabel.setObjectName("lightLabel")
-
-        self.githubLabel = QLabel("Github: ")
-        self.githubLabel.setObjectName("lightLabel")
 
         self.githubUrl = QLabel("<a href='https://github.com/nuthx/bangumi-renamer' style='color:#F09199'>"
                                 "https://github.com/nuthx/bangumi-renamer</a>")
@@ -100,7 +97,6 @@ class AboutWindow(object):
         self.githubLayout.addStretch(0)
         self.githubLayout.addWidget(self.versionLabel)
         self.githubLayout.addSpacing(12)
-        self.githubLayout.addWidget(self.githubLabel)
         self.githubLayout.addWidget(self.githubUrl)
         self.githubLayout.addStretch(0)
 
@@ -112,7 +108,7 @@ class AboutWindow(object):
         layout.addLayout(self.titleLayout)
         layout.addSpacing(20)
         layout.addLayout(self.usageCardLayout)
-        layout.addLayout(self.apiCardLayout)
+        layout.addLayout(self.PingCardLayout)
         layout.addSpacing(24)
         layout.addLayout(self.githubLayout)
 

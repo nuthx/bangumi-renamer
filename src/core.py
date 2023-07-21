@@ -3,6 +3,7 @@ import time
 import threading
 import shutil
 import arrow
+import ping3
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
 from PySide6.QtGui import QDesktopServices
@@ -436,6 +437,7 @@ class MyAboutWindow(QDialog, AboutWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
+        self.checkPing()
         self.config = readConfig()
         self.loadConfig()
 
@@ -443,8 +445,31 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.openTimes.setText(self.config.get("Counter", "open_times"))
         self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
         self.renameTimes.setText(self.config.get("Counter", "rename_times"))
-        self.anilistApi.setText(self.config.get("Counter", "anilist_api"))
-        self.bangumiApi.setText(self.config.get("Counter", "bangumi_api"))
+
+    def checkPing(self):
+        thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))
+        thread2 = threading.Thread(target=self.checkPingThread, args=("bgm.tv", self.bangumiPing))
+        thread1.start()
+        thread2.start()
+
+    def checkPingThread(self, url, label):
+        for retry in range(3):
+            ping = ping3.ping(url)
+            if ping:
+                ping = int(ping * 1000)
+                label.setText(f"{ping} ms")
+
+                if ping <= 250:
+                    label.setStyleSheet("color: #4CAF50")
+                elif 250 < ping <= 350:
+                    label.setStyleSheet("color: #FF9800")
+                else:
+                    label.setStyleSheet("color: #F44336")
+                return
+            else:
+                time.sleep(0.2)
+        label.setText("ERROR")
+        label.setStyleSheet("color: #F44336")
 
 
 class MySettingWindow(QDialog, SettingWindow):

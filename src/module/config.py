@@ -65,8 +65,6 @@ def initConfig(config_file):
     config.set("Counter", "open_times", "0")
     config.set("Counter", "analysis_times", "0")
     config.set("Counter", "rename_times", "0")
-    config.set("Counter", "anilist_api", "0")
-    config.set("Counter", "bangumi_api", "0")
 
     # 写入配置内容
     with open(config_file, "w", encoding="utf-8") as content:
