@@ -458,10 +458,9 @@ class MySettingWindow(QDialog, SettingWindow):
         self.loadConfig()
 
     def initUI(self):
+        self.posterFolderButton.clicked.connect(self.openPosterFolder)
         self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
-
-        self.posterFolderButton.clicked.connect(self.openPosterFolder)
 
     def loadConfig(self):
         self.renameType.setText(self.config.get("Format", "rename_format"))
@@ -484,7 +483,7 @@ class MySettingWindow(QDialog, SettingWindow):
         self.config.set("Format", "rename_format", self.renameType.currentText())
         self.config.set("Format", "date_format", self.dateType.currentText())
 
-        with open(configFile(), "w") as content:
+        with open(configFile(), "w", encoding="utf-8") as content:
             self.config.write(content)
 
         self.save_notice.emit("配置已保存")

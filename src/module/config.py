@@ -6,7 +6,6 @@ import configparser
 
 # 配置文件路径
 def configPath():
-    # 定位系统配置文件所在位置
     if platform.system() == "Windows":
         config_path = os.environ["APPDATA"]
     elif platform.system() == "Darwin":
@@ -40,6 +39,10 @@ def posterFolder():
     config_path = configPath()
     poster_folder = config_path + os.sep + "Poster"
 
+    # 路径无效时返回无效的海报路径
+    if config_path == "N/A":
+        return "N/A"
+
     # 是否存在该路径
     if not os.path.exists(poster_folder):
         os.makedirs(poster_folder)
@@ -66,7 +69,7 @@ def initConfig(config_file):
     config.set("Counter", "bangumi_api", "0")
 
     # 写入配置内容
-    with open(config_file, "w") as content:
+    with open(config_file, "w", encoding="utf-8") as content:
         config.write(content)
 
 
