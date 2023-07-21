@@ -459,11 +459,9 @@ class MyAboutWindow(QDialog, AboutWindow):
                 ping = int(ping * 1000)
                 label.setText(f"{ping} ms")
 
-                if ping <= 250:
-                    label.setStyleSheet("color: #4CAF50")
-                elif 250 < ping <= 350:
+                if 230 < ping <= 300:
                     label.setStyleSheet("color: #FF9800")
-                else:
+                elif ping > 300:
                     label.setStyleSheet("color: #F44336")
                 return
             else:
