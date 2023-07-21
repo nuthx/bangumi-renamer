@@ -41,10 +41,7 @@ def getApiInfo(anime):
 
     bangumi_search = bangumiSearch(jp_name_anilist, 2)
     if bangumi_search:
-        anime["bgm_id"] = bangumi_search[0]
-        anime["poster"] = bangumi_search[1]
-        anime["jp_name"] = bangumi_search[2].replace("/", " ")  # 移除结果中的斜杠
-        anime["cn_name"] = bangumi_search[3].replace("/", " ")  # 移除结果中的斜杠
+        anime["bgm_id"] = bangumi_search
     else:
         return
 
@@ -52,11 +49,14 @@ def getApiInfo(anime):
 
     bangumi_subject = bangumiSubject(anime["bgm_id"])
     if bangumi_subject:
-        anime["types"] = bangumi_subject[0]
-        anime["typecode"] = bangumi_subject[1]
-        anime["release"] = bangumi_subject[2]
-        anime["episodes"] = bangumi_subject[3]
-        anime["score"] = bangumi_subject[4]
+        anime["poster"] = bangumi_subject[0]
+        anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
+        anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
+        anime["types"] = bangumi_subject[3]
+        anime["typecode"] = bangumi_subject[4]
+        anime["release"] = bangumi_subject[5]
+        anime["episodes"] = bangumi_subject[6]
+        anime["score"] = bangumi_subject[7]
     else:
         return
 

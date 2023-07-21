@@ -56,12 +56,7 @@ def bangumiSearch(jp_name, season):
 
             # 搜索当前季度
             if season == 2:
-                bgm_id = result["list"][0]["id"]
-                poster = result["list"][0]["images"]["large"]
-                jp_name = result["list"][0]["name"]
-                cn_name = result["list"][0]["name_cn"]
-
-                return bgm_id, poster, jp_name, cn_name
+                return result["list"][0]["id"]
 
             # 搜索第一季度
             elif season == 1:
@@ -110,6 +105,9 @@ def bangumiSubject(bgm_id):
             if "code" in result and result["code"] == 404:
                 return
 
+            poster = result["images"]["medium"]
+            jp_name = result["name"]
+            cn_name = result["name_cn"]
             types = result["platform"]
             release = result["date"]
             episodes = result["eps"]
@@ -130,7 +128,7 @@ def bangumiSubject(bgm_id):
             score = float(score)
             score = format(score, ".1f")
 
-            return types, typecode, release, episodes, score
+            return poster, jp_name, cn_name, types, typecode, release, episodes, score
         else:
             time.sleep(0.5)
     print(f"搜索{bgm_id}失败")
