@@ -16,7 +16,7 @@ def getRomajiName(file_name):
     pattern_ignored = '|'.join(ignored)
     file_name = re.sub(pattern_ignored, '', file_name)
 
-    # 使用 anitopy 识别动画名
+    # anitopy 识别动画名
     aniparse_options = {'allowed_delimiters': ' .-+[]'}
     romaji_name = anitopy.parse(file_name, options=aniparse_options)
 
@@ -30,7 +30,6 @@ def getApiInfo(anime):
     romaji_name = anime["romaji_name"]
 
     # Anilist
-
     jp_name_anilist = anilistSearch(romaji_name)
     if jp_name_anilist:
         anime["jp_name_anilist"] = jp_name_anilist
@@ -38,15 +37,13 @@ def getApiInfo(anime):
         return
 
     # Bangumi 搜索
-
-    bangumi_search = bangumiSearch(jp_name_anilist, 2)
+    bangumi_search = bangumiSearch(anime["jp_name_anilist"], 2)
     if bangumi_search:
         anime["bgm_id"] = bangumi_search
     else:
         return
 
-    # bangumi 条目
-
+    # Bangumi 条目
     bangumi_subject = bangumiSubject(anime["bgm_id"])
     if bangumi_subject:
         anime["poster"] = bangumi_subject[0]
@@ -61,7 +58,6 @@ def getApiInfo(anime):
         return
 
     # Bangumi 前传
-
     bgm_id = anime["bgm_id"]
     bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
     prev_id = bangumi_previous[0]
@@ -69,7 +65,6 @@ def getApiInfo(anime):
 
     while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
         bgm_id = prev_id
-        # addTimes("bangumi_api")
         bangumi_previous = bangumiPrevious(bgm_id, prev_name)
         prev_id = bangumi_previous[0]
         prev_name = bangumi_previous[1]
@@ -77,14 +72,13 @@ def getApiInfo(anime):
     anime["init_id"] = prev_id
     anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
-    # bangumi 本名搜索
-
+    # Bangumi 额外搜索
     search_result = bangumiSearch(anime["init_name"], 1)
-    search_result_clean = removeUnrelatedAnime(anime["init_name"], search_result)
-    anime["result"] = search_result_clean
+    search_clean = removeTrash(anime["init_name"], search_result)
+    anime["result"] = search_clean
 
 
-def removeUnrelatedAnime(init_name, search_list):
+def removeTrash(init_name, search_list):
     # 获取列表
     name_list = []
     for item in search_list:
@@ -112,10 +106,6 @@ def removeUnrelatedAnime(init_name, search_list):
 
     # 在 search_list 中删除排除的动画
     search_list = [item for item in search_list if item["cn_name"].lower() not in result2]
-
-    # print(result1)
-    # print(result2)
-
     return search_list
 
 
@@ -155,8 +145,3 @@ def getFinalName(anime):
     # 保留 string 输出
     final_name = eval(f'f"{rename_format}"')
     anime["final_name"] = final_name
-
-
-# word = "名侦探柯南"
-# search_result = bangumiSearch(word, 1)
-# search_result_clean = removeUnrelatedAnime(word, search_result)

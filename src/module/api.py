@@ -3,7 +3,7 @@ import json
 import time
 
 
-# 向 Anilist 请求数据
+# Anilist
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
 def anilistSearch(romaji_name):
     query = '''
@@ -19,36 +19,36 @@ def anilistSearch(romaji_name):
     js = {"query": query, "variables": {"id": romaji_name}}
     headers = {'accept': 'application/json'}
     url = "https://graphql.anilist.co"
-    print(f"开始搜索{romaji_name}")
+    print(f"1 ==> 搜索{romaji_name}")
 
     for retry in range(3):
         response = requests.post(url, json=js, headers=headers)
         if response.status_code == 200:
             result = json.loads(response.text.encode().decode('unicode_escape'))  # 特殊转码
-            print(f"成功获取{romaji_name}数据")
+            print(f"1 ==> 获取{romaji_name}数据")
 
             jp_name_anilist = result["data"]["Media"]["title"]["native"]
 
             return jp_name_anilist
         else:
             time.sleep(0.5)
-    print(f"搜索{romaji_name}失败")
+    print(f"1 ==> 搜索{romaji_name}失败")
 
 
-# 向 Bangumi Search 请求数据(search/subject/keywords)
+# Bangumi 搜索
 # https://bangumi.github.io/api/
 def bangumiSearch(jp_name, season):
     jp_name = jp_name.replace("!", "").replace("-", "")  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
-    print(f"开始搜索{jp_name}")
+    print(f"2 ==> 搜索{jp_name}")
 
     for retry in range(3):
         response = requests.post(url, headers=headers)
         if response.status_code == 200:
             result = json.loads(response.text)
-            print(f"成功获取{jp_name}数据")
+            print(f"2 ==> 获取{jp_name}数据")
 
             # 未搜索到内容停止
             if "code" in result and result["code"] == 404:
@@ -85,21 +85,20 @@ def bangumiSearch(jp_name, season):
 
         else:
             time.sleep(0.5)
-    print(f"搜索{jp_name}失败")
+    print(f"2 ==> 搜索{jp_name}失败")
 
 
-# 向 Bangumi Subject 请求数据(/v0/subjects/subject_id)
-# https://bangumi.github.io/api/
+# Bangumi 条目
 def bangumiSubject(bgm_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(bgm_id)
-    print(f"开始搜索{bgm_id}")
+    print(f"3 ==> 搜索{bgm_id}")
 
     for retry in range(3):
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             result = json.loads(response.text)
-            print(f"成功获取{bgm_id}数据")
+            print(f"3 ==> 获取{bgm_id}数据")
 
             # 未搜索到内容停止
             if "code" in result and result["code"] == 404:
@@ -131,21 +130,20 @@ def bangumiSubject(bgm_id):
             return poster, jp_name, cn_name, types, typecode, release, episodes, score
         else:
             time.sleep(0.5)
-    print(f"搜索{bgm_id}失败")
+    print(f"3 ==> 搜索{bgm_id}失败")
 
 
-# 向 Bangumi Previous 请求数据(v0/subjects/subjects)
-# https://bangumi.github.io/api/
+# Bangumi 前传
 def bangumiPrevious(init_id, init_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(init_id) + "/subjects"
-    print(f"开始搜索{init_name}前传")
+    print(f"4 ==> 搜索{init_name}前传")
 
     for retry in range(3):
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             result = json.loads(response.text)
-            print(f"成功获取{init_name}前传")
+            print(f"4 ==> 获取{init_name}前传")
 
             # 如果有前传，返回前传 prev_id 和 prev_name
             # 如果没有前传，返回原始 init_id 和 not_now_bro
@@ -158,4 +156,4 @@ def bangumiPrevious(init_id, init_name):
                 return init_id, init_name
         else:
             time.sleep(0.5)
-    print(f"搜索{init_name}前传失败")
+    print(f"4 ==> 搜索{init_name}前传失败")
