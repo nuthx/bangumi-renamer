@@ -174,9 +174,6 @@ class MainWindow(object):
 
         # 操作区域
 
-        self.newVersionButton = TransparentPushButton("有新版本", self, FluentIcon.SYNC)
-        self.newVersionButton.setVisible(False)
-
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
 
@@ -191,7 +188,6 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
-        self.buttonLayout.addWidget(self.newVersionButton)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)
