@@ -152,7 +152,7 @@ def bangumiPrevious(init_id, init_name):
             # 如果有前传，返回前传 prev_id 和 prev_name
             # 如果没有前传，返回原始 init_id 和 not_now_bro
             for data in result:
-                if data["relation"] in ["前传", "主线故事"]:
+                if data["relation"] in ["前传", "主线故事", "全集"]:
                     prev_id = str(data["id"])
                     prev_name = data["name_cn"]
                     return prev_id, prev_name
