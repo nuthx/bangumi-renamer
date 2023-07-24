@@ -73,7 +73,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         setting.exec()
 
     def closeSetting(self, title):
-        self.showInfo("success", title, "请重新开始分析")
+        for anime in self.anime_list:
+            getFinalName(anime)
+        self.selectTable()
+        self.showInfo("success", title, "配置修改成功")
 
     def RowInTable(self):
         for selected in self.table.selectedRanges():
