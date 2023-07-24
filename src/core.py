@@ -350,9 +350,16 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 列出 anime_list 中有 final_name 的索引
         rename_order_list = []
+        final_name_check = []
         for index, dictionary in enumerate(self.anime_list):
             if "final_name" in dictionary:
                 rename_order_list.append(index)
+                final_name_check.append(dictionary["final_name"])
+
+        # 检查重命名的结果是否相同
+        if len(set(final_name_check)) == 1:
+            self.showInfo("warning", "", "存在重复的重命名结果")
+            return
 
         # 是否有需要命名的动画
         if not rename_order_list:
