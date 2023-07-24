@@ -452,7 +452,7 @@ class MyAboutWindow(QDialog, AboutWindow):
                     label.setStyleSheet("color: #F44336")
                 return
             else:
-                time.sleep(0.2)
+                time.sleep(0.1)
         label.setText("ERROR")
         label.setStyleSheet("color: #F44336")
 
