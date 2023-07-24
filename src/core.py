@@ -17,6 +17,7 @@ from src.function import initList, addTimes, openFolder
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.api import bangumiSubject
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
+from src.module.version import newVersion
 from src.module.resource import getResource
 
 
@@ -436,6 +437,7 @@ class MyAboutWindow(QDialog, AboutWindow):
         super().__init__()
         self.setupUI(self)
         self.checkPing()
+        self.checkVersion()
         self.config = readConfig()
         self.loadConfig()
 
@@ -443,6 +445,18 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.openTimes.setText(self.config.get("Counter", "open_times"))
         self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
         self.renameTimes.setText(self.config.get("Counter", "rename_times"))
+
+    def checkVersion(self):
+        thread0 = threading.Thread(target=self.checkVersionThread)
+        thread0.start()
+
+    def checkVersionThread(self):
+        newnew = newVersion()
+
+        if newnew[2]:
+            current_version = newnew[0]
+            latest_version = newnew[1]
+            self.versionLabel.setText(f"Version {current_version} (有新版本: {latest_version})")
 
     def checkPing(self):
         thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))

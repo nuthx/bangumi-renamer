@@ -15,3 +15,13 @@ def latestVersion():
     latest_version = version_raw[9: -1]
 
     return latest_version
+
+
+def newVersion():
+    current_version = currentVersion()
+    latest_version = latestVersion()
+
+    if current_version < latest_version:
+        return current_version, latest_version, True
+    else:
+        return current_version, latest_version, False
