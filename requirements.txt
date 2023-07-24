@@ -1,7 +1,6 @@
-PySide6==6.4.3
+PySide6
 PySide6-Fluent-Widgets
 requests
 arrow
 anitopy
 jieba
-ping3

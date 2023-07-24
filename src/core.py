@@ -3,7 +3,7 @@ import time
 import threading
 import shutil
 import arrow
-import ping3
+import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
 from PySide6.QtGui import QDesktopServices
@@ -460,25 +460,21 @@ class MyAboutWindow(QDialog, AboutWindow):
 
     def checkPing(self):
         thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))
-        thread2 = threading.Thread(target=self.checkPingThread, args=("bgm.tv", self.bangumiPing))
+        thread2 = threading.Thread(target=self.checkPingThread, args=("api.bgm.tv", self.bangumiPing))
         thread1.start()
         thread2.start()
 
     def checkPingThread(self, url, label):
         for retry in range(3):
-            ping = ping3.ping(url)
-            if ping:
-                ping = int(ping * 1000)
-                label.setText(f"{ping} ms")
-
-                if 230 < ping <= 300:
-                    label.setStyleSheet("color: #FF9800")
-                elif ping > 300:
-                    label.setStyleSheet("color: #F44336")
-                return
-            else:
-                time.sleep(0.1)
-        label.setText("ERROR")
+            try:
+                response = requests.get(f"http://{url}/")
+                if response.status_code == 200:
+                    label.setText("Online")
+                    return
+            except requests.ConnectionError:
+                pass
+            time.sleep(0.1)
+        label.setText("Offline")
         label.setStyleSheet("color: #F44336")
 
 
