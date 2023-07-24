@@ -337,6 +337,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         downloadPoster(self.anime_list[row])
         getFinalName(self.anime_list[row])
         self.showInTable()
+        self.selectTable()
 
     def startRename(self):
         start_time = time.time()
