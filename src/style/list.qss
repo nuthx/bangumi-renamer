@@ -1,0 +1,15 @@
+ListWidget {
+    background: transparent;
+    outline: none;
+    border: none;
+    selection-background-color: transparent;
+    alternate-background-color: transparent;
+}
+
+ListWidget::item {
+    background: transparent;
+    border: 0px;
+    padding-left: 8px;
+    padding-right: 6px;
+    height: 28px;
+}

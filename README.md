@@ -1,14 +1,29 @@
 <p align="center">
-    <img src="icon/icon.png" width=25%/ alt="">
+    <img src="image/logo.png" width=55%/ alt="">
+    <br>
+    <div align="center">
+        <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-F09199" alt="Platform">
+        <img src="https://img.shields.io/github/stars/nuthx/bangumi-renamer?color=F09199" alt="Stars">
+        <img src="https://img.shields.io/github/downloads/nuthx/bangumi-renamer/total?color=F09199" alt="Downloads">
+        <img src="https://img.shields.io/github/license/nuthx/bangumi-renamer?color=F09199" alt="License">
+    </div>
 </p>
+
+
 
 ## 介绍
 
-本项目是基于 AniList 与 Bangumi 极为先进的自动化命名工具。只需要拖入下载完成的动画文件夹，即可根据自定义规则重新命名，避免手动整理费神又费力。
+一个基于 AniList 与 Bangumi 的略微先进的自动化命名工具，用来命名网络下载的番剧文件夹
+
+仅需批量拖入文件夹，BangumiRenamer 会自动识别该动画的中日文名，支持自定义命名规则，免去手动整理费神又费力
+
+<p align="center">
+    <img src="image/screenshot.png" alt="SubtitleRenamer">
+</p>
 
 ## 示例
 
-命名格式（支持自定义）：
+自定义规则：
 
 ```
 {b_initial_name}/[{b_typecode}] [{b_release_date}] {b_jp_name}
@@ -30,31 +45,35 @@
 
 ## 使用
 
-Bangumi Renamer 具备简单 GUI 界面，批量拖入需要更名的文件夹，先点击`开始识别`进行数据分析，确认内容后，点击`重命名`即可完成命名操作。
+1. 批量拖入需要重命名的文件夹，点击 `开始识别` 进行分析，大多数动画均可返回正确的结果
+2. 若分析结果非该动画的正确季度，可在右下角列表区中右键，选择 `更正为此动画` 
+3. 若有不想重命名的动画文件夹，可在动画列表中右键，选择 `删除此动画 `
+4. 图片右侧可看到每个动画的重命名结果。若想要自定义命名规则，可在软件设置中修改
+5. 确保重命名结果无误后，点击右下角 `重命名` 开始。命名完成后，操作不可撤销
 
-请在`重命名`开始前确保结果准确无误，`重命名`开始后，**操作不可撤销**。
+##### 命名变量：
 
-若出现一个或多个结果错误，需要`清空列表`后排除错误项目，重新拖入识别。后续版本会支持单项调整。
-
-##### 注意事项：
-
-- 该工具仅为整季动画提供命名支持（即支持文件夹命名，不支持文件命名）
-- 兼容常见的整季动画格式，规则为匹配首个`]`开始到后面第一个`[`间的内容为完整罗马名，并排除其中的`BD`与`BD-BOX`。
-- 若出现无法兼容的情况，可手动修改文件夹名为`[]Tokyo Revengers[]`的格式再次尝试。
+- `{jp_name}`：动画日文原名
+- `{cn_name}`：动画中文译名
+- `{init_name}`：第一季度的中文译名
+- `{romaji_name}`：动画罗马名
+- `{types}`：动画类型（TV、剧场版、OVA、OAD）
+- `{typecode}`：动画类型代码（01：TV、02：剧场版、03：OVA与OAD）
+- `{release}`：放送日期
+- `{bepisodes}`：章节数量
+- `{score}`：Bangumi 评分
+- `{b_id}`：Bangumi ID
 
 ##### 数据来源：
 
-- `AniList`：对动画罗马名的第一搜索结果较为准确
-- `Bangumi`：命名数据的主要来源
+- `AniList`：用于识别罗马名，第一搜索结果命中率极高
+- `Bangumi`：核心数据的的主要来源
 
-## TODO
+## 反馈
 
-- 多平台（目前可手动编译运行，支持 macOS）
-- 更优雅的方式实现图片展示
-- 删除列表中指定行的动画文件夹
-- 增加复选框，仅重命名选中的动画文件夹
-- 输出更准确的行为日志到窗口左下角
-- 进度条展示
+如需要更多功能支持，请在 Issues 中提出，酌情添加
+
+如遇到程序错误，请在 Issues 中详细描述，并告知所用操作系统（Windows 11 or macOS 13.4）
 
 ## 致谢
 

@@ -1,13 +1,11 @@
 import sys
-from PySide6 import QtGui, QtWidgets
+from PySide6.QtWidgets import QApplication
 
-from module import gui
+from src.core import MyMainWindow
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
-    window = gui.MyWidget()
-    icon = QtGui.QIcon("icon/icon.png")
-    window.setWindowIcon(icon)
+    app = QApplication(sys.argv)
+    window = MyMainWindow()
     window.show()
-    sys.exit(app.exec())
+    app.exec()
