@@ -26,7 +26,7 @@
 自定义规则：
 
 ```
-{b_initial_name}/[{b_typecode}] [{b_release_date}] {b_jp_name}
+{init_name}/[{typecode}] [{release}] {jp_name}
 ```
 
 拖入文件：
