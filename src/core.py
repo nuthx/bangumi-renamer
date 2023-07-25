@@ -252,7 +252,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def showMenu(self, pos):
         menu = RoundMenu(parent=self)
-        # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 识别")
+        # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 分析")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
