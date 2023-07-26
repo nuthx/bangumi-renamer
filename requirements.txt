@@ -4,3 +4,4 @@ requests
 arrow
 anitopy
 jieba
+fuzzywuzzy
