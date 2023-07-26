@@ -147,11 +147,26 @@ class MyMainWindow(QMainWindow, MainWindow):
         for i in range(anime_len):
             self.table.setItem(i, 2, QTableWidgetItem("==> 分析中"))
 
+        # 显示进度条
+        self.spinner.setVisible(True)
+
         # 多线程分析
         addTimes("analysis_times")
         for anime in self.anime_list:
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
+
+        # 检测是否结束并隐藏进度条
+        thread = threading.Thread(target=self.ThreadFinishedCheck)
+        thread.start()
+
+    def ThreadFinishedCheck(self):
+        while True:
+            if threading.active_count() == 2:
+                self.spinner.setVisible(False)
+                return
+            else:
+                time.sleep(0.5)
 
     def analysisThread(self, anime):
         # 获取并写入罗马名
