@@ -40,7 +40,7 @@ def anilistSearch(romaji_name):
 # Bangumi 搜索
 # https://bangumi.github.io/api/
 def bangumiSearch(jp_name, season):
-    jp_name = jp_name.replace("!", " ").replace("-", " ").strip()  # 搜索时移除特殊符号避免报错
+    jp_name = jp_name.replace("!", " ").replace("-", " ").replace("/", " ").strip()  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
