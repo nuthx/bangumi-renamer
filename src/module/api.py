@@ -123,8 +123,12 @@ def bangumiSubject(bgm_id):
             score = result["rating"]["score"]
 
             # 为没有中文名的动画添加 cn_name
-            if cn_name == "":
+            if not cn_name:
                 cn_name = jp_name
+
+            # 为没有日期的动画添加 release
+            if not release:
+                release = "1000-01-01"
 
             # 格式化 types
             types = types.lower()
