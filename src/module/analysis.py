@@ -76,7 +76,8 @@ def getApiInfo(anime):
     # Bangumi 额外搜索
     search_result = bangumiSearch(anime["init_name"], 1)
     search_clean = removeTrash(anime["init_name"], search_result)
-    anime["result"] = search_clean
+    if search_clean:
+        anime["result"] = search_clean
 
 
 def removeTrash(init_name, search_list):

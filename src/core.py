@@ -254,7 +254,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.image.updateImage(getResource("src/image/empty.png"))
 
         if "result" in self.anime_list[row]:
-
             self.searchList.clear()
             for this in self.anime_list[row]["result"]:
                 release = arrow.get(this['release']).format("YY-MM-DD")

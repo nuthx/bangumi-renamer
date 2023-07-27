@@ -38,7 +38,7 @@ def anilistSearch(romaji_name):
 # Bangumi 搜索
 # https://bangumi.github.io/api/
 def bangumiSearch(jp_name, season):
-    jp_name = jp_name.replace("!", "").replace("-", "")  # 搜索时移除特殊符号避免报错
+    jp_name = jp_name.replace("!", " ").replace("-", " ")  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
@@ -47,6 +47,14 @@ def bangumiSearch(jp_name, season):
     for retry in range(3):
         response = requests.post(url, headers=headers)
         if response.status_code == 200:
+
+            # 是否搜索到内容
+            if response.text.startswith("<!DOCTYPE html>"):
+                if season == 2:
+                    return
+                elif season == 1:
+                    return []
+
             result = json.loads(response.text)
             print(f"2 ==> 获取{jp_name}数据")
 
