@@ -17,7 +17,7 @@ class AboutWindow(object):
         this_window.setStyleSheet(style_sheet)
 
         this_window.setWindowTitle("关于")
-        this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
+        this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
         this_window.resize(550, -1)
         this_window.setFixedSize(self.size())  # 禁止拉伸窗口
 
@@ -67,12 +67,12 @@ class AboutWindow(object):
 
         # PING
 
-        self.anilistPingTitle = QLabel("AniList PING")
-        self.anilistPing = QLabel("测试中...")
+        self.anilistPingTitle = QLabel("AniList API")
+        self.anilistPing = QLabel("Testing...")
         self.anilistPingCard = self.usageCard(self.anilistPingTitle, self.anilistPing)
 
-        self.bangumiPingTitle = QLabel("Bangumi PING")
-        self.bangumiPing = QLabel("测试中...")
+        self.bangumiPingTitle = QLabel("Bangumi API")
+        self.bangumiPing = QLabel("Testing...")
         self.bangumiPingCard = self.usageCard(self.bangumiPingTitle, self.bangumiPing)
 
         self.PingCardLayout = QHBoxLayout()

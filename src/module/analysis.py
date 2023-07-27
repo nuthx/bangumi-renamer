@@ -3,6 +3,7 @@ import re
 import anitopy
 import arrow
 import jieba
+from fuzzywuzzy import fuzz
 
 from src.module.api import *
 from src.module.config import posterFolder, readConfig
@@ -80,32 +81,44 @@ def getApiInfo(anime):
 
 def removeTrash(init_name, search_list):
     # 获取列表
+    init_name = init_name.lower()
     name_list = []
     for item in search_list:
         anime = item["cn_name"].lower()
         name_list.append(anime)
 
-    # jieba 分词，并计算余弦相似度
-    def similarity(s1, s2):
-        tokens1 = set(jieba.cut(s1))
-        tokens2 = set(jieba.cut(s2))
-        intersection = tokens1 & tokens2
-        union = tokens1 | tokens2
-        similarity_threshold = len(intersection) / len(union)
-        # print(similarity_threshold)
-        return similarity_threshold
+    result_yes1 = []
+    result_no1 = []
+    result_yes2 = []
+    result_no2 = []
 
-    # 过滤动画列表
-    result1 = []
-    result2 = []
-    for result in name_list:
-        if similarity(result, init_name) >= 0.15:
-            result1.append(result)
+    # jieba 余弦相似度
+    for name in name_list:
+        t1 = set(jieba.cut(init_name))
+        t2 = set(jieba.cut(name))
+        result1 = len(t1 & t2) / len(t1 | t2)
+
+        if result1 >= 0.15:
+            result_yes1.append(name)
         else:
-            result2.append(result)
+            result_no1.append(name)
+
+    # fuzzywuzzy 模糊匹配
+    for name in name_list:
+        ratio = fuzz.partial_ratio(init_name, name)
+        if ratio > 90:
+            result_yes2.append(name)
+        else:
+            result_no2.append(name)
+
+    # print(f"yes1:{result_yes1}")
+    # print(f"no1:{result_no1}")
+    # print(f"yes2:{result_yes2}")
+    # print(f"no2:{result_no2}")
 
     # 在 search_list 中删除排除的动画
-    search_list = [item for item in search_list if item["cn_name"].lower() not in result2]
+    result = set(result_yes1 + result_yes2)  # 合并匹配的结果
+    search_list = [item for item in search_list if item["cn_name"].lower() in result]
     return search_list
 
 

@@ -15,7 +15,7 @@ class SettingWindow(object):
         this_window.setStyleSheet(style_sheet)
 
         this_window.setWindowTitle("设置")
-        this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
+        this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
         this_window.resize(850, -1)
         this_window.setFixedSize(self.size())  # 禁止拉伸窗口
 

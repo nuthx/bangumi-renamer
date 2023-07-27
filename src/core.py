@@ -3,7 +3,7 @@ import time
 import threading
 import shutil
 import arrow
-import ping3
+import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
 from PySide6.QtGui import QDesktopServices
@@ -17,6 +17,7 @@ from src.function import initList, addTimes, openFolder
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
 from src.module.api import bangumiSubject
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
+from src.module.version import newVersion
 from src.module.resource import getResource
 
 
@@ -146,11 +147,26 @@ class MyMainWindow(QMainWindow, MainWindow):
         for i in range(anime_len):
             self.table.setItem(i, 2, QTableWidgetItem("==> 分析中"))
 
+        # 显示进度条
+        self.spinner.setVisible(True)
+
         # 多线程分析
         addTimes("analysis_times")
         for anime in self.anime_list:
             thread = threading.Thread(target=self.analysisThread, args=(anime,))
             thread.start()
+
+        # 检测是否结束并隐藏进度条
+        thread = threading.Thread(target=self.ThreadFinishedCheck)
+        thread.start()
+
+    def ThreadFinishedCheck(self):
+        while True:
+            if threading.active_count() == 2:
+                self.spinner.setVisible(False)
+                return
+            else:
+                time.sleep(0.5)
 
     def analysisThread(self, anime):
         # 获取并写入罗马名
@@ -251,7 +267,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def showMenu(self, pos):
         menu = RoundMenu(parent=self)
-        # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 识别")
+        # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 分析")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
@@ -436,6 +452,7 @@ class MyAboutWindow(QDialog, AboutWindow):
         super().__init__()
         self.setupUI(self)
         self.checkPing()
+        self.checkVersion()
         self.config = readConfig()
         self.loadConfig()
 
@@ -444,27 +461,35 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
         self.renameTimes.setText(self.config.get("Counter", "rename_times"))
 
+    def checkVersion(self):
+        thread0 = threading.Thread(target=self.checkVersionThread)
+        thread0.start()
+
+    def checkVersionThread(self):
+        newnew = newVersion()
+
+        if newnew[2]:
+            current_version = newnew[0]
+            latest_version = newnew[1]
+            self.versionLabel.setText(f"Version {current_version} (有新版本: {latest_version})")
+
     def checkPing(self):
         thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))
-        thread2 = threading.Thread(target=self.checkPingThread, args=("bgm.tv", self.bangumiPing))
+        thread2 = threading.Thread(target=self.checkPingThread, args=("api.bgm.tv", self.bangumiPing))
         thread1.start()
         thread2.start()
 
     def checkPingThread(self, url, label):
         for retry in range(3):
-            ping = ping3.ping(url)
-            if ping:
-                ping = int(ping * 1000)
-                label.setText(f"{ping} ms")
-
-                if 230 < ping <= 300:
-                    label.setStyleSheet("color: #FF9800")
-                elif ping > 300:
-                    label.setStyleSheet("color: #F44336")
-                return
-            else:
-                time.sleep(0.1)
-        label.setText("ERROR")
+            try:
+                response = requests.get(f"http://{url}/")
+                if response.status_code == 200:
+                    label.setText("Online")
+                    return
+            except requests.ConnectionError:
+                pass
+            time.sleep(0.1)
+        label.setText("Offline")
         label.setStyleSheet("color: #F44336")
 
 

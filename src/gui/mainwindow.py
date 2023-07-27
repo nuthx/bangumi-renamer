@@ -23,7 +23,7 @@ class MainWindow(object):
         this_window.setStyleSheet(style_sheet)
 
         this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
-        this_window.setWindowIcon(QIcon(getResource("src/image/icon.png")))
+        this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
         this_window.resize(1280, 720)
         this_window.setAcceptDrops(True)
 
