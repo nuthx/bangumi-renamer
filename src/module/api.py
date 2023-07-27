@@ -7,16 +7,7 @@ import re
 # Anilist
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
 def anilistSearch(romaji_name):
-    query = '''
-    query ($id: String) {
-        Media (search: $id, type: ANIME) {
-            title {
-                native
-            }
-            format
-        }
-    }'''
-
+    query = "query ($id: String) {Media (search: $id, type: ANIME) {title {native}}}"
     js = {"query": query, "variables": {"id": romaji_name}}
     headers = {'accept': 'application/json'}
     url = "https://graphql.anilist.co"
