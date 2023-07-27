@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import re
 
 
 # Anilist
@@ -28,8 +29,9 @@ def anilistSearch(romaji_name):
             print(f"1 ==> 获取{romaji_name}数据")
 
             jp_name_anilist = result["data"]["Media"]["title"]["native"]
+            jp_name_anilist = re.sub(r'（[^）]*）', '', jp_name_anilist)  # 移除括号内容
 
-            return jp_name_anilist
+            return jp_name_anilist.strip()
         else:
             time.sleep(0.5)
     print(f"1 ==> 搜索{romaji_name}失败")
@@ -38,7 +40,7 @@ def anilistSearch(romaji_name):
 # Bangumi 搜索
 # https://bangumi.github.io/api/
 def bangumiSearch(jp_name, season):
-    jp_name = jp_name.replace("!", " ").replace("-", " ")  # 搜索时移除特殊符号避免报错
+    jp_name = jp_name.replace("!", " ").replace("-", " ").strip()  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
