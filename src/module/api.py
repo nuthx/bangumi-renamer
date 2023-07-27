@@ -112,6 +112,10 @@ def bangumiSubject(bgm_id):
             episodes = result["eps"]
             score = result["rating"]["score"]
 
+            # 为没有中文名的动画添加 cn_name
+            if cn_name == "":
+                cn_name = jp_name
+
             # 格式化 types
             types = types.lower()
             if types in ["tv"]:
@@ -150,7 +154,10 @@ def bangumiPrevious(init_id, init_name):
             for data in result:
                 if data["relation"] in ["前传", "主线故事", "全集"]:
                     prev_id = str(data["id"])
-                    prev_name = data["name_cn"]
+                    if data["name_cn"]:
+                        prev_name = data["name_cn"]
+                    else:
+                        prev_name = data["name"]
                     return prev_id, prev_name
             else:
                 return init_id, init_name
