@@ -1,8 +1,8 @@
-from PySide6.QtCore import QMetaObject
+from PySide6.QtCore import QMetaObject, Qt
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, ListWidget, LineEdit, PlainTextEdit)
+                            IndeterminateProgressRing, ListWidget, LineEdit, PlainTextEdit, TextEdit, PillPushButton)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -24,7 +24,7 @@ class MainWindow(object):
 
         this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
-        this_window.resize(1280, 720)
+        this_window.resize(1280, 720+24+176)
         this_window.setAcceptDrops(True)
 
         # 标题区域
@@ -179,6 +179,10 @@ class MainWindow(object):
 
         # 操作区域
 
+        self.showLogs = PillPushButton("显示日志", self)
+        self.showLogs.setText("隐藏日志")
+        self.showLogs.setFixedWidth(100)
+
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
 
@@ -193,6 +197,7 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
+        self.buttonLayout.addWidget(self.showLogs)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)
@@ -201,8 +206,10 @@ class MainWindow(object):
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
 
-        self.logs = PlainTextEdit()
-
+        self.logs = TextEdit(self)
+        self.logs.setFixedHeight(176)
+        self.logs.setReadOnly(True)
+        self.logs.setContextMenuPolicy(Qt.NoContextMenu)
 
         # 框架叠叠乐
 
@@ -217,6 +224,7 @@ class MainWindow(object):
         self.layout.addWidget(self.infoFrame)
         self.layout.addSpacing(24)
         self.layout.addLayout(self.buttonLayout)
+        self.layout.addSpacing(24)
         self.layout.addWidget(self.logs)
 
         this_window.setCentralWidget(self.centralWidget)
