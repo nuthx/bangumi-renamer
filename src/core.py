@@ -43,7 +43,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
 
-        self.linkButton.clicked.connect(self.openUrl)
+        # self.linkButton.clicked.connect(self.openUrl)
 
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
@@ -85,19 +85,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         for selected in self.table.selectedRanges():
             row = selected.topRow()
             return row
-
-    def openUrl(self):
-        row = self.RowInTable()
-        if row or row == 0:
-            if "bgm_id" in self.anime_list[row]:
-                bgm_id = str(self.anime_list[row]["bgm_id"])
-                url = QUrl("https://bgm.tv/subject/" + bgm_id)
-                QDesktopServices.openUrl(url)
-            else:
-                self.showInfo("warning", "链接无效", "请先尝试分析该动画")
-                return
-        else:
-            self.showInfo("warning", "", "请先选择一个动画")
 
     def cleanTable(self):
         if not self.anime_list:
@@ -267,13 +254,15 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
-        menu = RoundMenu(parent=self)
         # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 分析")
+        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
-        # menu.addAction(force_bgm_id)
-        # menu.addSeparator()
+
+        menu = RoundMenu(parent=self)
+        menu.addAction(view_on_bangumi)
+        menu.addSeparator()
         menu.addAction(open_this_folder)
         menu.addAction(open_parent_folder)
         menu.addSeparator()
@@ -281,13 +270,22 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 必须选中单元格才会显示
         if self.table.itemAt(pos) is not None:
-            clicked_item = self.table.itemAt(pos)  # 计算坐标
-            row = self.table.row(clicked_item)  # 计算行数
             menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
 
+            row = self.RowInTable()
+            view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(row))
             open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
             open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
             delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def openBgmUrl(self, row):
+        if "bgm_id" in self.anime_list[row]:
+            bgm_id = str(self.anime_list[row]["bgm_id"])
+            url = QUrl("https://bgm.tv/subject/" + bgm_id)
+            QDesktopServices.openUrl(url)
+        else:
+            self.showInfo("warning", "链接无效", "请先进行动画分析")
+            return
 
     def openThisFolder(self, row):
         path = self.anime_list[row]["file_path"]
@@ -312,9 +310,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.showInTable()
 
     def showMenu2(self, pos):
-        menu = RoundMenu(parent=self)
         instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
         view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
+
+        menu = RoundMenu(parent=self)
         menu.addAction(instead_this_anime)
         menu.addSeparator()
         menu.addAction(view_on_bangumi)
@@ -322,22 +321,16 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 必须选中才会显示
         if self.searchList.itemAt(pos) is not None:
             clicked_item = self.searchList.itemAt(pos)  # 计算坐标
-            row = self.searchList.row(clicked_item)  # 计算行数
+            list_row = self.searchList.row(clicked_item)  # 计算行数
+            table_row = self.RowInTable()
 
             # 不出现在默认列表中
-            if self.searchList.item(row).text() != "暂无搜索结果":
+            if self.searchList.item(list_row).text() != "暂无搜索结果":
                 menu.exec(self.searchList.mapToGlobal(pos), ani=True)
 
-                table_row = self.RowInTable()
-                bgm_id = self.anime_list[table_row]["result"][row]["bgm_id"]
-
+                bgm_id = self.anime_list[table_row]["result"][list_row]["bgm_id"]
                 instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
-                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(bgm_id))
-
-    def openBgmUrl(self, bgm_id):
-        bgm_id = str(bgm_id)
-        url = QUrl("https://bgm.tv/subject/" + bgm_id)
-        QDesktopServices.openUrl(url)
+                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
 
     def correctThisAnime(self, row, bgm_id):
         result = bangumiSubject(bgm_id)

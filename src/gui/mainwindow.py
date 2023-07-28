@@ -2,7 +2,7 @@ from PySide6.QtCore import QMetaObject, Qt
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView, QListWidgetItem
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, TransparentPushButton, ListWidget)
+                            IndeterminateProgressRing, TransparentPushButton, ListWidget, LineEdit, SearchLineEdit)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -103,12 +103,17 @@ class MainWindow(object):
         self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
+        self.idLayout = SearchLineEdit(self)
+        self.idLayout.setFixedWidth(120)
+        self.idLayout.setClearButtonEnabled(False)
+
         self.linkButton = ToolButton(FluentIcon.LINK, self)
 
         self.titleLayout = QHBoxLayout()
         self.titleLayout.setSpacing(12)
         self.titleLayout.addLayout(self.nameLayout, 0)
         self.titleLayout.addStretch(0)
+        self.titleLayout.addWidget(self.idLayout)
         self.titleLayout.addWidget(self.linkButton)
         self.titleLayout.addSpacing(12)
 
