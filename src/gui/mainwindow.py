@@ -1,8 +1,8 @@
-from PySide6.QtCore import QMetaObject, Qt
+from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView, QListWidgetItem
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, TransparentPushButton, ListWidget, LineEdit, SearchLineEdit)
+                            IndeterminateProgressRing, ListWidget, LineEdit, PlainTextEdit)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -103,7 +103,7 @@ class MainWindow(object):
         self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
-        self.idLayout = SearchLineEdit(self)
+        self.idLayout = LineEdit(self)
         self.idLayout.setFixedWidth(120)
         self.idLayout.setClearButtonEnabled(False)
 
@@ -201,6 +201,9 @@ class MainWindow(object):
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
 
+        self.logs = PlainTextEdit()
+
+
         # 框架叠叠乐
 
         self.centralWidget = QWidget(this_window)
@@ -214,6 +217,7 @@ class MainWindow(object):
         self.layout.addWidget(self.infoFrame)
         self.layout.addSpacing(24)
         self.layout.addLayout(self.buttonLayout)
+        self.layout.addWidget(self.logs)
 
         this_window.setCentralWidget(self.centralWidget)
 

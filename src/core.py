@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import threading
@@ -7,7 +8,7 @@ import nltk
 import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QTextCursor
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
@@ -26,13 +27,14 @@ class MyMainWindow(QMainWindow, MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.initList()
         self.poster_folder = posterFolder()
         addTimes("open_times")
+        sys.stdout = PrintCapture(self.logs)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
-    def initUI(self):
+    def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.table.customContextMenuRequested.connect(self.showMenu)
         self.table.itemSelectionChanged.connect(self.selectTable)
@@ -493,11 +495,11 @@ class MySettingWindow(QDialog, SettingWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.config = readConfig()
         self.loadConfig()
 
-    def initUI(self):
+    def initConnect(self):
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
         self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
@@ -533,3 +535,14 @@ class MySettingWindow(QDialog, SettingWindow):
         poster_folder = posterFolder()
         if poster_folder != "N/A":
             openFolder(poster_folder)
+
+
+class PrintCapture:
+    def __init__(self, target_widget):
+        self.target_widget = target_widget
+
+    def write(self, text):
+        cursor = self.target_widget.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.target_widget.setTextCursor(cursor)
