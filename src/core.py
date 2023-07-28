@@ -3,6 +3,7 @@ import time
 import threading
 import shutil
 import arrow
+import nltk
 import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
@@ -27,8 +28,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.setupUI(self)
         self.initUI()
         self.initList()
-        addTimes("open_times")
         self.poster_folder = posterFolder()
+        addTimes("open_times")
+        nltk.data.path.append(getResource("lib/nltk_data"))
 
     def initUI(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单

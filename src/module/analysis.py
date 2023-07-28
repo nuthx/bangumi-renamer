@@ -1,9 +1,9 @@
 import os
-import re
 import anitopy
 import arrow
 import jieba
 from fuzzywuzzy import fuzz
+from nltk.corpus import words
 
 from src.module.api import *
 from src.module.config import posterFolder, readConfig
@@ -27,15 +27,27 @@ def getRomajiName(file_name):
         return anime_title
 
 
+def isPureEnglish(name):
+    name = name.replace(".", " ")
+    for word in name.split():
+        print(word)
+        if word.lower() not in words.words():
+            return False
+    return True
+
+
 def getApiInfo(anime):
     romaji_name = anime["romaji_name"]
 
     # Anilist
-    jp_name_anilist = anilistSearch(romaji_name)
-    if jp_name_anilist:
-        anime["jp_name_anilist"] = jp_name_anilist
+    if isPureEnglish(romaji_name):
+        anime["jp_name_anilist"] = romaji_name
     else:
-        return
+        jp_name_anilist = anilistSearch(romaji_name)
+        if jp_name_anilist:
+            anime["jp_name_anilist"] = jp_name_anilist
+        else:
+            return
 
     # Bangumi 搜索
     bangumi_search = bangumiSearch(anime["jp_name_anilist"], 2)

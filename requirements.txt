@@ -5,3 +5,4 @@ arrow
 anitopy
 jieba
 fuzzywuzzy
+nltk
