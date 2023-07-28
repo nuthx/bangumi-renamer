@@ -10,11 +10,8 @@ from src.module.config import posterFolder, readConfig
 
 
 def getRomajiName(file_name):
-    # 加载文件名忽略列表
-    ignored = ["BD-BOX", "BD"]
-
-    # 将指定字符加入忽略列表，并更新 file_name为忽略后的名字
-    pattern_ignored = '|'.join(ignored)
+    # 忽略文件名中特殊字符
+    pattern_ignored = '|'.join(["BD-BOX", "BD"])
     file_name = re.sub(pattern_ignored, '', file_name)
 
     # anitopy 识别动画名
@@ -30,7 +27,6 @@ def getRomajiName(file_name):
 def isPureEnglish(name):
     name = name.replace(".", " ")
     for word in name.split():
-        print(word)
         if word.lower() not in words.words():
             return False
     return True
@@ -49,10 +45,10 @@ def getApiInfo(anime):
         else:
             return
 
-    # Bangumi 搜索
-    bangumi_search = bangumiSearch(anime["jp_name_anilist"], 2)
-    if bangumi_search:
-        anime["bgm_id"] = bangumi_search
+    # Bangumi ID
+    bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
+    if bangumi_search_id:
+        anime["bgm_id"] = bangumi_search_id
     else:
         return
 
@@ -85,14 +81,19 @@ def getApiInfo(anime):
     anime["init_id"] = prev_id
     anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
-    # Bangumi 额外搜索
-    search_result = bangumiSearch(anime["init_name"], 1)
+    # Bangumi 搜索
+    search_result = bangumiSearch(anime["init_name"])
     search_clean = removeTrash(anime["init_name"], search_result)
     if search_clean:
         anime["result"] = search_clean
+    else:
+        return
 
 
 def removeTrash(init_name, search_list):
+    if not search_list:
+        return
+
     # 获取列表
     init_name = init_name.lower()
     name_list = []

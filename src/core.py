@@ -217,7 +217,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.jpName.setText("请先选中一个动画以展示详细信息")
 
         if "types" in self.anime_list[row] and "typecode" in self.anime_list[row]:
-            types = self.anime_list[row]["types"].upper()
+            types = self.anime_list[row]["types"]
             typecode = self.anime_list[row]["typecode"]
             self.typeLabel.setText(f"类型：{types} ({typecode})")
         else:
