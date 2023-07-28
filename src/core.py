@@ -376,7 +376,7 @@ class MyMainWindow(QMainWindow, MainWindow):
                 final_name_check.append(dictionary["final_name"])
 
         # 检查重命名的结果是否相同
-        if len(set(final_name_check)) == 1:
+        if len(set(final_name_check)) == 1 and len(final_name_check) != 1:
             self.showInfo("warning", "", "存在重复的重命名结果")
             return
 
