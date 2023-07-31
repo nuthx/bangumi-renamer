@@ -24,7 +24,7 @@ class MainWindow(object):
 
         this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
-        this_window.resize(1280, 720+24+176)
+        this_window.resize(1280, 720)
         this_window.setAcceptDrops(True)
 
         # 标题区域
@@ -180,7 +180,6 @@ class MainWindow(object):
         # 操作区域
 
         self.showLogs = PillPushButton("显示日志", self)
-        self.showLogs.setText("隐藏日志")
         self.showLogs.setFixedWidth(100)
 
         self.clearButton = PushButton("清空列表", self)
@@ -206,10 +205,22 @@ class MainWindow(object):
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
 
+        # 日志区域
+
         self.logs = TextEdit(self)
         self.logs.setFixedHeight(176)
         self.logs.setReadOnly(True)
         self.logs.setContextMenuPolicy(Qt.NoContextMenu)
+
+        self.logLayout = QVBoxLayout()
+        self.logLayout.setContentsMargins(0, 0, 0, 0)
+        self.logLayout.addSpacing(24)
+        self.logLayout.addWidget(self.logs)
+
+        self.logFrame = QFrame()
+        self.logFrame.setFixedHeight(200)
+        self.logFrame.setLayout(self.logLayout)
+        self.logFrame.setHidden(True)
 
         # 框架叠叠乐
 
@@ -224,8 +235,7 @@ class MainWindow(object):
         self.layout.addWidget(self.infoFrame)
         self.layout.addSpacing(24)
         self.layout.addLayout(self.buttonLayout)
-        self.layout.addSpacing(24)
-        self.layout.addWidget(self.logs)
+        self.layout.addWidget(self.logFrame)
 
         this_window.setCentralWidget(self.centralWidget)
 

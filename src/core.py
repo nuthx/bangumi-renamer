@@ -47,6 +47,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # self.linkButton.clicked.connect(self.openUrl)
 
+        self.showLogs.clicked.connect(self.logAction)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -76,6 +77,22 @@ class MyMainWindow(QMainWindow, MainWindow):
         setting = MySettingWindow()
         setting.save_notice.connect(self.closeSetting)
         setting.exec()
+
+    def logAction(self, checked):
+        if checked:
+            self.showLogs.setText("隐藏日志")
+            self.logFrame.setHidden(False)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height + 200)
+        else:
+            self.showLogs.setText("显示日志")
+            self.logFrame.setHidden(True)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height - 200)
 
     def closeSetting(self, title):
         for anime in self.anime_list:
