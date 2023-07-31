@@ -31,7 +31,7 @@ def isPureEnglish(name):
             if word.lower() not in words.words():
                 return False
     except Exception as e:
-        print(f"nltk异常，即将重试 ({e})")
+        # print(f"nltk异常，即将重试 ({e})")
         time.sleep(0.2)
         return isPureEnglish(name)
     return True

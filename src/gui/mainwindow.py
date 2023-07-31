@@ -211,6 +211,9 @@ class MainWindow(object):
         self.logs.setFixedHeight(176)
         self.logs.setReadOnly(True)
         self.logs.setContextMenuPolicy(Qt.NoContextMenu)
+        styleSheetManager.deregister(self.logs)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.logs.setStyleSheet(file.read())
 
         self.logLayout = QVBoxLayout()
         self.logLayout.setContentsMargins(0, 0, 0, 0)
