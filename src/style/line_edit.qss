@@ -4,3 +4,32 @@ TextEdit {
     border-radius: 8px;
     padding: 0px 10px;
 }
+
+
+
+LineEdit {
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid #EFEFEF;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    padding: 0px 10px;
+}
+
+LineEdit:hover {
+    background-color: rgba(249, 249, 249, 0.5);
+    border: 1px solid #EFEFEF;
+}
+
+ToolButton {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #EFEFEF;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 6px 10px;
+    outline: none;
+}
+
+ToolButton:hover {
+    background: rgba(249, 249, 249, 0.5);
+}

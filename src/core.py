@@ -45,7 +45,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
 
-        # self.linkButton.clicked.connect(self.openUrl)
+        self.idEdit.clicked.connect(self.editBgmId)
 
         self.showLogs.clicked.connect(self.logAction)
         self.clearButton.clicked.connect(self.cleanTable)
@@ -68,6 +68,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.fileName.setText("文件名：")
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
+        self.idLabel.setText("")
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -77,6 +78,30 @@ class MyMainWindow(QMainWindow, MainWindow):
         setting = MySettingWindow()
         setting.save_notice.connect(self.closeSetting)
         setting.exec()
+
+    def editBgmId(self):
+        row = self.RowInTable()
+
+        if row is None:
+            self.showInfo("warning", "", "请选择要修改的动画")
+            return
+
+        if not self.anime_list or "bgm_id" not in self.anime_list[row]:
+            self.showInfo("warning", "", "请先开始分析")
+            return
+        else:
+            id_now = self.anime_list[row]["bgm_id"]
+            id_want = self.idLabel.text()
+
+        if not id_want or not id_want.isdigit():
+            self.showInfo("warning", "", "ID格式不正确")
+            return
+
+        if str(id_now) == str(id_want):
+            self.showInfo("warning", "未修改", "新的ID与当前ID一致")
+            return
+
+        self.correctThisAnime(row, id_want)
 
     def logAction(self, checked):
         if checked:
@@ -265,6 +290,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             self.image.updateImage(getResource("src/image/empty.png"))
 
+        if "bgm_id" in self.anime_list[row]:
+            bgm_id = str(self.anime_list[row]["bgm_id"])
+            self.idLabel.setText(bgm_id)
+        else:
+            self.idLabel.setText("")
+
         if "result" in self.anime_list[row]:
             self.searchList.clear()
             for this in self.anime_list[row]["result"]:
@@ -358,6 +389,7 @@ class MyMainWindow(QMainWindow, MainWindow):
     def correctThisAnime(self, row, bgm_id):
         result = bangumiSubject(bgm_id)
 
+        self.anime_list[row]["bgm_id"] = bgm_id
         self.anime_list[row]["poster"] = result[0]
         self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
         self.anime_list[row]["cn_name"] = result[2].replace("/", " ")  # 移除结果中的斜杠

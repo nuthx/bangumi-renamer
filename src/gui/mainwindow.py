@@ -103,21 +103,30 @@ class MainWindow(object):
         self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
-        self.idLayout = LineEdit(self)
-        self.idLayout.setFixedWidth(120)
-        self.idLayout.setClearButtonEnabled(False)
+        # 2.2 => ID
 
-        self.linkButton = ToolButton(FluentIcon.LINK, self)
+        self.idLabel = LineEdit(self)
+        self.idLabel.setFixedWidth(120)
+        self.idLabel.setClearButtonEnabled(False)
+        styleSheetManager.deregister(self.idLabel)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.idLabel.setStyleSheet(file.read())
+
+        self.idEdit = ToolButton(FluentIcon.LABEL, self)
+        styleSheetManager.deregister(self.idEdit)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.idEdit.setStyleSheet(file.read())
 
         self.titleLayout = QHBoxLayout()
-        self.titleLayout.setSpacing(12)
+        self.titleLayout.setSpacing(0)
         self.titleLayout.addLayout(self.nameLayout, 0)
         self.titleLayout.addStretch(0)
-        self.titleLayout.addWidget(self.idLayout)
-        self.titleLayout.addWidget(self.linkButton)
-        self.titleLayout.addSpacing(12)
+        self.titleLayout.addWidget(self.idLabel)
+        self.titleLayout.addSpacing(-1)
+        self.titleLayout.addWidget(self.idEdit)
+        self.titleLayout.addSpacing(4)
 
-        # 2.2 => 详情
+        # 2.3 => 详情
 
         self.separator = QFrame()
         self.separator.setObjectName("separator")
