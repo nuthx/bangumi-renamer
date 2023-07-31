@@ -137,6 +137,7 @@ def removeTrash(init_name, search_list):
 
     # 在 search_list 中删除排除的动画
     result = set(result_yes1 + result_yes2)  # 合并匹配的结果
+    result_remove = set(result_no1 + result_no2)  # 合并排除的结果
     search_list = [item for item in search_list if item["cn_name"].lower() in result]
     return search_list
 
