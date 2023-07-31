@@ -1,20 +1,17 @@
 import os
-import re
 import anitopy
 import arrow
 import jieba
 from fuzzywuzzy import fuzz
+from nltk.corpus import words
 
 from src.module.api import *
 from src.module.config import posterFolder, readConfig
 
 
 def getRomajiName(file_name):
-    # 加载文件名忽略列表
-    ignored = ["BD-BOX", "BD"]
-
-    # 将指定字符加入忽略列表，并更新 file_name为忽略后的名字
-    pattern_ignored = '|'.join(ignored)
+    # 忽略文件名中特殊字符
+    pattern_ignored = '|'.join(["BD-BOX", "BD"])
     file_name = re.sub(pattern_ignored, '', file_name)
 
     # anitopy 识别动画名
@@ -27,20 +24,36 @@ def getRomajiName(file_name):
         return anime_title
 
 
+def isPureEnglish(name):
+    name = name.replace(".", " ")
+    try:
+        for word in name.split():
+            if word.lower() not in words.words():
+                return False
+    except Exception as e:
+        # print(f"nltk异常，即将重试 ({e})")
+        time.sleep(0.2)
+        return isPureEnglish(name)
+    return True
+
+
 def getApiInfo(anime):
     romaji_name = anime["romaji_name"]
 
     # Anilist
-    jp_name_anilist = anilistSearch(romaji_name)
-    if jp_name_anilist:
-        anime["jp_name_anilist"] = jp_name_anilist
+    if isPureEnglish(romaji_name):
+        anime["jp_name_anilist"] = romaji_name
     else:
-        return
+        jp_name_anilist = anilistSearch(romaji_name)
+        if jp_name_anilist:
+            anime["jp_name_anilist"] = jp_name_anilist
+        else:
+            return
 
-    # Bangumi 搜索
-    bangumi_search = bangumiSearch(anime["jp_name_anilist"], 2)
-    if bangumi_search:
-        anime["bgm_id"] = bangumi_search
+    # Bangumi ID
+    bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
+    if bangumi_search_id:
+        anime["bgm_id"] = bangumi_search_id
     else:
         return
 
@@ -73,13 +86,19 @@ def getApiInfo(anime):
     anime["init_id"] = prev_id
     anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
-    # Bangumi 额外搜索
-    search_result = bangumiSearch(anime["init_name"], 1)
+    # Bangumi 搜索
+    search_result = bangumiSearch(anime["init_name"])
     search_clean = removeTrash(anime["init_name"], search_result)
-    anime["result"] = search_clean
+    if search_clean:
+        anime["result"] = search_clean
+    else:
+        return
 
 
 def removeTrash(init_name, search_list):
+    if not search_list:
+        return
+
     # 获取列表
     init_name = init_name.lower()
     name_list = []
@@ -118,6 +137,7 @@ def removeTrash(init_name, search_list):
 
     # 在 search_list 中删除排除的动画
     result = set(result_yes1 + result_yes2)  # 合并匹配的结果
+    result_remove = set(result_no1 + result_no2)  # 合并排除的结果
     search_list = [item for item in search_list if item["cn_name"].lower() in result]
     return search_list
 

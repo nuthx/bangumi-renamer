@@ -1,8 +1,8 @@
 from PySide6.QtCore import QMetaObject, Qt
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView, QListWidgetItem
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, TransparentPushButton, ListWidget)
+                            IndeterminateProgressRing, ListWidget, LineEdit, PlainTextEdit, TextEdit, PillPushButton)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -103,16 +103,30 @@ class MainWindow(object):
         self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
-        self.linkButton = ToolButton(FluentIcon.LINK, self)
+        # 2.2 => ID
+
+        self.idLabel = LineEdit(self)
+        self.idLabel.setFixedWidth(120)
+        self.idLabel.setClearButtonEnabled(False)
+        styleSheetManager.deregister(self.idLabel)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.idLabel.setStyleSheet(file.read())
+
+        self.idEdit = ToolButton(FluentIcon.LABEL, self)
+        styleSheetManager.deregister(self.idEdit)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.idEdit.setStyleSheet(file.read())
 
         self.titleLayout = QHBoxLayout()
-        self.titleLayout.setSpacing(12)
+        self.titleLayout.setSpacing(0)
         self.titleLayout.addLayout(self.nameLayout, 0)
         self.titleLayout.addStretch(0)
-        self.titleLayout.addWidget(self.linkButton)
-        self.titleLayout.addSpacing(12)
+        self.titleLayout.addWidget(self.idLabel)
+        self.titleLayout.addSpacing(-1)
+        self.titleLayout.addWidget(self.idEdit)
+        self.titleLayout.addSpacing(4)
 
-        # 2.2 => 详情
+        # 2.3 => 详情
 
         self.separator = QFrame()
         self.separator.setObjectName("separator")
@@ -174,6 +188,9 @@ class MainWindow(object):
 
         # 操作区域
 
+        self.showLogs = PillPushButton("显示日志", self)
+        self.showLogs.setFixedWidth(100)
+
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
 
@@ -188,6 +205,7 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
+        self.buttonLayout.addWidget(self.showLogs)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)
@@ -195,6 +213,26 @@ class MainWindow(object):
         self.buttonLayout.addSpacing(8)
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
+
+        # 日志区域
+
+        self.logs = TextEdit(self)
+        self.logs.setFixedHeight(176)
+        self.logs.setReadOnly(True)
+        self.logs.setContextMenuPolicy(Qt.NoContextMenu)
+        styleSheetManager.deregister(self.logs)  # 禁用皮肤，启用自定义 QSS
+        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
+            self.logs.setStyleSheet(file.read())
+
+        self.logLayout = QVBoxLayout()
+        self.logLayout.setContentsMargins(0, 0, 0, 0)
+        self.logLayout.addSpacing(24)
+        self.logLayout.addWidget(self.logs)
+
+        self.logFrame = QFrame()
+        self.logFrame.setFixedHeight(200)
+        self.logFrame.setLayout(self.logLayout)
+        self.logFrame.setHidden(True)
 
         # 框架叠叠乐
 
@@ -209,6 +247,7 @@ class MainWindow(object):
         self.layout.addWidget(self.infoFrame)
         self.layout.addSpacing(24)
         self.layout.addLayout(self.buttonLayout)
+        self.layout.addWidget(self.logFrame)
 
         this_window.setCentralWidget(self.centralWidget)
 

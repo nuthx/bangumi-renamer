@@ -1,12 +1,14 @@
+import sys
 import os
 import time
 import threading
 import shutil
 import arrow
+import nltk
 import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QTextCursor
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
@@ -25,12 +27,14 @@ class MyMainWindow(QMainWindow, MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.initList()
-        addTimes("open_times")
         self.poster_folder = posterFolder()
+        addTimes("open_times")
+        sys.stdout = PrintCapture(self.logs)
+        nltk.data.path.append(getResource("lib/nltk_data"))
 
-    def initUI(self):
+    def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.table.customContextMenuRequested.connect(self.showMenu)
         self.table.itemSelectionChanged.connect(self.selectTable)
@@ -41,8 +45,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
 
-        self.linkButton.clicked.connect(self.openUrl)
+        self.idEdit.clicked.connect(self.editBgmId)
 
+        self.showLogs.clicked.connect(self.logAction)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -63,6 +68,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.fileName.setText("文件名：")
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
+        self.idLabel.setText("")
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -72,6 +78,46 @@ class MyMainWindow(QMainWindow, MainWindow):
         setting = MySettingWindow()
         setting.save_notice.connect(self.closeSetting)
         setting.exec()
+
+    def editBgmId(self):
+        row = self.RowInTable()
+
+        if row is None:
+            self.showInfo("warning", "", "请选择要修改的动画")
+            return
+
+        if not self.anime_list or "bgm_id" not in self.anime_list[row]:
+            self.showInfo("warning", "", "请先开始分析")
+            return
+        else:
+            id_now = self.anime_list[row]["bgm_id"]
+            id_want = self.idLabel.text()
+
+        if not id_want or not id_want.isdigit():
+            self.showInfo("warning", "", "ID格式不正确")
+            return
+
+        if str(id_now) == str(id_want):
+            self.showInfo("warning", "未修改", "新的ID与当前ID一致")
+            return
+
+        self.correctThisAnime(row, id_want)
+
+    def logAction(self, checked):
+        if checked:
+            self.showLogs.setText("隐藏日志")
+            self.logFrame.setHidden(False)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height + 200)
+        else:
+            self.showLogs.setText("显示日志")
+            self.logFrame.setHidden(True)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height - 200)
 
     def closeSetting(self, title):
         for anime in self.anime_list:
@@ -83,19 +129,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         for selected in self.table.selectedRanges():
             row = selected.topRow()
             return row
-
-    def openUrl(self):
-        row = self.RowInTable()
-        if row or row == 0:
-            if "bgm_id" in self.anime_list[row]:
-                bgm_id = str(self.anime_list[row]["bgm_id"])
-                url = QUrl("https://bgm.tv/subject/" + bgm_id)
-                QDesktopServices.openUrl(url)
-            else:
-                self.showInfo("warning", "链接无效", "请先尝试分析该动画")
-                return
-        else:
-            self.showInfo("warning", "", "请先选择一个动画")
 
     def cleanTable(self):
         if not self.anime_list:
@@ -137,6 +170,8 @@ class MyMainWindow(QMainWindow, MainWindow):
                 self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
 
     def startAnalysis(self):
+        self.start_time = time.time()
+
         # 是否存在文件
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加文件夹")
@@ -161,9 +196,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         thread.start()
 
     def ThreadFinishedCheck(self):
+        list_count = len(self.anime_list)
         while True:
             if threading.active_count() == 2:
                 self.spinner.setVisible(False)
+                used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
+                print(f"【分析成功】 共{list_count}个动画，耗时{used_time}秒")
                 return
             else:
                 time.sleep(0.5)
@@ -187,7 +225,6 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 获取并写入重命名
         getFinalName(anime)
-        print(anime)
 
         # 重新排序 anime_list 列表，避免串行
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
@@ -215,7 +252,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.jpName.setText("请先选中一个动画以展示详细信息")
 
         if "types" in self.anime_list[row] and "typecode" in self.anime_list[row]:
-            types = self.anime_list[row]["types"].upper()
+            types = self.anime_list[row]["types"]
             typecode = self.anime_list[row]["typecode"]
             self.typeLabel.setText(f"类型：{types} ({typecode})")
         else:
@@ -253,8 +290,13 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             self.image.updateImage(getResource("src/image/empty.png"))
 
-        if "result" in self.anime_list[row]:
+        if "bgm_id" in self.anime_list[row]:
+            bgm_id = str(self.anime_list[row]["bgm_id"])
+            self.idLabel.setText(bgm_id)
+        else:
+            self.idLabel.setText("")
 
+        if "result" in self.anime_list[row]:
             self.searchList.clear()
             for this in self.anime_list[row]["result"]:
                 release = arrow.get(this['release']).format("YY-MM-DD")
@@ -266,13 +308,15 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
-        menu = RoundMenu(parent=self)
         # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 分析")
+        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
-        # menu.addAction(force_bgm_id)
-        # menu.addSeparator()
+
+        menu = RoundMenu(parent=self)
+        menu.addAction(view_on_bangumi)
+        menu.addSeparator()
         menu.addAction(open_this_folder)
         menu.addAction(open_parent_folder)
         menu.addSeparator()
@@ -280,13 +324,22 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 必须选中单元格才会显示
         if self.table.itemAt(pos) is not None:
-            clicked_item = self.table.itemAt(pos)  # 计算坐标
-            row = self.table.row(clicked_item)  # 计算行数
             menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
 
+            row = self.RowInTable()
+            view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(row))
             open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
             open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
             delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def openBgmUrl(self, row):
+        if "bgm_id" in self.anime_list[row]:
+            bgm_id = str(self.anime_list[row]["bgm_id"])
+            url = QUrl("https://bgm.tv/subject/" + bgm_id)
+            QDesktopServices.openUrl(url)
+        else:
+            self.showInfo("warning", "链接无效", "请先进行动画分析")
+            return
 
     def openThisFolder(self, row):
         path = self.anime_list[row]["file_path"]
@@ -311,9 +364,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.showInTable()
 
     def showMenu2(self, pos):
-        menu = RoundMenu(parent=self)
         instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
         view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
+
+        menu = RoundMenu(parent=self)
         menu.addAction(instead_this_anime)
         menu.addSeparator()
         menu.addAction(view_on_bangumi)
@@ -321,26 +375,21 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 必须选中才会显示
         if self.searchList.itemAt(pos) is not None:
             clicked_item = self.searchList.itemAt(pos)  # 计算坐标
-            row = self.searchList.row(clicked_item)  # 计算行数
+            list_row = self.searchList.row(clicked_item)  # 计算行数
+            table_row = self.RowInTable()
 
             # 不出现在默认列表中
-            if self.searchList.item(row).text() != "暂无搜索结果":
+            if self.searchList.item(list_row).text() != "暂无搜索结果":
                 menu.exec(self.searchList.mapToGlobal(pos), ani=True)
 
-                table_row = self.RowInTable()
-                bgm_id = self.anime_list[table_row]["result"][row]["bgm_id"]
-
+                bgm_id = self.anime_list[table_row]["result"][list_row]["bgm_id"]
                 instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
-                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(bgm_id))
-
-    def openBgmUrl(self, bgm_id):
-        bgm_id = str(bgm_id)
-        url = QUrl("https://bgm.tv/subject/" + bgm_id)
-        QDesktopServices.openUrl(url)
+                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
 
     def correctThisAnime(self, row, bgm_id):
         result = bangumiSubject(bgm_id)
 
+        self.anime_list[row]["bgm_id"] = bgm_id
         self.anime_list[row]["poster"] = result[0]
         self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
         self.anime_list[row]["cn_name"] = result[2].replace("/", " ")  # 移除结果中的斜杠
@@ -356,8 +405,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.selectTable()
 
     def startRename(self):
-        start_time = time.time()
-
         # anime_list 是否有数据
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加动画")
@@ -377,7 +424,7 @@ class MyMainWindow(QMainWindow, MainWindow):
                 final_name_check.append(dictionary["final_name"])
 
         # 检查重命名的结果是否相同
-        if len(set(final_name_check)) == 1:
+        if len(set(final_name_check)) == 1 and len(final_name_check) != 1:
             self.showInfo("warning", "", "存在重复的重命名结果")
             return
 
@@ -421,14 +468,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.initList()
         addTimes("rename_times")
-
-        used_time = (time.time() - start_time) * 1000
-        if used_time > 1000:
-            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
-            self.showInfo("success", "重命名完成", f"耗时{used_time_s}s")
-        else:
-            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
-            self.showInfo("success", "重命名完成", f"耗时{used_time_ms}ms")
+        self.showInfo("success", "", "重命名完成")
 
     def showInfo(self, state, title, content):
         info_state = {
@@ -499,11 +539,11 @@ class MySettingWindow(QDialog, SettingWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.config = readConfig()
         self.loadConfig()
 
-    def initUI(self):
+    def initConnect(self):
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
         self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
@@ -539,3 +579,18 @@ class MySettingWindow(QDialog, SettingWindow):
         poster_folder = posterFolder()
         if poster_folder != "N/A":
             openFolder(poster_folder)
+
+
+class PrintCapture:
+    def __init__(self, target_widget):
+        self.target_widget = target_widget
+
+    def write(self, text):
+        # text = text.replace("\n", "<br>")  # 修改为 HTML 语法的换行
+        cursor = self.target_widget.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.target_widget.setTextCursor(cursor)
+
+    def flush(self):
+        pass
