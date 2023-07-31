@@ -168,7 +168,7 @@ def bangumiSearch(jp_name):
 
         for i in range(result_len):
             # 跳过无日期的条目
-            if result["list"][i]["air_date"] == "0000-00-00":
+            if not result["list"][i]["air_date"] or result["list"][i]["air_date"] == "0000-00-00":
                 continue
 
             # 跳过无内容的条目
