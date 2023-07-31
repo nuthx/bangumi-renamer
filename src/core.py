@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import threading
@@ -7,7 +8,7 @@ import nltk
 import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QTextCursor
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
@@ -26,13 +27,14 @@ class MyMainWindow(QMainWindow, MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.initList()
         self.poster_folder = posterFolder()
         addTimes("open_times")
+        sys.stdout = PrintCapture(self.logs)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
-    def initUI(self):
+    def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.table.customContextMenuRequested.connect(self.showMenu)
         self.table.itemSelectionChanged.connect(self.selectTable)
@@ -45,6 +47,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # self.linkButton.clicked.connect(self.openUrl)
 
+        self.showLogs.clicked.connect(self.logAction)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -74,6 +77,22 @@ class MyMainWindow(QMainWindow, MainWindow):
         setting = MySettingWindow()
         setting.save_notice.connect(self.closeSetting)
         setting.exec()
+
+    def logAction(self, checked):
+        if checked:
+            self.showLogs.setText("隐藏日志")
+            self.logFrame.setHidden(False)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height + 200)
+        else:
+            self.showLogs.setText("显示日志")
+            self.logFrame.setHidden(True)
+            if not self.isMaximized():
+                width = self.width()
+                height = self.height()
+                self.resize(width, height - 200)
 
     def closeSetting(self, title):
         for anime in self.anime_list:
@@ -126,6 +145,8 @@ class MyMainWindow(QMainWindow, MainWindow):
                 self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
 
     def startAnalysis(self):
+        self.start_time = time.time()
+
         # 是否存在文件
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加文件夹")
@@ -150,9 +171,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         thread.start()
 
     def ThreadFinishedCheck(self):
+        list_count = len(self.anime_list)
         while True:
             if threading.active_count() == 2:
                 self.spinner.setVisible(False)
+                used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
+                print(f"【分析成功】 共{list_count}个动画，耗时{used_time}秒")
                 return
             else:
                 time.sleep(0.5)
@@ -176,7 +200,6 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 获取并写入重命名
         getFinalName(anime)
-        print(anime)
 
         # 重新排序 anime_list 列表，避免串行
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
@@ -350,8 +373,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.selectTable()
 
     def startRename(self):
-        start_time = time.time()
-
         # anime_list 是否有数据
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加动画")
@@ -415,14 +436,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.initList()
         addTimes("rename_times")
-
-        used_time = (time.time() - start_time) * 1000
-        if used_time > 1000:
-            used_time_s = "{:.2f}".format(used_time / 1000)  # 取 2 位小数
-            self.showInfo("success", "重命名完成", f"耗时{used_time_s}s")
-        else:
-            used_time_ms = "{:.0f}".format(used_time)  # 舍弃小数
-            self.showInfo("success", "重命名完成", f"耗时{used_time_ms}ms")
+        self.showInfo("success", "", "重命名完成")
 
     def showInfo(self, state, title, content):
         info_state = {
@@ -493,11 +507,11 @@ class MySettingWindow(QDialog, SettingWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.initUI()
+        self.initConnect()
         self.config = readConfig()
         self.loadConfig()
 
-    def initUI(self):
+    def initConnect(self):
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
         self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
@@ -533,3 +547,18 @@ class MySettingWindow(QDialog, SettingWindow):
         poster_folder = posterFolder()
         if poster_folder != "N/A":
             openFolder(poster_folder)
+
+
+class PrintCapture:
+    def __init__(self, target_widget):
+        self.target_widget = target_widget
+
+    def write(self, text):
+        # text = text.replace("\n", "<br>")  # 修改为 HTML 语法的换行
+        cursor = self.target_widget.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.target_widget.setTextCursor(cursor)
+
+    def flush(self):
+        pass
