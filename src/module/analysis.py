@@ -11,7 +11,7 @@ from src.module.config import posterFolder, readConfig
 
 def getRomajiName(file_name):
     # 忽略文件名中特殊字符
-    pattern_ignored = '|'.join(["BD-BOX", "BD"])
+    pattern_ignored = '|'.join(["BD-BOX", "BD", "DVD", "- TV"])
     file_name = re.sub(pattern_ignored, '', file_name)
 
     # anitopy 识别动画名
