@@ -40,8 +40,8 @@ def appVersion():
     with open("src/module/version.py", "r") as file:
         lines = file.readlines()
 
-    re1 = re.findall(r'\"(.*?)\"', lines[4])
-    lines[4] = lines[4].replace(re1[0], ver)
+    re1 = re.findall(r'\"(.*?)\"', lines[5])
+    lines[5] = lines[5].replace(re1[0], ver)
 
     with open("src/module/version.py", "w") as file:
         file.writelines(lines)

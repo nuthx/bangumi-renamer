@@ -29,6 +29,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.setupUI(self)
         self.initConnect()
         self.initList()
+        self.checkVersion()
         self.poster_folder = posterFolder()
         addTimes("open_times")
         sys.stdout = PrintCapture(self.logs)
@@ -42,6 +43,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.searchList.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.searchList.customContextMenuRequested.connect(self.showMenu2)
 
+        self.newVersionButton.clicked.connect(self.openRelease)
         self.aboutButton.clicked.connect(self.openAbout)
         self.settingButton.clicked.connect(self.openSetting)
 
@@ -69,6 +71,19 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
         self.idLabel.setText("")
+
+    def checkVersion(self):
+        thread = threading.Thread(target=self.checkVersionThread)
+        thread.start()
+        thread.join()
+
+    def checkVersionThread(self):
+        if newVersion():
+            self.newVersionButton.setVisible(True)
+
+    def openRelease(self):
+        url = QUrl("https://github.com/nuthx/bangumi-renamer/releases/latest")
+        QDesktopServices.openUrl(url)
 
     def openAbout(self):
         about = MyAboutWindow()
@@ -513,7 +528,6 @@ class MyAboutWindow(QDialog, AboutWindow):
         super().__init__()
         self.setupUI(self)
         self.checkPing()
-        self.checkVersion()
         self.config = readConfig()
         self.loadConfig()
 
@@ -521,18 +535,6 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.openTimes.setText(self.config.get("Counter", "open_times"))
         self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
         self.renameTimes.setText(self.config.get("Counter", "rename_times"))
-
-    def checkVersion(self):
-        thread0 = threading.Thread(target=self.checkVersionThread)
-        thread0.start()
-
-    def checkVersionThread(self):
-        newnew = newVersion()
-
-        if newnew[2]:
-            current_version = newnew[0]
-            latest_version = newnew[1]
-            self.versionLabel.setText(f"Version {current_version} (有新版本: {latest_version})")
 
     def checkPing(self):
         thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))

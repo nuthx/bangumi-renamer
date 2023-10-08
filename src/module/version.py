@@ -1,3 +1,4 @@
+import re
 import requests
 
 
@@ -7,12 +8,13 @@ def currentVersion():
 
 
 def latestVersion():
-    url = "https://cdn.jsdelivr.net/gh/nuthx/bangumi-renamer/build.spec"
+    url = "https://raw.githubusercontent.com/nuthx/bangumi-renamer/main/build.spec"
     response = requests.get(url)
     response_text = response.text.split('\n')
 
     version_raw = response_text[-3].strip()
-    latest_version = version_raw[9: -1]
+    re1 = re.findall(r'\'(.*?)\'', version_raw)
+    latest_version = re1[0]
 
     return latest_version
 
@@ -21,7 +23,7 @@ def newVersion():
     current_version = currentVersion()
     latest_version = latestVersion()
 
-    if current_version < latest_version:
-        return current_version, latest_version, True
+    if current_version != latest_version:
+        return True
     else:
-        return current_version, latest_version, False
+        return False
