@@ -17,7 +17,7 @@ from src.gui.setting import SettingWindow
 
 from src.function import initList, addTimes, openFolder
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
-from src.module.api import bangumiSubject
+from src.module.api import bangumiSubject, bangumiPrevious
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
 from src.module.version import newVersion
 from src.module.resource import getResource
@@ -86,16 +86,20 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请选择要修改的动画")
             return
 
-        if not self.anime_list or "bgm_id" not in self.anime_list[row]:
-            self.showInfo("warning", "", "请先开始分析")
+        if not self.idLabel.text():
+            self.showInfo("warning", "", "请输入新的Bangumi ID")
             return
         else:
-            id_now = self.anime_list[row]["bgm_id"]
             id_want = self.idLabel.text()
 
-        if not id_want or not id_want.isdigit():
+        if not id_want.isdigit():
             self.showInfo("warning", "", "ID格式不正确")
             return
+
+        if not self.anime_list or "bgm_id" not in self.anime_list[row]:
+            id_now = 0
+        else:
+            id_now = self.anime_list[row]["bgm_id"]
 
         if str(id_now) == str(id_want):
             self.showInfo("warning", "未修改", "新的ID与当前ID一致")
@@ -387,8 +391,11 @@ class MyMainWindow(QMainWindow, MainWindow):
                 view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
 
     def correctThisAnime(self, row, bgm_id):
-        result = bangumiSubject(bgm_id)
+        # 罗马名
+        self.anime_list[row]["romaji_name"] = getRomajiName(self.anime_list[row]["file_name"])
 
+        # Bangumi 条目
+        result = bangumiSubject(bgm_id)
         self.anime_list[row]["bgm_id"] = bgm_id
         self.anime_list[row]["poster"] = result[0]
         self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
@@ -398,6 +405,20 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.anime_list[row]["release"] = result[5]
         self.anime_list[row]["episodes"] = result[6]
         self.anime_list[row]["score"] = result[7]
+
+        # 前传数据
+        bangumi_previous = bangumiPrevious(bgm_id, self.anime_list[row]["cn_name"])
+        prev_id = bangumi_previous[0]
+        prev_name = bangumi_previous[1]
+
+        while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
+            bgm_id = prev_id
+            bangumi_previous = bangumiPrevious(bgm_id, prev_name)
+            prev_id = bangumi_previous[0]
+            prev_name = bangumi_previous[1]
+
+        self.anime_list[row]["init_id"] = prev_id
+        self.anime_list[row]["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
         downloadPoster(self.anime_list[row])
         getFinalName(self.anime_list[row])
