@@ -1,7 +1,6 @@
 import os
 import anitopy
 import arrow
-import jieba
 from fuzzywuzzy import fuzz
 from nltk.corpus import words
 
@@ -88,58 +87,34 @@ def getApiInfo(anime):
 
     # Bangumi 搜索
     search_result = bangumiSearch(anime["init_name"])
-    search_clean = removeTrash(anime["init_name"], search_result)
+    search_clean = removeUnrelated(anime["init_name"], search_result)
     if search_clean:
         anime["result"] = search_clean
     else:
         return
 
 
-def removeTrash(init_name, search_list):
+def removeUnrelated(init_name, search_list):
     if not search_list:
         return
 
-    # 获取列表
+    # 获取全部列表
     init_name = init_name.lower()
-    name_list = []
-    for item in search_list:
-        anime = item["cn_name"].lower()
-        name_list.append(anime)
-
-    result_yes1 = []
-    result_no1 = []
-    result_yes2 = []
-    result_no2 = []
-
-    # jieba 余弦相似度
-    for name in name_list:
-        t1 = set(jieba.cut(init_name))
-        t2 = set(jieba.cut(name))
-        result1 = len(t1 & t2) / len(t1 | t2)
-
-        if result1 >= 0.15:
-            result_yes1.append(name)
-        else:
-            result_no1.append(name)
+    name_list = [item["cn_name"].lower() for item in search_list]
 
     # fuzzywuzzy 模糊匹配
+    name_list_related = []
     for name in name_list:
-        ratio = fuzz.partial_ratio(init_name, name)
-        if ratio > 90:
-            result_yes2.append(name)
-        else:
-            result_no2.append(name)
-
-    # print(f"yes1:{result_yes1}")
-    # print(f"no1:{result_no1}")
-    # print(f"yes2:{result_yes2}")
-    # print(f"no2:{result_no2}")
+        if fuzz.partial_ratio(init_name, name) > 90:
+            name_list_related.append(name)
 
     # 在 search_list 中删除排除的动画
-    result = set(result_yes1 + result_yes2)  # 合并匹配的结果
-    result_remove = set(result_no1 + result_no2)  # 合并排除的结果
-    search_list = [item for item in search_list if item["cn_name"].lower() in result]
-    return search_list
+    search_list_related = []
+    for item in search_list:
+        if item["cn_name"].lower() in name_list_related:
+            search_list_related.append(item)
+
+    return search_list_related
 
 
 def downloadPoster(anime):
