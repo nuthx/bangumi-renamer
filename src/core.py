@@ -1,4 +1,3 @@
-import sys
 import os
 import time
 import threading
@@ -8,12 +7,13 @@ import nltk
 import requests
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
-from PySide6.QtGui import QDesktopServices, QTextCursor
+from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import InfoBar, InfoBarPosition, Flyout, InfoBarIcon, RoundMenu, Action, FluentIcon
 
 from src.gui.mainwindow import MainWindow
 from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
+from src.gui.dialog import NameEditBox
 
 from src.function import initList, addTimes, openFolder
 from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
@@ -320,12 +320,15 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
+        edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
         view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
 
         menu = RoundMenu(parent=self)
+        menu.addAction(edit_init_name)
+        menu.addSeparator()
         menu.addAction(view_on_bangumi)
         menu.addSeparator()
         menu.addAction(open_this_folder)
@@ -343,10 +346,32 @@ class MyMainWindow(QMainWindow, MainWindow):
             clicked_item = self.table.itemAt(pos)  # 计算坐标
             row = self.table.row(clicked_item)  # 计算行数
 
+            edit_init_name.triggered.connect(lambda: self.editInitName(row))
             view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(row))
             open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
             open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
             delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
+
+    def editInitName(self, row):
+        if "init_name" in self.anime_list[row]:
+            init_name = self.anime_list[row]["init_name"]
+            w = NameEditBox(self, init_name)
+            if w.exec():
+                new_init_name = w.nameEdit.text()
+
+                # 是否修改了名称
+                if new_init_name == init_name:
+                    self.showInfo("warning", "", "首季动画名未修改")
+                    return
+                else:
+                    self.anime_list[row]["init_name"] = new_init_name
+                    getFinalName(self.anime_list[row])
+                    self.showInTable()
+                    self.selectTable()
+
+        else:
+            self.showInfo("warning", "无法修改", "请先进行动画分析")
+            return
 
     def openBgmUrl(self, row):
         if "bgm_id" in self.anime_list[row]:
