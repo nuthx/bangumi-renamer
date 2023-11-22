@@ -238,6 +238,17 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 应对重命名完成后的 initList 操作
         if row is None:
+            self.cnName.setText("暂无动画")
+            self.jpName.setText("请先选中一个动画以展示详细信息")
+            self.typeLabel.setText("类型：")
+            self.dateLabel.setText("放送日期：")
+            self.scoreLabel.setText("当前评分：")
+            self.fileName.setText("文件名：")
+            self.finalName.setText("重命名：")
+            self.image.updateImage(getResource("src/image/empty.png"))
+            self.idLabel.setText("")
+            self.searchList.clear()
+            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
             return
 
         if "cn_name" in self.anime_list[row]:
@@ -309,7 +320,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
-        # force_bgm_id = Action(FluentIcon.SYNC, "强制根据 Bangumi ID 分析")
         view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
@@ -327,7 +337,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         if self.table.itemAt(pos) is not None:
             menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
 
-            row = self.RowInTable()
+            # 不使用RowInTable函数，使用当前pos点位计算行数
+            # 目的是避免点击右键时，当前行若未选中，会报错
+            # row = self.RowInTable()
+            clicked_item = self.table.itemAt(pos)  # 计算坐标
+            row = self.table.row(clicked_item)  # 计算行数
+
             view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(row))
             open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
             open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
@@ -375,8 +390,11 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 必须选中才会显示
         if self.searchList.itemAt(pos) is not None:
+            # 计算子表格行
             clicked_item = self.searchList.itemAt(pos)  # 计算坐标
             list_row = self.searchList.row(clicked_item)  # 计算行数
+
+            # 计算主表格行，不需要考虑选中问题，可直接使用RowInTable函数
             table_row = self.RowInTable()
 
             # 不出现在默认列表中
