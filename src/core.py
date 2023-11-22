@@ -32,7 +32,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.checkVersion()
         self.poster_folder = posterFolder()
         addTimes("open_times")
-        sys.stdout = PrintCapture(self.logs)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
     def initConnect(self):
@@ -49,7 +48,6 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.idEdit.clicked.connect(self.editBgmId)
 
-        self.showLogs.clicked.connect(self.logAction)
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
@@ -121,22 +119,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             return
 
         self.correctThisAnime(row, id_want)
-
-    def logAction(self, checked):
-        if checked:
-            self.showLogs.setText("隐藏日志")
-            self.logFrame.setHidden(False)
-            if not self.isMaximized():
-                width = self.width()
-                height = self.height()
-                self.resize(width, height + 200)
-        else:
-            self.showLogs.setText("显示日志")
-            self.logFrame.setHidden(True)
-            if not self.isMaximized():
-                width = self.width()
-                height = self.height()
-                self.resize(width, height - 200)
 
     def closeSetting(self, title):
         for anime in self.anime_list:
@@ -602,18 +584,3 @@ class MySettingWindow(QDialog, SettingWindow):
         poster_folder = posterFolder()
         if poster_folder != "N/A":
             openFolder(poster_folder)
-
-
-class PrintCapture:
-    def __init__(self, target_widget):
-        self.target_widget = target_widget
-
-    def write(self, text):
-        # text = text.replace("\n", "<br>")  # 修改为 HTML 语法的换行
-        cursor = self.target_widget.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        cursor.insertText(text)
-        self.target_widget.setTextCursor(cursor)
-
-    def flush(self):
-        pass
