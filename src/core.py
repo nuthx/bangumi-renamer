@@ -16,7 +16,7 @@ from src.gui.setting import SettingWindow
 from src.gui.dialog import NameEditBox
 
 from src.function import initList, addTimes, openFolder
-from src.module.analysis import getRomajiName, getApiInfo, downloadPoster, getFinalName
+from src.module.analysis import Analysis, getRomajiName, downloadPoster, getFinalName
 from src.module.api import bangumiSubject, bangumiPrevious
 from src.module.config import configFile, posterFolder, formatCheck, readConfig
 from src.module.version import newVersion
@@ -31,8 +31,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.initList()
         self.checkVersion()
         self.poster_folder = posterFolder()
-        addTimes("open_times")
+        self.worker = Analysis()
+        self.worker.anime_state.connect(self.editTableState)
         nltk.data.path.append(getResource("lib/nltk_data"))
+        addTimes("open_times")
 
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
@@ -69,6 +71,10 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
         self.idLabel.setText("")
+
+    def editTableState(self, state):
+        list_id, anime_state = state
+        self.table.setItem(list_id, 2, QTableWidgetItem(anime_state))
 
     def checkVersion(self):
         thread = threading.Thread(target=self.checkVersionThread)
@@ -164,7 +170,8 @@ class MyMainWindow(QMainWindow, MainWindow):
             if "file_name" in anime:
                 self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
 
-            if "cn_name" in anime:
+            # 避免没分析完的时候覆盖第三列的进度提示
+            if "cn_name" in anime and "init_name" in anime:
                 self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
 
             if "init_name" in anime:
@@ -177,11 +184,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         if not self.anime_list:
             self.showInfo("warning", "", "请先添加文件夹")
             return
-
-        # 标出分析中
-        anime_len = len(self.anime_list)
-        for i in range(anime_len):
-            self.table.setItem(i, 2, QTableWidgetItem("==> 分析中"))
 
         # 显示进度条
         self.spinner.setVisible(True)
@@ -208,17 +210,16 @@ class MyMainWindow(QMainWindow, MainWindow):
                 time.sleep(0.5)
 
     def analysisThread(self, anime):
-        # 获取并写入罗马名
-        file_name = anime["file_name"]
-        romaji_name = getRomajiName(file_name)
-        anime["romaji_name"] = romaji_name
+        # 获取罗马名
+        self.table.setItem(anime["list_id"], 2, QTableWidgetItem("==> [1/6] 提取罗马名"))
+        anime["romaji_name"] = getRomajiName(anime["file_name"])
 
-        # 获取并写入分析信息
-        getApiInfo(anime)
+        # 开始分析
+        self.worker.standardAnalysis(anime)
 
         # 使用 init_name 判断是否分析成功
         if "init_name" not in anime:
-            self.table.setItem(anime["list_id"], 2, QTableWidgetItem("==> 动画获取失败（逃"))
+            self.table.setItem(anime["list_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 
         # 下载图片

@@ -4,8 +4,76 @@ import arrow
 from fuzzywuzzy import fuzz
 from nltk.corpus import words
 
+from PySide6.QtCore import QObject, Signal
+
 from src.module.api import *
 from src.module.config import posterFolder, readConfig
+
+
+class Analysis(QObject):
+    anime_state = Signal(list)
+
+    def standardAnalysis(self, anime):
+        romaji_name = anime["romaji_name"]
+
+        # Anilist
+        self.anime_state.emit([anime["list_id"], "==> [2/6] 搜索日文名"])
+        if isPureEnglish(romaji_name):
+            anime["jp_name_anilist"] = romaji_name
+        else:
+            jp_name_anilist = anilistSearch(romaji_name)
+            if jp_name_anilist:
+                anime["jp_name_anilist"] = jp_name_anilist
+            else:
+                return
+
+        # Bangumi ID
+        self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
+        bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
+        if bangumi_search_id:
+            anime["bgm_id"] = bangumi_search_id
+        else:
+            return
+
+        # Bangumi 条目
+        self.anime_state.emit([anime["list_id"], "==> [4/6] 写入动画信息"])
+        bangumi_subject = bangumiSubject(anime["bgm_id"])
+        if bangumi_subject:
+            anime["poster"] = bangumi_subject[0]
+            anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
+            anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
+            anime["types"] = bangumi_subject[3]
+            anime["typecode"] = bangumi_subject[4]
+            anime["release"] = bangumi_subject[5]
+            anime["episodes"] = bangumi_subject[6]
+            anime["score"] = bangumi_subject[7]
+        else:
+            return
+
+        # Bangumi 前传
+        self.anime_state.emit([anime["list_id"], "==> [5/6] 搜索首季信息"])
+        bgm_id = anime["bgm_id"]
+        bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
+        prev_id = bangumi_previous[0]
+        prev_name = bangumi_previous[1]
+
+        while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
+            bgm_id = prev_id
+            bangumi_previous = bangumiPrevious(bgm_id, prev_name)
+            prev_id = bangumi_previous[0]
+            prev_name = bangumi_previous[1]
+
+        anime["init_id"] = prev_id
+        anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
+
+        # Bangumi 搜索
+        self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
+        search_result = bangumiSearch(anime["init_name"])
+        search_clean = removeUnrelated(anime["init_name"], search_result)
+        if search_clean:
+            anime["result"] = search_clean
+        else:
+            return
 
 
 def getRomajiName(file_name):
@@ -34,64 +102,6 @@ def isPureEnglish(name):
         time.sleep(0.2)
         return isPureEnglish(name)
     return True
-
-
-def getApiInfo(anime):
-    romaji_name = anime["romaji_name"]
-
-    # Anilist
-    if isPureEnglish(romaji_name):
-        anime["jp_name_anilist"] = romaji_name
-    else:
-        jp_name_anilist = anilistSearch(romaji_name)
-        if jp_name_anilist:
-            anime["jp_name_anilist"] = jp_name_anilist
-        else:
-            return
-
-    # Bangumi ID
-    bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
-    if bangumi_search_id:
-        anime["bgm_id"] = bangumi_search_id
-    else:
-        return
-
-    # Bangumi 条目
-    bangumi_subject = bangumiSubject(anime["bgm_id"])
-    if bangumi_subject:
-        anime["poster"] = bangumi_subject[0]
-        anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
-        anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
-        anime["types"] = bangumi_subject[3]
-        anime["typecode"] = bangumi_subject[4]
-        anime["release"] = bangumi_subject[5]
-        anime["episodes"] = bangumi_subject[6]
-        anime["score"] = bangumi_subject[7]
-    else:
-        return
-
-    # Bangumi 前传
-    bgm_id = anime["bgm_id"]
-    bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
-    prev_id = bangumi_previous[0]
-    prev_name = bangumi_previous[1]
-
-    while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
-        bgm_id = prev_id
-        bangumi_previous = bangumiPrevious(bgm_id, prev_name)
-        prev_id = bangumi_previous[0]
-        prev_name = bangumi_previous[1]
-
-    anime["init_id"] = prev_id
-    anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
-
-    # Bangumi 搜索
-    search_result = bangumiSearch(anime["init_name"])
-    search_clean = removeUnrelated(anime["init_name"], search_result)
-    if search_clean:
-        anime["result"] = search_clean
-    else:
-        return
 
 
 def removeUnrelated(init_name, search_list):
