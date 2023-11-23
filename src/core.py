@@ -29,13 +29,15 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.initConnect()
         self.initList()
         self.checkVersion()
+
         oldConfigCheck()
+        addTimes("open_times")
         self.poster_folder = posterFolder()
+
         self.worker = Analysis()
         self.worker.anime_state.connect(self.editTableState)
         self.worker.added_progress_count.connect(self.addProgressBar)
         nltk.data.path.append(getResource("lib/nltk_data"))
-        addTimes("open_times")
 
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单

@@ -98,9 +98,23 @@ def oldConfigCheck():
     config = readConfig()
     current_config_version = config.get("Application", "version")
 
+    # 提取旧版配置计数器
+    open_times = config.get("Counter", "open_times")
+    analysis_times = config.get("Counter", "analysis_times")
+    rename_times = config.get("Counter", "rename_times")
+
     if current_config_version != "2.0":
-        os.remove(configFile())
-        initConfig(configFile())
+        config_file = configFile()
+        os.remove(config_file)
+        initConfig(config_file)
+
+        # 写入计数器
+        config = readConfig()
+        config.set("Counter", "open_times", open_times)
+        config.set("Counter", "analysis_times", analysis_times)
+        config.set("Counter", "rename_times", rename_times)
+        with open(config_file, "w", encoding="utf-8") as content:
+            config.write(content)
 
 
 # 读取配置
