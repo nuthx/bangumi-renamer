@@ -10,7 +10,6 @@ def api_anilist(romaji_name):
     js = {"query": query, "variables": {"id": romaji_name}}
     headers = {'accept': 'application/json'}
     url = "https://graphql.anilist.co"
-    print(f"1 ==> 搜索{romaji_name}")
 
     for retry in range(3):
         response = requests.post(url, json=js, headers=headers)
@@ -21,14 +20,11 @@ def api_anilist(romaji_name):
 
         result = response.json()
         jp_name_anilist = result["data"]["Media"]["title"]["native"]
-        print(f"1 ==> 获取{romaji_name}数据")
 
         # 移除括号内容，例 22/7 （ナナブンノニジュウニ）
         jp_name_anilist = re.sub(r'（[^）]*）', '', jp_name_anilist).strip()
 
         return jp_name_anilist
-
-    print(f"1 ==> 搜索{romaji_name}失败")
 
 
 # Bangumi ID
@@ -38,7 +34,6 @@ def api_bgmIdSearch(jp_name):
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
-    print(f"2 ==> 搜索{jp_name}")
 
     for retry in range(3):
         response = requests.post(url, headers=headers)
@@ -51,24 +46,18 @@ def api_bgmIdSearch(jp_name):
             return
 
         result = response.json()
-        print(f"2 ==> 获取{jp_name}数据")
 
         # 未搜索到内容停止
         if "code" in result and result["code"] == 404:
             return
 
-        bgm_id = result["list"][0]["id"]
-
-        return bgm_id
-
-    print(f"2 ==> 搜索{jp_name}失败")
+        return result["list"][0]["id"]
 
 
 # Bangumi 条目
 def api_bgmSubject(bgm_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(bgm_id)
-    print(f"3 ==> 搜索{bgm_id}")
 
     for retry in range(3):
         response = requests.get(url, headers=headers)
@@ -78,7 +67,6 @@ def api_bgmSubject(bgm_id):
             continue
 
         result = response.json()
-        print(f"3 ==> 获取{bgm_id}数据")
 
         # 不存在 bgm_id 时停止
         if "code" in result and result["code"] == 404:
@@ -104,14 +92,11 @@ def api_bgmSubject(bgm_id):
 
         return poster, jp_name, cn_name, types, typecode, release, episodes, score
 
-    print(f"3 ==> 搜索{bgm_id}失败")
-
 
 # Bangumi 前传
 def api_bangumiInit(init_id, init_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(init_id) + "/subjects"
-    print(f"4 ==> 搜索{init_name}前传")
 
     for retry in range(3):
         response = requests.get(url, headers=headers)
@@ -121,7 +106,6 @@ def api_bangumiInit(init_id, init_name):
             continue
 
         result = response.json()
-        print(f"4 ==> 获取{init_name}前传")
 
         # 如果有前传，返回前传 prev_id 和 prev_name
         # 如果没有前传，返回原始 init_id 和 not_now_bro
@@ -133,8 +117,6 @@ def api_bangumiInit(init_id, init_name):
         else:
             return init_id, init_name
 
-    print(f"4 ==> 搜索{init_name}前传失败")
-
 
 # Bangumi 搜索
 def api_bgmRelated(jp_name):
@@ -142,7 +124,6 @@ def api_bgmRelated(jp_name):
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
-    print(f"2 ==> 搜索{jp_name}")
 
     for retry in range(3):
         response = requests.post(url, headers=headers)
@@ -155,7 +136,6 @@ def api_bgmRelated(jp_name):
             return []
 
         result = response.json()
-        print(f"2 ==> 获取{jp_name}数据")
 
         # 未搜索到内容停止
         if "code" in result and result["code"] == 404:
@@ -183,5 +163,3 @@ def api_bgmRelated(jp_name):
         result_full = sorted(result_full, key=lambda x: x["release"])  # 按放送日期排序
 
         return result_full
-
-    print(f"2 ==> 搜索{jp_name}失败")
