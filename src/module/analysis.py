@@ -35,7 +35,7 @@ class Analysis(QObject):
 
         # Bangumi ID
         self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
-        bgm_id = bangumiSearchId(anime["jp_name_anilist"])
+        bgm_id = api_bgmIdSearch(anime["jp_name_anilist"])
         if bgm_id:
             anime["bgm_id"] = bgm_id
         else:
@@ -44,7 +44,7 @@ class Analysis(QObject):
 
         # 动画条目
         self.anime_state.emit([anime["list_id"], "==> [4/6] 写入动画信息"])
-        bangumi_subject = bangumiSubject(anime["bgm_id"])
+        bangumi_subject = api_bgmSubject(anime["bgm_id"])
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
             anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
@@ -70,7 +70,7 @@ class Analysis(QObject):
 
         # 所有季度
         self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
-        search_clean = removeUnrelated(anime["init_name"], bangumiSearch(anime["init_name"]))
+        search_clean = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
         if search_clean:
             anime["result"] = search_clean
         else:
@@ -97,7 +97,7 @@ class Analysis(QObject):
         anime["bgm_id"] = bgm_id
 
         # 动画条目
-        bangumi_subject = bangumiSubject(bgm_id)
+        bangumi_subject = api_bgmSubject(bgm_id)
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
             anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
@@ -148,7 +148,7 @@ def getAnilistJpName(file_name):
     if isPureEnglish(file_name):
         return file_name
 
-    jp_name_anilist = anilistSearch(file_name)
+    jp_name_anilist = api_anilist(file_name)
     if jp_name_anilist:
         return jp_name_anilist
     else:
@@ -156,13 +156,13 @@ def getAnilistJpName(file_name):
 
 
 def getInitInfo(bgm_id, cn_name):
-    bangumi_previous = bangumiPrevious(bgm_id, cn_name)
+    bangumi_previous = api_bangumiInit(bgm_id, cn_name)
     prev_id = bangumi_previous[0]
     prev_name = bangumi_previous[1]
 
     while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
         bgm_id = prev_id
-        bangumi_previous = bangumiPrevious(bgm_id, prev_name)
+        bangumi_previous = api_bangumiInit(bgm_id, prev_name)
         prev_id = bangumi_previous[0]
         prev_name = bangumi_previous[1]
 

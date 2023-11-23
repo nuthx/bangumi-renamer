@@ -16,8 +16,7 @@ from src.gui.setting import SettingWindow
 from src.gui.dialog import NameEditBox
 
 from src.function import log, initList, addTimes, openFolder
-from src.module.analysis import Analysis, getRomajiName, downloadPoster, getFinalName
-from src.module.api import bangumiSubject, bangumiPrevious
+from src.module.analysis import Analysis, getFinalName
 from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig
 from src.module.version import newVersion
 from src.module.resource import getResource

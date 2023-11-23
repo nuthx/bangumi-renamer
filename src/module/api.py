@@ -1,10 +1,11 @@
-import requests
-import time
 import re
+import time
+import requests
+
 
 # Anilist
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
-def anilistSearch(romaji_name):
+def api_anilist(romaji_name):
     query = "query ($id: String) {Media (search: $id, type: ANIME) {title {native}}}"
     js = {"query": query, "variables": {"id": romaji_name}}
     headers = {'accept': 'application/json'}
@@ -32,7 +33,7 @@ def anilistSearch(romaji_name):
 
 # Bangumi ID
 # https://bangumi.github.io/api/
-def bangumiSearchId(jp_name):
+def api_bgmIdSearch(jp_name):
     jp_name = jp_name.replace("!", " ").replace("-", " ").replace("/", " ").strip()  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
@@ -64,7 +65,7 @@ def bangumiSearchId(jp_name):
 
 
 # Bangumi 条目
-def bangumiSubject(bgm_id):
+def api_bgmSubject(bgm_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(bgm_id)
     print(f"3 ==> 搜索{bgm_id}")
@@ -107,7 +108,7 @@ def bangumiSubject(bgm_id):
 
 
 # Bangumi 前传
-def bangumiPrevious(init_id, init_name):
+def api_bangumiInit(init_id, init_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(init_id) + "/subjects"
     print(f"4 ==> 搜索{init_name}前传")
@@ -136,7 +137,7 @@ def bangumiPrevious(init_id, init_name):
 
 
 # Bangumi 搜索
-def bangumiSearch(jp_name):
+def api_bgmRelated(jp_name):
     jp_name = jp_name.replace("!", " ").replace("-", " ").replace("/", " ").strip()  # 搜索时移除特殊符号避免报错
 
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
