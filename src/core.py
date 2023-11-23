@@ -15,10 +15,10 @@ from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
 from src.gui.dialog import NameEditBox
 
-from src.function import initList, addTimes, openFolder
+from src.function import log, initList, addTimes, openFolder
 from src.module.analysis import Analysis, getRomajiName, downloadPoster, getFinalName
 from src.module.api import bangumiSubject, bangumiPrevious
-from src.module.config import configFile, posterFolder, formatCheck, readConfig
+from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig
 from src.module.version import newVersion
 from src.module.resource import getResource
 
@@ -84,6 +84,7 @@ class MyMainWindow(QMainWindow, MainWindow):
     def checkVersionThread(self):
         if newVersion():
             self.newVersionButton.setVisible(True)
+            log("发现有新版本")
 
     def openRelease(self):
         url = QUrl("https://github.com/nuthx/bangumi-renamer/releases/latest")
@@ -594,6 +595,7 @@ class MySettingWindow(QDialog, SettingWindow):
 
     def initConnect(self):
         self.posterFolderButton.clicked.connect(self.openPosterFolder)
+        self.logFolderButton.clicked.connect(self.openLogFolder)
         self.applyButton.clicked.connect(self.saveConfig)  # 保存配置
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
 
@@ -625,6 +627,7 @@ class MySettingWindow(QDialog, SettingWindow):
         self.close()
 
     def openPosterFolder(self):
-        poster_folder = posterFolder()
-        if poster_folder != "N/A":
-            openFolder(poster_folder)
+        openFolder(posterFolder())
+
+    def openLogFolder(self):
+        openFolder(logFolder())

@@ -4,7 +4,7 @@ from PySide6.QtGui import QIcon
 from qfluentwidgets import PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
 
 from src.module.resource import getResource
-from src.module.config import posterFolder
+from src.module.config import posterFolder, logFolder
 
 
 class SettingWindow(object):
@@ -115,7 +115,7 @@ class SettingWindow(object):
 
         self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateInfoFrame, self.dateType, "full")
 
-        # 图片缓存
+        # 动画海报
 
         self.posterFolderTitle = QLabel("动画海报")
         self.posterFolderInfo = QLabel(posterFolder())
@@ -125,6 +125,17 @@ class SettingWindow(object):
 
         self.posterFolderCard = self.settingCard(
             self.posterFolderTitle, self.posterFolderInfo, self.posterFolderButton, "full")
+
+        # 动画海报
+
+        self.logFolderTitle = QLabel("日志")
+        self.logFolderInfo = QLabel(logFolder())
+
+        self.logFolderButton = PushButton("打开", self, FluentIcon.FOLDER)
+        self.logFolderButton.setFixedWidth(100)
+
+        self.logFolderCard = self.settingCard(
+            self.logFolderTitle, self.logFolderInfo, self.logFolderButton, "full")
 
         # 按钮
 
@@ -150,6 +161,7 @@ class SettingWindow(object):
         layout.addWidget(self.renameTutorialCard)
         layout.addWidget(self.dateTypeCard)
         layout.addWidget(self.posterFolderCard)
+        layout.addWidget(self.logFolderCard)
         layout.addSpacing(12)
         layout.addLayout(self.buttonLayout)
 

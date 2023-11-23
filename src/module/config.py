@@ -4,29 +4,31 @@ import platform
 import configparser
 
 
+# 文件夹存在检查
+def newFolder(folder_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+
 # 配置文件路径
 def configPath():
     if platform.system() == "Windows":
-        config_path = os.environ["APPDATA"]
+        sys_path = os.environ["APPDATA"]
     elif platform.system() == "Darwin":
-        config_path = os.path.expanduser("~/Library/Application Support")
+        sys_path = os.path.expanduser("~/Library/Application Support")
     elif platform.system() == "Linux":
-        config_path = os.path.expanduser("~/.config")
+        sys_path = os.path.expanduser("~/.config")
     else:
         return "N/A"
 
-    config_path = config_path + os.sep + "BangumiRenamer"
-
-    # 是否存在该路径
-    if not os.path.exists(config_path):
-        os.makedirs(config_path)
+    config_path = os.path.join(sys_path, "BangumiRenamer")
+    newFolder(config_path)
 
     return config_path
 
 
 def configFile():
-    config_path = configPath()
-    config_file = config_path + os.sep + "config.ini"
+    config_file = os.path.join(configPath(), "config.ini")
 
     # 是否存在该配置文件
     if not os.path.exists(config_file):
@@ -36,18 +38,17 @@ def configFile():
 
 
 def posterFolder():
-    config_path = configPath()
-    poster_folder = config_path + os.sep + "Poster"
-
-    # 路径无效时返回无效的海报路径
-    if config_path == "N/A":
-        return "N/A"
-
-    # 是否存在该路径
-    if not os.path.exists(poster_folder):
-        os.makedirs(poster_folder)
+    poster_folder = os.path.join(configPath(), "poster")
+    newFolder(poster_folder)
 
     return poster_folder
+
+
+def logFolder():
+    log_folder = os.path.join(configPath(), "logs")
+    newFolder(log_folder)
+
+    return log_folder
 
 
 # 初始化配置
