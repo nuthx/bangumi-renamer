@@ -590,18 +590,6 @@ class MySettingWindow(QDialog, SettingWindow):
             )
             return
 
-        # Bangumi ID 检查
-        if not self.bgmIdType.text().isdigit():
-            Flyout.create(
-                icon=InfoBarIcon.ERROR,
-                title="",
-                content="Bangumi ID 需为纯数字",
-                target=self.renameType,
-                parent=self,
-                isClosable=False
-            )
-            return
-
         self.config.set("Format", "rename_format", self.renameType.currentText())
         self.config.set("Format", "date_format", self.dateType.currentText())
         self.config.set("Bangumi", "user_id", self.bgmIdType.text())

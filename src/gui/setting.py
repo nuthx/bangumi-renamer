@@ -118,7 +118,7 @@ class SettingWindow(object):
         # Bangumi ID
 
         self.bgmIdTitle = QLabel("Bangumi ID")
-        self.bgmIdInfo = QLabel("填入 ID 后，分析会同时检索动画的收藏状态。留空则禁用此功能")
+        self.bgmIdInfo = QLabel("分析时同步检索动画的收藏状态，会小幅增加分析时间。留空则禁用此功能")
 
         self.bgmIdType = LineEdit(self)
         self.bgmIdType.setFixedWidth(200)
