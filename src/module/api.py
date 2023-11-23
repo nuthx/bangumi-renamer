@@ -2,6 +2,8 @@ import re
 import time
 import requests
 
+from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig, oldConfigCheck
+
 
 # Anilist
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
@@ -163,3 +165,33 @@ def api_bgmRelated(jp_name):
         result_full = sorted(result_full, key=lambda x: x["release"])  # 按放送日期排序
 
         return result_full
+
+
+def api_collectionCheck(user_id, anime_id):
+    headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
+    url = "https://api.bgm.tv/v0/users/" + str(user_id) + "/collections/" + str(anime_id)
+
+    for retry in range(3):
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            time.sleep(0.5)
+            continue
+
+        result = response.json()
+
+        if "type" in result:
+            if result["type"] == 1:
+                collection = "想看"
+            elif result["type"] == 2:
+                collection = "看过"
+            elif result["type"] == 3:
+                collection = "在看"
+            elif result["type"] == 4:
+                collection = "搁置"
+            else:
+                collection = "抛弃"
+        else:
+            collection = ""
+
+        return collection

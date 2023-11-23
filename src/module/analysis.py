@@ -70,9 +70,16 @@ class Analysis(QObject):
 
         # 所有季度
         self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
-        search_clean = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
-        if search_clean:
-            anime["result"] = search_clean
+        cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
+        if cleaned_search_list:
+            # 尝试搜索用户收藏状态
+            config = readConfig()
+            user_id = config.get("Bangumi", "user_id")
+            if user_id:
+                anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
+                print(anime["result"])
+            else:
+                anime["result"] = cleaned_search_list
         else:
             return
         self.added_progress_count.emit(1)
@@ -203,6 +210,13 @@ def removeUnrelated(init_name, search_list):
             search_list_related.append(item)
 
     return search_list_related
+
+
+def checkAnimeCollection(user_id, anime_list):
+    for anime in anime_list:
+        anime["collection"] = api_collectionCheck(user_id, anime["bgm_id"])
+
+    return anime_list
 
 
 def downloadPoster(poster_url):
