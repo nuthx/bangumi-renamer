@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtGui import QIcon
-from qfluentwidgets import PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
+from qfluentwidgets import LineEdit, PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
 
 from src.module.resource import getResource
 from src.module.config import posterFolder, logFolder
@@ -115,6 +115,17 @@ class SettingWindow(object):
 
         self.dateTypeCard = self.settingCard(self.dateTypeTitle, self.dateInfoFrame, self.dateType, "full")
 
+        # Bangumi ID
+
+        self.bgmIdTitle = QLabel("Bangumi ID")
+        self.bgmIdInfo = QLabel("填入 ID 后，分析会同时检索动画的收藏状态。留空则禁用此功能")
+
+        self.bgmIdType = LineEdit(self)
+        self.bgmIdType.setFixedWidth(200)
+        self.bgmIdType.setClearButtonEnabled(True)
+
+        self.bgmIdCard = self.settingCard(self.bgmIdTitle, self.bgmIdInfo, self.bgmIdType, "full")
+
         # 动画海报
 
         self.posterFolderTitle = QLabel("动画海报")
@@ -126,7 +137,7 @@ class SettingWindow(object):
         self.posterFolderCard = self.settingCard(
             self.posterFolderTitle, self.posterFolderInfo, self.posterFolderButton, "full")
 
-        # 动画海报
+        # 日志
 
         self.logFolderTitle = QLabel("日志")
         self.logFolderInfo = QLabel(logFolder())
@@ -160,6 +171,7 @@ class SettingWindow(object):
         layout.addSpacing(-15)
         layout.addWidget(self.renameTutorialCard)
         layout.addWidget(self.dateTypeCard)
+        layout.addWidget(self.bgmIdCard)
         layout.addWidget(self.posterFolderCard)
         layout.addWidget(self.logFolderCard)
         layout.addSpacing(12)

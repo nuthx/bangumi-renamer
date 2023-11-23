@@ -17,7 +17,7 @@ from src.gui.dialog import NameEditBox
 
 from src.function import log, initList, addTimes, openFolder
 from src.module.analysis import Analysis, getFinalName
-from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig
+from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig, oldConfigCheck
 from src.module.version import newVersion
 from src.module.resource import getResource
 
@@ -29,6 +29,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.initConnect()
         self.initList()
         self.checkVersion()
+        oldConfigCheck()
         self.poster_folder = posterFolder()
         self.worker = Analysis()
         self.worker.anime_state.connect(self.editTableState)
@@ -571,9 +572,10 @@ class MySettingWindow(QDialog, SettingWindow):
     def loadConfig(self):
         self.renameType.setText(self.config.get("Format", "rename_format"))
         self.dateType.setText(self.config.get("Format", "date_format"))
+        self.bgmIdType.setText(self.config.get("Bangumi", "user_id"))
 
     def saveConfig(self):
-        # 格式检查
+        # 命名格式检查
         result = str(formatCheck(self.renameType.currentText()))
         if result != "True":
             Flyout.create(
@@ -586,8 +588,21 @@ class MySettingWindow(QDialog, SettingWindow):
             )
             return
 
+        # Bangumi ID 检查
+        if not self.bgmIdType.text().isdigit():
+            Flyout.create(
+                icon=InfoBarIcon.ERROR,
+                title="",
+                content="Bangumi ID 需为纯数字",
+                target=self.renameType,
+                parent=self,
+                isClosable=False
+            )
+            return
+
         self.config.set("Format", "rename_format", self.renameType.currentText())
         self.config.set("Format", "date_format", self.dateType.currentText())
+        self.config.set("Bangumi", "user_id", self.bgmIdType.text())
 
         with open(configFile(), "w", encoding="utf-8") as content:
             self.config.write(content)

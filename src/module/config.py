@@ -56,11 +56,14 @@ def initConfig(config_file):
     config = configparser.ConfigParser()
 
     config.add_section("Application")
-    config.set("Application", "version", "1.0")
+    config.set("Application", "version", "2.0")
 
     config.add_section("Format")
     config.set("Format", "rename_format", "{init_name}/[{score}] [{typecode}] [{release}] {jp_name}")
     config.set("Format", "date_format", "YYMMDD")
+
+    config.add_section("Bangumi")
+    config.set("Bangumi", "user_id", "")
 
     config.add_section("Counter")
     config.set("Counter", "open_times", "0")
@@ -88,6 +91,16 @@ def formatCheck(rename_format):
         return "仅支持一个单斜杠用于文件夹嵌套"
 
     return True
+
+
+# 删除旧版配置文件
+def oldConfigCheck():
+    config = readConfig()
+    current_config_version = config.get("Application", "version")
+
+    if current_config_version != "2.0":
+        os.remove(configFile())
+        initConfig(configFile())
 
 
 # 读取配置
