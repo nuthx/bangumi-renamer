@@ -2,7 +2,7 @@ from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, ListWidget, LineEdit)
+                            ProgressRing, ListWidget, LineEdit)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -42,11 +42,6 @@ class MainWindow(object):
         self.titleLayout.addSpacing(4)
         self.titleLayout.addWidget(self.subtitleLabel)
 
-        self.spinner = IndeterminateProgressRing()
-        self.spinner.setFixedSize(24, 24)
-        self.spinner.setStrokeWidth(3)
-        self.spinner.setVisible(False)
-
         self.newVersionButton = PrimaryPushButton("有新版本", self, FluentIcon.LINK)
         self.newVersionButton.setVisible(False)
 
@@ -57,8 +52,6 @@ class MainWindow(object):
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
         self.headerLayout.addLayout(self.titleLayout)
         self.headerLayout.addStretch(0)
-        self.headerLayout.addWidget(self.spinner, 0)
-        self.headerLayout.addSpacing(16)
         self.headerLayout.addWidget(self.newVersionButton, 0)
         self.headerLayout.addSpacing(12)
         self.headerLayout.addWidget(self.aboutButton, 0)
@@ -193,6 +186,13 @@ class MainWindow(object):
 
         # 操作区域
 
+        self.progress = ProgressRing(self)
+        # self.progress.setFixedWidth(165)
+        self.progress.setFixedSize(24, 24)
+        self.progress.setStrokeWidth(4)
+        self.progress.setTextVisible(False)
+        self.progress.setVisible(False)
+
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
 
@@ -207,6 +207,7 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
+        self.buttonLayout.addWidget(self.progress)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)

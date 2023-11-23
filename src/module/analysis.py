@@ -12,11 +12,13 @@ from src.module.config import posterFolder, readConfig
 
 class Analysis(QObject):
     anime_state = Signal(list)
+    added_progress_count = Signal(int)
 
     def standardAnalysis(self, anime):
         romaji_name = anime["romaji_name"]
 
         # Anilist
+        self.added_progress_count.emit(1)
         self.anime_state.emit([anime["list_id"], "==> [2/6] 搜索日文名"])
         if isPureEnglish(romaji_name):
             anime["jp_name_anilist"] = romaji_name
@@ -28,6 +30,7 @@ class Analysis(QObject):
                 return
 
         # Bangumi ID
+        self.added_progress_count.emit(1)
         self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
         bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
         if bangumi_search_id:
@@ -36,6 +39,7 @@ class Analysis(QObject):
             return
 
         # Bangumi 条目
+        self.added_progress_count.emit(1)
         self.anime_state.emit([anime["list_id"], "==> [4/6] 写入动画信息"])
         bangumi_subject = bangumiSubject(anime["bgm_id"])
         if bangumi_subject:
@@ -51,6 +55,7 @@ class Analysis(QObject):
             return
 
         # Bangumi 前传
+        self.added_progress_count.emit(1)
         self.anime_state.emit([anime["list_id"], "==> [5/6] 搜索首季信息"])
         bgm_id = anime["bgm_id"]
         bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
@@ -67,6 +72,7 @@ class Analysis(QObject):
         anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
 
         # Bangumi 搜索
+        self.added_progress_count.emit(1)
         self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
         search_result = bangumiSearch(anime["init_name"])
         search_clean = removeUnrelated(anime["init_name"], search_result)

@@ -33,6 +33,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.poster_folder = posterFolder()
         self.worker = Analysis()
         self.worker.anime_state.connect(self.editTableState)
+        self.worker.added_progress_count.connect(self.addProgressBar)
         nltk.data.path.append(getResource("lib/nltk_data"))
         addTimes("open_times")
 
@@ -71,6 +72,14 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.finalName.setText("重命名结果：")
         self.image.updateImage(getResource("src/image/empty.png"))
         self.idLabel.setText("")
+
+    def showProgressBar(self):
+        self.progress.setVisible(True)
+        self.progress.setMaximum(len(self.anime_list) * 6)
+
+    def addProgressBar(self, count):
+        now_count = self.progress.value()
+        self.progress.setValue(now_count + count)
 
     def editTableState(self, state):
         list_id, anime_state = state
@@ -187,7 +196,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             return
 
         # 显示进度条
-        self.spinner.setVisible(True)
+        self.showProgressBar()
 
         # 多线程分析
         addTimes("analysis_times")
@@ -203,7 +212,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         list_count = len(self.anime_list)
         while True:
             if threading.active_count() == 2:
-                self.spinner.setVisible(False)
+                self.progress.setVisible(False)
                 used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
                 print(f"【分析成功】 共{list_count}个动画，耗时{used_time}秒")
                 return
@@ -212,6 +221,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def analysisThread(self, anime):
         # 获取罗马名
+        self.addProgressBar(1)
         self.table.setItem(anime["list_id"], 2, QTableWidgetItem("==> [1/6] 提取罗马名"))
         anime["romaji_name"] = getRomajiName(anime["file_name"])
 
