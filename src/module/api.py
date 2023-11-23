@@ -1,8 +1,6 @@
 import requests
-import json
 import time
 import re
-
 
 # Anilist
 # https://anilist.github.io/ApiV2-GraphQL-Docs/
@@ -20,10 +18,9 @@ def anilistSearch(romaji_name):
             time.sleep(0.5)
             continue
 
-        result = json.loads(response.text.encode().decode('unicode_escape'))  # 特殊转码
-        print(f"1 ==> 获取{romaji_name}数据")
-
+        result = response.json()
         jp_name_anilist = result["data"]["Media"]["title"]["native"]
+        print(f"1 ==> 获取{romaji_name}数据")
 
         # 移除括号内容，例 22/7 （ナナブンノニジュウニ）
         jp_name_anilist = re.sub(r'（[^）]*）', '', jp_name_anilist).strip()
@@ -52,7 +49,7 @@ def bangumiSearchId(jp_name):
         if response.text.startswith("<!DOCTYPE html>"):
             return
 
-        result = json.loads(response.text)
+        result = response.json()
         print(f"2 ==> 获取{jp_name}数据")
 
         # 未搜索到内容停止
@@ -79,7 +76,7 @@ def bangumiSubject(bgm_id):
             time.sleep(0.5)
             continue
 
-        result = json.loads(response.text)
+        result = response.json()
         print(f"3 ==> 获取{bgm_id}数据")
 
         # 不存在 bgm_id 时停止
@@ -122,7 +119,7 @@ def bangumiPrevious(init_id, init_name):
             time.sleep(0.5)
             continue
 
-        result = json.loads(response.text)
+        result = response.json()
         print(f"4 ==> 获取{init_name}前传")
 
         # 如果有前传，返回前传 prev_id 和 prev_name
@@ -156,7 +153,7 @@ def bangumiSearch(jp_name):
         if response.text.startswith("<!DOCTYPE html>"):
             return []
 
-        result = json.loads(response.text)
+        result = response.json()
         print(f"2 ==> 获取{jp_name}数据")
 
         # 未搜索到内容停止
