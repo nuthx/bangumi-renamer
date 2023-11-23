@@ -1,6 +1,7 @@
 import os
 import anitopy
 import arrow
+import threading
 from fuzzywuzzy import fuzz
 from nltk.corpus import words
 
@@ -77,7 +78,6 @@ class Analysis(QObject):
             user_id = config.get("Bangumi", "user_id")
             if user_id:
                 anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
-                print(anime["result"])
             else:
                 anime["result"] = cleaned_search_list
         else:
@@ -213,10 +213,21 @@ def removeUnrelated(init_name, search_list):
 
 
 def checkAnimeCollection(user_id, anime_list):
+    threads = []
     for anime in anime_list:
-        anime["collection"] = api_collectionCheck(user_id, anime["bgm_id"])
+        thread = threading.Thread(target=ThreadCheckAnimeCollection, args=(anime, user_id,))
+        thread.start()
+        threads.append(thread)
+
+    # 等待线程完成
+    for thread in threads:
+        thread.join()
 
     return anime_list
+
+
+def ThreadCheckAnimeCollection(anime, user_id):
+    anime["collection"] = api_collectionCheck(user_id, anime["bgm_id"])
 
 
 def downloadPoster(poster_url):
