@@ -15,31 +15,34 @@ class Analysis(QObject):
     added_progress_count = Signal(int)
 
     def standardAnalysis(self, anime):
-        romaji_name = anime["romaji_name"]
-
-        # Anilist
-        self.added_progress_count.emit(1)
-        self.anime_state.emit([anime["list_id"], "==> [2/6] 搜索日文名"])
-        if isPureEnglish(romaji_name):
-            anime["jp_name_anilist"] = romaji_name
-        else:
-            jp_name_anilist = anilistSearch(romaji_name)
-            if jp_name_anilist:
-                anime["jp_name_anilist"] = jp_name_anilist
-            else:
-                return
-
-        # Bangumi ID
-        self.added_progress_count.emit(1)
-        self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
-        bangumi_search_id = bangumiSearchId(anime["jp_name_anilist"])
-        if bangumi_search_id:
-            anime["bgm_id"] = bangumi_search_id
+        # 罗马名
+        self.anime_state.emit([anime["list_id"], "==> [1/6] 提取罗马名"])
+        romaji_name = getRomajiName(anime["file_name"])
+        if romaji_name:
+            anime["romaji_name"] = romaji_name
         else:
             return
-
-        # Bangumi 条目
         self.added_progress_count.emit(1)
+
+        # Anilist 日文名
+        self.anime_state.emit([anime["list_id"], "==> [2/6] 搜索日文名"])
+        jp_name_anilist = getAnilistJpName(anime["romaji_name"])
+        if jp_name_anilist:
+            anime["jp_name_anilist"] = jp_name_anilist
+        else:
+            return
+        self.added_progress_count.emit(1)
+
+        # Bangumi ID
+        self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
+        bgm_id = bangumiSearchId(anime["jp_name_anilist"])
+        if bgm_id:
+            anime["bgm_id"] = bgm_id
+        else:
+            return
+        self.added_progress_count.emit(1)
+
+        # 动画条目
         self.anime_state.emit([anime["list_id"], "==> [4/6] 写入动画信息"])
         bangumi_subject = bangumiSubject(anime["bgm_id"])
         if bangumi_subject:
@@ -53,33 +56,76 @@ class Analysis(QObject):
             anime["score"] = bangumi_subject[7]
         else:
             return
-
-        # Bangumi 前传
         self.added_progress_count.emit(1)
+
+        # 前传
         self.anime_state.emit([anime["list_id"], "==> [5/6] 搜索首季信息"])
-        bgm_id = anime["bgm_id"]
-        bangumi_previous = bangumiPrevious(bgm_id, anime["cn_name"])
-        prev_id = bangumi_previous[0]
-        prev_name = bangumi_previous[1]
-
-        while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
-            bgm_id = prev_id
-            bangumi_previous = bangumiPrevious(bgm_id, prev_name)
-            prev_id = bangumi_previous[0]
-            prev_name = bangumi_previous[1]
-
-        anime["init_id"] = prev_id
-        anime["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
-
-        # Bangumi 搜索
+        init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
+        if init_info:
+            anime["init_id"] = init_info[0]
+            anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
+        else:
+            return
         self.added_progress_count.emit(1)
+
+        # 所有季度
         self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
-        search_result = bangumiSearch(anime["init_name"])
-        search_clean = removeUnrelated(anime["init_name"], search_result)
+        search_clean = removeUnrelated(anime["init_name"], bangumiSearch(anime["init_name"]))
         if search_clean:
             anime["result"] = search_clean
         else:
             return
+        self.added_progress_count.emit(1)
+
+        # 下载图片
+        downloadPoster(anime["poster"])
+
+        # 写入重命名
+        getFinalName(anime)
+
+    def singleAnalysis(self, anime, bgm_id, search_init):
+        # 罗马名
+        romaji_name = getRomajiName(anime["file_name"])
+        if romaji_name:
+            anime["romaji_name"] = romaji_name
+        else:
+            return
+
+        # 跳过：Anilist 日文名
+
+        # Bangumi ID
+        anime["bgm_id"] = bgm_id
+
+        # 动画条目
+        bangumi_subject = bangumiSubject(bgm_id)
+        if bangumi_subject:
+            anime["poster"] = bangumi_subject[0]
+            anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
+            anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
+            anime["types"] = bangumi_subject[3]
+            anime["typecode"] = bangumi_subject[4]
+            anime["release"] = bangumi_subject[5]
+            anime["episodes"] = bangumi_subject[6]
+            anime["score"] = bangumi_subject[7]
+        else:
+            return
+
+        # 前传（可选）
+        if search_init:
+            init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
+            if init_info:
+                anime["init_id"] = init_info[0]
+                anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
+            else:
+                return
+
+        # 跳过：所有季度
+
+        # 下载图片
+        downloadPoster(anime["poster"])
+
+        # 写入重命名
+        getFinalName(anime)
 
 
 def getRomajiName(file_name):
@@ -93,8 +139,34 @@ def getRomajiName(file_name):
 
     # 如果没识别到动画名返回 None
     if "anime_title" in romaji_name:
-        anime_title = romaji_name["anime_title"]
-        return anime_title
+        return romaji_name["anime_title"]
+    else:
+        return None
+
+
+def getAnilistJpName(file_name):
+    if isPureEnglish(file_name):
+        return file_name
+
+    jp_name_anilist = anilistSearch(file_name)
+    if jp_name_anilist:
+        return jp_name_anilist
+    else:
+        return None
+
+
+def getInitInfo(bgm_id, cn_name):
+    bangumi_previous = bangumiPrevious(bgm_id, cn_name)
+    prev_id = bangumi_previous[0]
+    prev_name = bangumi_previous[1]
+
+    while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
+        bgm_id = prev_id
+        bangumi_previous = bangumiPrevious(bgm_id, prev_name)
+        prev_id = bangumi_previous[0]
+        prev_name = bangumi_previous[1]
+
+    return prev_id, prev_name
 
 
 def isPureEnglish(name):
@@ -133,19 +205,15 @@ def removeUnrelated(init_name, search_list):
     return search_list_related
 
 
-def downloadPoster(anime):
-    poster_url = anime["poster"]
-    poster_name = os.path.basename(poster_url)
-    poster_folder = posterFolder()
-    poster_path = os.path.join(poster_folder, poster_name)
+def downloadPoster(poster_url):
+    poster_path = os.path.join(posterFolder(), os.path.basename(poster_url))
 
     # 如果存在这张海报则不下载
     if os.path.exists(poster_path):
         return
 
-    response = requests.get(poster_url)
     with open(poster_path, "wb") as file:
-        file.write(response.content)
+        file.write(requests.get(poster_url).content)
 
 
 def getFinalName(anime):

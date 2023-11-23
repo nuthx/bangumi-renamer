@@ -134,7 +134,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "未修改", "新的ID与当前ID一致")
             return
 
-        self.correctThisAnime(row, id_want)
+        self.correctThisAnime(row, id_want, search_init=True)
 
     def closeSetting(self, title):
         for anime in self.anime_list:
@@ -172,10 +172,9 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         for anime in self.anime_list:
             list_id = anime["list_id"]
-            anime_id = str(list_id + 1)
 
             if "list_id" in anime:
-                self.table.setItem(list_id, 0, QTableWidgetItem(anime_id))
+                self.table.setItem(list_id, 0, QTableWidgetItem(str(list_id + 1)))
 
             if "file_name" in anime:
                 self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
@@ -220,11 +219,6 @@ class MyMainWindow(QMainWindow, MainWindow):
                 time.sleep(0.5)
 
     def analysisThread(self, anime):
-        # 获取罗马名
-        self.addProgressBar(1)
-        self.table.setItem(anime["list_id"], 2, QTableWidgetItem("==> [1/6] 提取罗马名"))
-        anime["romaji_name"] = getRomajiName(anime["file_name"])
-
         # 开始分析
         self.worker.standardAnalysis(anime)
 
@@ -232,12 +226,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         if "init_name" not in anime:
             self.table.setItem(anime["list_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
-
-        # 下载图片
-        downloadPoster(anime)
-
-        # 获取并写入重命名
-        getFinalName(anime)
 
         # 重新排序 anime_list 列表，避免串行
         self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
@@ -442,38 +430,10 @@ class MyMainWindow(QMainWindow, MainWindow):
                 instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
                 view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
 
-    def correctThisAnime(self, row, bgm_id):
-        # 罗马名
-        self.anime_list[row]["romaji_name"] = getRomajiName(self.anime_list[row]["file_name"])
+    def correctThisAnime(self, row, bgm_id, search_init=False):
+        # 开始分析
+        self.worker.singleAnalysis(self.anime_list[row], bgm_id, search_init)
 
-        # Bangumi 条目
-        result = bangumiSubject(bgm_id)
-        self.anime_list[row]["bgm_id"] = bgm_id
-        self.anime_list[row]["poster"] = result[0]
-        self.anime_list[row]["jp_name"] = result[1].replace("/", " ")  # 移除结果中的斜杠
-        self.anime_list[row]["cn_name"] = result[2].replace("/", " ")  # 移除结果中的斜杠
-        self.anime_list[row]["types"] = result[3]
-        self.anime_list[row]["typecode"] = result[4]
-        self.anime_list[row]["release"] = result[5]
-        self.anime_list[row]["episodes"] = result[6]
-        self.anime_list[row]["score"] = result[7]
-
-        # 前传数据
-        bangumi_previous = bangumiPrevious(bgm_id, self.anime_list[row]["cn_name"])
-        prev_id = bangumi_previous[0]
-        prev_name = bangumi_previous[1]
-
-        while bgm_id != prev_id:  # 如果 ID 不同，说明有前传
-            bgm_id = prev_id
-            bangumi_previous = bangumiPrevious(bgm_id, prev_name)
-            prev_id = bangumi_previous[0]
-            prev_name = bangumi_previous[1]
-
-        self.anime_list[row]["init_id"] = prev_id
-        self.anime_list[row]["init_name"] = prev_name.replace("/", " ")  # 移除结果中的斜杠
-
-        downloadPoster(self.anime_list[row])
-        getFinalName(self.anime_list[row])
         self.showInTable()
         self.selectTable()
 
