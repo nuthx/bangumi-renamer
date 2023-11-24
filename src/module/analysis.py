@@ -12,6 +12,7 @@ from src.module.config import posterFolder, readConfig
 
 
 class Analysis(QObject):
+    main_state = Signal(str)
     anime_state = Signal(list)
     added_progress_count = Signal(int)
 
@@ -107,6 +108,10 @@ class Analysis(QObject):
         getFinalName(anime)
 
     def singleAnalysis(self, anime, bgm_id, search_init):
+        # 获取用户预留 ID 判断是否搜索收藏状态
+        config = readConfig()
+        user_id = config.get("Bangumi", "user_id")
+
         # 罗马名
         romaji_name = getRomajiName(anime["file_name"])
         if romaji_name:
@@ -120,6 +125,7 @@ class Analysis(QObject):
         anime["bgm_id"] = bgm_id
 
         # 动画条目
+        self.main_state.emit("获取动画信息")
         bangumi_subject = api_bgmSubject(bgm_id)
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
@@ -135,6 +141,7 @@ class Analysis(QObject):
 
         # 前传（可选）
         if search_init:
+            self.main_state.emit("获取前传信息")
             init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
             if init_info:
                 anime["init_id"] = init_info[0]
@@ -144,12 +151,9 @@ class Analysis(QObject):
 
         # 跳过：所有季度
 
-        # 获取用户预留 ID 判断是否搜索收藏状态
-        config = readConfig()
-        user_id = config.get("Bangumi", "user_id")
-
         # 主条目收藏状态
         if user_id:
+            self.main_state.emit("获取收藏状态")
             # 如果存在所有季度中，则直接获取
             if "result" in anime:
                 for item in anime["result"]:

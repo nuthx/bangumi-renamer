@@ -199,11 +199,13 @@ class MainWindow(object):
         # 操作区域
 
         self.progress = ProgressRing(self)
-        # self.progress.setFixedWidth(165)
         self.progress.setFixedSize(24, 24)
         self.progress.setStrokeWidth(4)
         self.progress.setTextVisible(False)
         self.progress.setVisible(False)
+
+        self.stateLabel = QLabel("")
+        self.stateLabel.setObjectName("stateLabel")
 
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
@@ -220,6 +222,7 @@ class MainWindow(object):
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
         self.buttonLayout.addWidget(self.progress)
+        self.buttonLayout.addWidget(self.stateLabel)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)

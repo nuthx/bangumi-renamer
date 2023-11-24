@@ -32,9 +32,11 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         oldConfigCheck()
         addTimes("open_times")
+        self.config = readConfig()
         self.poster_folder = posterFolder()
 
         self.worker = Analysis()
+        self.worker.main_state.connect(self.showState)
         self.worker.anime_state.connect(self.editTableState)
         self.worker.added_progress_count.connect(self.addProgressBar)
         nltk.data.path.append(getResource("lib/nltk_data"))
@@ -78,17 +80,21 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.image.updateImage(getResource("src/image/empty.png"))
         self.idLabel.setText("")
 
-    def showProgressBar(self):
-        self.progress.setVisible(True)
-        self.progress.setMaximum(len(self.anime_list) * 6)
-
-    def addProgressBar(self, count):
-        now_count = self.progress.value()
-        self.progress.setValue(now_count + count)
+    def showState(self, state):
+        self.stateLabel.setText(state)
 
     def editTableState(self, state):
         list_id, anime_state = state
         self.table.setItem(list_id, 2, QTableWidgetItem(anime_state))
+
+    def showProgressBar(self):
+        self.progress.setVisible(True)
+        step = 6 if self.config.get("Bangumi", "user_id") else 7
+        self.progress.setMaximum(len(self.anime_list) * step)
+
+    def addProgressBar(self, count):
+        now_count = self.progress.value()
+        self.progress.setValue(now_count + count)
 
     def checkVersion(self):
         thread = threading.Thread(target=self.checkVersionThread)
@@ -211,11 +217,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.clearButton.setEnabled(False)
         self.analysisButton.setEnabled(False)
         self.renameButton.setEnabled(False)
+        self.showState("正在分析中,请稍后")
 
         # 多线程分析
         addTimes("analysis_times")
         for anime in self.anime_list:
-            thread = threading.Thread(target=self.analysisThread, args=(anime,))
+            thread = threading.Thread(target=self.ThreadStandardAnalysis, args=(anime,))
             thread.start()
 
         # 检测是否结束并隐藏进度条
@@ -231,12 +238,13 @@ class MyMainWindow(QMainWindow, MainWindow):
                 self.analysisButton.setEnabled(True)
                 self.renameButton.setEnabled(True)
                 used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
-                print(f"【分析成功】 共{list_count}个动画，耗时{used_time}秒")
+                self.showState(f"分析完成，共{list_count}个动画，耗时{used_time}秒")
+                log(f"分析完成，共{list_count}个动画，耗时{used_time}秒")
                 return
             else:
                 time.sleep(0.5)
 
-    def analysisThread(self, anime):
+    def ThreadStandardAnalysis(self, anime):
         # 开始分析
         self.worker.standardAnalysis(anime)
 
@@ -467,10 +475,17 @@ class MyMainWindow(QMainWindow, MainWindow):
 
     def correctThisAnime(self, row, bgm_id, search_init=False):
         # 开始分析
-        self.worker.singleAnalysis(self.anime_list[row], bgm_id, search_init)
+        thread = threading.Thread(target=self.ThreadSingleAnalysis, args=(self.anime_list[row], bgm_id, search_init,))
+        thread.start()
 
+    def ThreadSingleAnalysis(self, anime, bgm_id, search_init):
+        # 开始分析
+        self.worker.singleAnalysis(anime, bgm_id, search_init)
+
+        # 在列表中显示
         self.showInTable()
         self.selectTable()
+        self.showState(f"修改完成：{anime['cn_name']}")
 
     def startRename(self):
         # anime_list 是否有数据
