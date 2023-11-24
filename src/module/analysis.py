@@ -16,8 +16,13 @@ class Analysis(QObject):
     added_progress_count = Signal(int)
 
     def standardAnalysis(self, anime):
+        # 获取用户预留 ID 判断是否搜索收藏状态
+        config = readConfig()
+        user_id = config.get("Bangumi", "user_id")
+        total = 7 if user_id else 6
+
         # 罗马名
-        self.anime_state.emit([anime["list_id"], "==> [1/6] 提取罗马名"])
+        self.anime_state.emit([anime["list_id"], f"==> [1/{total}] 提取罗马名"])
         romaji_name = getRomajiName(anime["file_name"])
         if romaji_name:
             anime["romaji_name"] = romaji_name
@@ -26,7 +31,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # Anilist 日文名
-        self.anime_state.emit([anime["list_id"], "==> [2/6] 搜索日文名"])
+        self.anime_state.emit([anime["list_id"], f"==> [2/{total}] 搜索日文名"])
         jp_name_anilist = getAnilistJpName(anime["romaji_name"])
         if jp_name_anilist:
             anime["jp_name_anilist"] = jp_name_anilist
@@ -35,7 +40,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # Bangumi ID
-        self.anime_state.emit([anime["list_id"], "==> [3/6] 搜索动画信息"])
+        self.anime_state.emit([anime["list_id"], f"==> [3/{total}] 搜索动画信息"])
         bgm_id = api_bgmIdSearch(anime["jp_name_anilist"])
         if bgm_id:
             anime["bgm_id"] = bgm_id
@@ -44,7 +49,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 动画条目
-        self.anime_state.emit([anime["list_id"], "==> [4/6] 写入动画信息"])
+        self.anime_state.emit([anime["list_id"], f"==> [4/{total}] 写入动画信息"])
         bangumi_subject = api_bgmSubject(anime["bgm_id"])
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
@@ -60,7 +65,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 前传
-        self.anime_state.emit([anime["list_id"], "==> [5/6] 搜索首季信息"])
+        self.anime_state.emit([anime["list_id"], f"==> [5/{total}] 搜索首季信息"])
         init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
         if init_info:
             anime["init_id"] = init_info[0]
@@ -70,19 +75,30 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 所有季度
-        self.anime_state.emit([anime["list_id"], "==> [6/6] 列出所有季度"])
+        self.anime_state.emit([anime["list_id"], f"==> [6/{total}] 列出所有季度"])
         cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
         if cleaned_search_list:
-            # 尝试搜索用户收藏状态
-            config = readConfig()
-            user_id = config.get("Bangumi", "user_id")
             if user_id:
+                self.anime_state.emit([anime["list_id"], f"==> [7/{total}] 获取收藏状态"])
                 anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
+                self.added_progress_count.emit(1)
             else:
                 anime["result"] = cleaned_search_list
         else:
             return
         self.added_progress_count.emit(1)
+
+        # 主条目收藏状态
+        if user_id:
+            # 如果存在所有季度中，则直接获取
+            for item in anime["result"]:
+                if item["bgm_id"] == anime["bgm_id"]:
+                    anime["collection"] = item["collection"]
+                    break
+
+            # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
+            if "collection" not in anime:
+                anime["collection"] = api_collectionCheck(user_id, anime["bgm_id"])
 
         # 下载图片
         downloadPoster(anime["poster"])
@@ -127,6 +143,23 @@ class Analysis(QObject):
                 return
 
         # 跳过：所有季度
+
+        # 获取用户预留 ID 判断是否搜索收藏状态
+        config = readConfig()
+        user_id = config.get("Bangumi", "user_id")
+
+        # 主条目收藏状态
+        if user_id:
+            # 如果存在所有季度中，则直接获取
+            if "result" in anime:
+                for item in anime["result"]:
+                    if item["bgm_id"] == anime["bgm_id"]:
+                        anime["collection"] = item["collection"]
+                        break
+
+            # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
+            if "collection" not in anime:
+                anime["collection"] = api_collectionCheck(user_id, anime["bgm_id"])
 
         # 下载图片
         downloadPoster(anime["poster"])

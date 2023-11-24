@@ -57,11 +57,14 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
 
-    def initList(self):
-        self.list_id = 0
-        self.anime_list = []
+    def initList(self, clean_all=True):
+        if clean_all:
+            self.list_id = 0
+            self.anime_list = []
+            self.table.setRowCount(0)
+
         self.table.clearContents()
-        self.table.setRowCount(0)
+        self.progress.setValue(0)
         self.searchList.clear()
         self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
@@ -182,10 +185,10 @@ class MyMainWindow(QMainWindow, MainWindow):
                 self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
 
             # 避免没分析完的时候覆盖第三列的进度提示
-            if "cn_name" in anime and "init_name" in anime:
+            if "cn_name" in anime and "final_name" in anime:
                 self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
 
-            if "init_name" in anime:
+            if "init_name" in anime and "final_name" in anime:
                 self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
 
     def startAnalysis(self):
@@ -196,7 +199,14 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.showInfo("warning", "", "请先添加文件夹")
             return
 
-        # 显示进度条
+        # 初始化
+        # 清空 anime_list 的关键值
+        for anime in self.anime_list:
+            anime.pop("cn_name", None)
+            anime.pop("init_name", None)
+            anime.pop("final_name", None)
+        self.initList(clean_all=False)
+        self.showInTable()
         self.showProgressBar()
 
         # 多线程分析
@@ -224,8 +234,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 开始分析
         self.worker.standardAnalysis(anime)
 
-        # 使用 init_name 判断是否分析成功
-        if "init_name" not in anime:
+        # 使用 final_name 判断是否分析成功
+        if "final_name" not in anime:
             self.table.setItem(anime["list_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 
@@ -240,6 +250,7 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         # 应对重命名完成后的 initList 操作
         if row is None:
+            self.collectionBadge.setVisible(False)
             self.cnName.setText("暂无动画")
             self.jpName.setText("请先选中一个动画以展示详细信息")
             self.typeLabel.setText("类型：")
@@ -253,72 +264,84 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
             return
 
-        if "cn_name" in self.anime_list[row]:
-            cn_name = self.anime_list[row]["cn_name"]
+        this_anime = self.anime_list[row]
+        
+        if "collection" in this_anime:
+            if this_anime["collection"] is not None:
+                collection = this_anime["collection"]
+                self.collectionBadge.setVisible(True)
+                self.collectionBadge.setText(collection)
+            else:
+                self.collectionBadge.setVisible(False)
+        else:
+            self.collectionBadge.setVisible(False)
+
+        if "cn_name" in this_anime:
+            cn_name = this_anime["cn_name"]
             self.cnName.setText(cn_name)
         else:
             self.cnName.setText("暂无动画")
 
-        if "jp_name" in self.anime_list[row]:
-            jp_name = self.anime_list[row]["jp_name"]
+        if "jp_name" in this_anime:
+            jp_name = this_anime["jp_name"]
             self.jpName.setText(jp_name)
         else:
             self.jpName.setText("请先选中一个动画以展示详细信息")
 
-        if "types" in self.anime_list[row] and "typecode" in self.anime_list[row]:
-            types = self.anime_list[row]["types"]
-            typecode = self.anime_list[row]["typecode"]
+        if "types" in this_anime and "typecode" in this_anime:
+            types = this_anime["types"]
+            typecode = this_anime["typecode"]
             self.typeLabel.setText(f"类型：{types} ({typecode})")
         else:
             self.typeLabel.setText("类型：")
 
-        if "release" in self.anime_list[row]:
-            release = self.anime_list[row]["release"]
+        if "release" in this_anime:
+            release = this_anime["release"]
             release = arrow.get(release).format("YYYY年M月D日")
             self.dateLabel.setText(f"放送日期：{release}")
         else:
             self.dateLabel.setText("放送日期：")
 
-        if "score" in self.anime_list[row]:
-            score = str(self.anime_list[row]["score"])
+        if "score" in this_anime:
+            score = str(this_anime["score"])
             self.scoreLabel.setText(f"当前评分：{score}")
         else:
             self.scoreLabel.setText("当前评分：")
 
-        if "file_name" in self.anime_list[row]:
-            file_name = self.anime_list[row]["file_name"]
+        if "file_name" in this_anime:
+            file_name = this_anime["file_name"]
             self.fileName.setText(f"文件名：{file_name}")
         else:
             self.fileName.setText("文件名：")
 
-        if "final_name" in self.anime_list[row]:
-            final_name = self.anime_list[row]["final_name"].replace("/", " / ")
+        if "final_name" in this_anime:
+            final_name = this_anime["final_name"].replace("/", " / ")
             self.finalName.setText(f"重命名：{final_name}")
         else:
             self.finalName.setText("重命名：")
 
-        if "poster" in self.anime_list[row]:
-            poster_name = os.path.basename(self.anime_list[row]["poster"])
+        if "poster" in this_anime:
+            poster_name = os.path.basename(this_anime["poster"])
             poster_path = os.path.join(self.poster_folder, poster_name)
             self.image.updateImage(poster_path)
         else:
             self.image.updateImage(getResource("src/image/empty.png"))
 
-        if "bgm_id" in self.anime_list[row]:
-            bgm_id = str(self.anime_list[row]["bgm_id"])
+        if "bgm_id" in this_anime:
+            bgm_id = str(this_anime["bgm_id"])
             self.idLabel.setText(bgm_id)
         else:
             self.idLabel.setText("")
 
-        if "result" in self.anime_list[row]:
+        if "result" in this_anime:
             self.searchList.clear()
-            for this in self.anime_list[row]["result"]:
+            for this in this_anime["result"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
                 cn_name = this["cn_name"]
-                if this["collection"] is not None:
-                    collection = f" [{this['collection']}]"
-                else:
-                    collection = ""
+                collection = ""
+                if "collection" in this:
+                    if this["collection"] is not None:
+                        collection = f" [{this['collection']}]"
                 item = f"[{release}]{collection} {cn_name}"
                 self.searchList.addItem(QListWidgetItem(item))
         else:
