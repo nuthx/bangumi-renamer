@@ -313,9 +313,13 @@ class MyMainWindow(QMainWindow, MainWindow):
         if "result" in self.anime_list[row]:
             self.searchList.clear()
             for this in self.anime_list[row]["result"]:
-                release = arrow.get(this['release']).format("YY-MM-DD")
-                cn_name = this['cn_name']
-                item = f"[{release}] {cn_name}"
+                release = arrow.get(this["release"]).format("YY-MM-DD")
+                cn_name = this["cn_name"]
+                if this["collection"] is not None:
+                    collection = f" [{this['collection']}]"
+                else:
+                    collection = ""
+                item = f"[{release}]{collection} {cn_name}"
                 self.searchList.addItem(QListWidgetItem(item))
         else:
             self.searchList.clear()
