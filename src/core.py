@@ -97,11 +97,11 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.progress.setValue(now_count + count)
 
     def checkVersion(self):
-        thread = threading.Thread(target=self.checkVersionThread)
+        thread = threading.Thread(target=self.ThreadCheckVersion)
         thread.start()
         thread.join()
 
-    def checkVersionThread(self):
+    def ThreadCheckVersion(self):
         if newVersion():
             self.newVersionButton.setVisible(True)
             log("发现有新版本")
@@ -162,8 +162,11 @@ class MyMainWindow(QMainWindow, MainWindow):
         if not self.anime_list:
             self.showInfo("warning", "", "列表为空")
         else:
+            anime_count = len(self.anime_list)
             self.initList()
             self.showInfo("success", "", "列表已清空")
+            log("————")
+            log(f"清空了动画列表（{anime_count}个动画）")
 
     def dragEnterEvent(self, event):
         event.acceptProposedAction()
@@ -175,6 +178,10 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         self.list_id = result[0]  # 此处的 list_id 已经比实际加了 1
         self.anime_list = result[1]
+        log("————")
+        log(f"拖入了{len(self.anime_list)}个动画：")
+        for anime in self.anime_list:
+            log(anime["file_path"])
 
         self.showInTable()
 
@@ -217,7 +224,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.clearButton.setEnabled(False)
         self.analysisButton.setEnabled(False)
         self.renameButton.setEnabled(False)
-        self.showState("正在分析中,请稍后")
+        self.showState("正在分析中，请稍后")
+        log("————")
+        log("开始分析动画：")
 
         # 多线程分析
         addTimes("analysis_times")
@@ -408,6 +417,8 @@ class MyMainWindow(QMainWindow, MainWindow):
                     return
                 else:
                     self.anime_list[row]["init_name"] = new_init_name
+                    log("————")
+                    log(f"手动修改了首季动画名：{init_name} ==> {new_init_name}")
                     getFinalName(self.anime_list[row])
                     self.showInTable()
                     self.selectTable()
@@ -435,6 +446,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         openFolder(parent_path)
 
     def deleteThisAnime(self, row):
+        log("————")
+        log(f"删除了动画：{self.anime_list[row]['file_path']}")
+
         # 删除此行
         self.anime_list.pop(row)
 
@@ -474,6 +488,11 @@ class MyMainWindow(QMainWindow, MainWindow):
                 view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
 
     def correctThisAnime(self, row, bgm_id, search_init=False):
+        log("————")
+        if search_init:
+            log(f"直接通过Bangumi ID: {bgm_id}搜索动画名")
+        else:
+            log(f"更正当前动画：{self.anime_list[row]['cn_name']}")
         # 开始分析
         thread = threading.Thread(target=self.ThreadSingleAnalysis, args=(self.anime_list[row], bgm_id, search_init,))
         thread.start()
@@ -485,7 +504,12 @@ class MyMainWindow(QMainWindow, MainWindow):
         # 在列表中显示
         self.showInTable()
         self.selectTable()
-        self.showState(f"修改完成：{anime['cn_name']}")
+        if search_init:
+            self.showState(f"搜索完成：{anime['cn_name']}")
+            log(f"搜索完成：{anime['cn_name']}")
+        else:
+            self.showState(f"更正当前动画：{anime['cn_name']}")
+            log(f"更正结果：{anime['cn_name']}")
 
     def startRename(self):
         # anime_list 是否有数据
@@ -517,6 +541,8 @@ class MyMainWindow(QMainWindow, MainWindow):
             return
 
         # 开始命名
+        log("————")
+        log("开始重命名：")
         for order in rename_order_list:
             this_anime = self.anime_list[order]
 
@@ -549,9 +575,12 @@ class MyMainWindow(QMainWindow, MainWindow):
             final_path_1 = os.path.join(file_dir, final_name_1)
             shutil.move(final_path_2, final_path_1)
 
+            log(f"重命名：{file_path} ==> {os.path.join(final_path_1, final_name_2)}")
+
         self.initList()
         addTimes("rename_times")
         self.showInfo("success", "", "重命名完成")
+        log("重命名完成")
 
     def showInfo(self, state, title, content):
         info_state = {
