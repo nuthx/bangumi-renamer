@@ -125,7 +125,6 @@ class Analysis(QObject):
         anime["bgm_id"] = bgm_id
 
         # 动画条目
-        self.main_state.emit("获取动画信息")
         bangumi_subject = api_bgmSubject(bgm_id)
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
@@ -141,7 +140,6 @@ class Analysis(QObject):
 
         # 前传（可选）
         if search_init:
-            self.main_state.emit("获取前传信息")
             init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
             if init_info:
                 anime["init_id"] = init_info[0]
@@ -153,7 +151,6 @@ class Analysis(QObject):
 
         # 主条目收藏状态
         if user_id:
-            self.main_state.emit("获取收藏状态")
             # 如果存在所有季度中，则直接获取
             if "result" in anime:
                 for item in anime["result"]:
