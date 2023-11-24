@@ -208,6 +208,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.initList(clean_all=False)
         self.showInTable()
         self.showProgressBar()
+        self.clearButton.setEnabled(False)
+        self.analysisButton.setEnabled(False)
+        self.renameButton.setEnabled(False)
 
         # 多线程分析
         addTimes("analysis_times")
@@ -222,8 +225,11 @@ class MyMainWindow(QMainWindow, MainWindow):
     def ThreadFinishedCheck(self):
         list_count = len(self.anime_list)
         while True:
-            if threading.active_count() == 2:
+            if threading.active_count() == 2:  # 主线程 + 检查线程
                 self.progress.setVisible(False)
+                self.clearButton.setEnabled(True)
+                self.analysisButton.setEnabled(True)
+                self.renameButton.setEnabled(True)
                 used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
                 print(f"【分析成功】 共{list_count}个动画，耗时{used_time}秒")
                 return
