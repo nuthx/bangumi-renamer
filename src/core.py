@@ -271,7 +271,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.dateLabel.setText("放送日期：")
             self.scoreLabel.setText("当前评分：")
             self.fileName.setText("文件名：")
-            self.finalName.setText("重命名：")
+            self.finalName.setText("重命名结果：")
             self.image.updateImage(getResource("src/image/empty.png"))
             self.idLabel.setText("")
             self.searchList.clear()
@@ -330,9 +330,9 @@ class MyMainWindow(QMainWindow, MainWindow):
 
         if "final_name" in this_anime:
             final_name = this_anime["final_name"].replace("/", " / ")
-            self.finalName.setText(f"重命名：{final_name}")
+            self.finalName.setText(f"重命名结果：{final_name}")
         else:
-            self.finalName.setText("重命名：")
+            self.finalName.setText("重命名结果：")
 
         if "poster" in this_anime:
             poster_name = os.path.basename(this_anime["poster"])
