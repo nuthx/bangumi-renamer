@@ -249,7 +249,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         row = self.RowInTable()
 
         # 应对重命名完成后的 initList 操作
-        if row is None:
+        if row is None or "final_name" not in self.anime_list[row]:
             self.collectionBadge.setVisible(False)
             self.cnName.setText("暂无动画")
             self.jpName.setText("请先选中一个动画以展示详细信息")
@@ -265,7 +265,7 @@ class MyMainWindow(QMainWindow, MainWindow):
             return
 
         this_anime = self.anime_list[row]
-        
+
         if "collection" in this_anime:
             if this_anime["collection"] is not None:
                 collection = this_anime["collection"]
