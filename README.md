@@ -17,6 +17,8 @@
 
 仅需批量拖入文件夹，BangumiRenamer 会自动分析该动画的中日文名，支持自定义命名规则，免去手动整理费神又费力
 
+2.0 版本准备中，新增多个功能，优化体验，增强稳定性。即将上线：[https://github.com/nuthx/bangumi-renamer/tree/dev_2.0](https://github.com/nuthx/bangumi-renamer/tree/dev_2.0)
+
 <p align="center">
     <img src="image/screenshot.png" alt="SubtitleRenamer">
 </p>
