@@ -2,7 +2,7 @@ import re
 import time
 import requests
 
-from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig, oldConfigCheck
+from src.function import log
 
 
 # Anilist
@@ -13,20 +13,19 @@ def api_anilist(romaji_name):
     headers = {'accept': 'application/json'}
     url = "https://graphql.anilist.co"
 
-    for retry in range(3):
-        response = requests.post(url, json=js, headers=headers)
+    try:
+        result = requests.post(url, json=js, headers=headers).json()
 
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        result = response.json()
         jp_name_anilist = result["data"]["Media"]["title"]["native"]
 
         # 移除括号内容，例 22/7 （ナナブンノニジュウニ）
         jp_name_anilist = re.sub(r'（[^）]*）', '', jp_name_anilist).strip()
 
         return jp_name_anilist
+
+    except Exception as e:
+        log(e)
+        return
 
 
 # Bangumi ID
@@ -37,23 +36,18 @@ def api_bgmIdSearch(jp_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
 
-    for retry in range(3):
-        response = requests.post(url, headers=headers)
+    try:
+        result = requests.post(url, headers=headers).json()
 
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        if response.text.startswith("<!DOCTYPE html>"):
-            return
-
-        result = response.json()
-
-        # 未搜索到内容停止
+        # 搜索无结果，则返回空内容
         if "code" in result and result["code"] == 404:
             return
 
         return result["list"][0]["id"]
+
+    except Exception as e:
+        log(e)
+        return
 
 
 # Bangumi 条目
@@ -61,16 +55,10 @@ def api_bgmSubject(bgm_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(bgm_id)
 
-    for retry in range(3):
-        response = requests.get(url, headers=headers)
+    try:
+        result = requests.get(url, headers=headers).json()
 
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        result = response.json()
-
-        # 不存在 bgm_id 时停止
+        # 搜索无结果，则返回空内容
         if "code" in result and result["code"] == 404:
             return
 
@@ -94,20 +82,18 @@ def api_bgmSubject(bgm_id):
 
         return poster, jp_name, cn_name, types, typecode, release, episodes, score
 
+    except Exception as e:
+        log(e)
+        return
+
 
 # Bangumi 前传
 def api_bangumiInit(init_id, init_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/subjects/" + str(init_id) + "/subjects"
 
-    for retry in range(3):
-        response = requests.get(url, headers=headers)
-
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        result = response.json()
+    try:
+        result = requests.get(url, headers=headers).json()
 
         # 如果有前传，返回前传 prev_id 和 prev_name
         # 如果没有前传，返回原始 init_id 和 not_now_bro
@@ -119,6 +105,10 @@ def api_bangumiInit(init_id, init_name):
         else:
             return init_id, init_name
 
+    except Exception as e:
+        log(e)
+        return
+
 
 # Bangumi 搜索
 def api_bgmRelated(jp_name):
@@ -127,19 +117,10 @@ def api_bgmRelated(jp_name):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + jp_name + "?type=2&responseGroup=large&max_results=25"
 
-    for retry in range(3):
-        response = requests.post(url, headers=headers)
+    try:
+        result = requests.post(url, headers=headers).json()
 
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        if response.text.startswith("<!DOCTYPE html>"):
-            return []
-
-        result = response.json()
-
-        # 未搜索到内容停止
+        # 搜索无结果，则返回空内容
         if "code" in result and result["code"] == 404:
             return
 
@@ -166,19 +147,17 @@ def api_bgmRelated(jp_name):
 
         return result_full
 
+    except Exception as e:
+        log(e)
+        return
+
 
 def api_collectionCheck(user_id, anime_id):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/v0/users/" + str(user_id) + "/collections/" + str(anime_id)
 
-    for retry in range(3):
-        response = requests.get(url, headers=headers)
-
-        if response.status_code != 200:
-            time.sleep(0.5)
-            continue
-
-        result = response.json()
+    try:
+        result = requests.get(url, headers=headers).json()
 
         if "type" in result:
             if result["type"] == 1:
@@ -195,3 +174,7 @@ def api_collectionCheck(user_id, anime_id):
             collection = ""
 
         return collection
+
+    except Exception as e:
+        log(e)
+        return
