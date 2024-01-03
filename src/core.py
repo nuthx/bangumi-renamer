@@ -290,7 +290,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         this_anime = self.anime_list[row]
 
         if "collection" in this_anime:
-            if this_anime["collection"] is not None:
+            if this_anime["collection"] is not "":
                 collection = this_anime["collection"]
                 self.collectionBadge.setVisible(True)
                 self.collectionBadge.setText(collection)
@@ -363,7 +363,7 @@ class MyMainWindow(QMainWindow, MainWindow):
                 cn_name = this["cn_name"]
                 collection = ""
                 if "collection" in this:
-                    if this["collection"] is not None:
+                    if this["collection"] is not "":
                         collection = f" [{this['collection']}]"
                 item = f"[{release}]{collection} {cn_name}"
                 self.searchList.addItem(QListWidgetItem(item))
