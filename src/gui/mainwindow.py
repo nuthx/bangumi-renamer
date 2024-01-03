@@ -1,8 +1,8 @@
-from PySide6.QtCore import QMetaObject, Qt
+from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QFontDatabase, QFont, QIcon
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            IndeterminateProgressRing, ListWidget, LineEdit, PlainTextEdit, TextEdit, PillPushButton)
+                            ProgressRing, ListWidget, LineEdit, InfoBadge, InfoBadgePosition)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import currentVersion
@@ -42,10 +42,8 @@ class MainWindow(object):
         self.titleLayout.addSpacing(4)
         self.titleLayout.addWidget(self.subtitleLabel)
 
-        self.spinner = IndeterminateProgressRing()
-        self.spinner.setFixedSize(24, 24)
-        self.spinner.setStrokeWidth(3)
-        self.spinner.setVisible(False)
+        self.newVersionButton = PrimaryPushButton("有新版本", self, FluentIcon.LINK)
+        self.newVersionButton.setVisible(False)
 
         self.aboutButton = ToolButton(FluentIcon.INFO, self)
         self.settingButton = PushButton("设置", self, FluentIcon.SETTING)
@@ -54,8 +52,8 @@ class MainWindow(object):
         self.headerLayout.setContentsMargins(0, 0, 0, 0)
         self.headerLayout.addLayout(self.titleLayout)
         self.headerLayout.addStretch(0)
-        self.headerLayout.addWidget(self.spinner, 0)
-        self.headerLayout.addSpacing(16)
+        self.headerLayout.addWidget(self.newVersionButton, 0)
+        self.headerLayout.addSpacing(12)
         self.headerLayout.addWidget(self.aboutButton, 0)
         self.headerLayout.addSpacing(12)
         self.headerLayout.addWidget(self.settingButton, 0)
@@ -96,11 +94,23 @@ class MainWindow(object):
         self.jpName = QLabel("请先选中一个动画以展示详细信息")
         self.jpName.setObjectName("jpName")
 
+        self.collectionBadge = InfoBadge()
+        self.collectionBadge.setFixedSize(34, 20)
+        self.collectionBadge.setText("")
+        self.collectionBadge.setCustomBackgroundColor("#333", "#333")  # 浅色/暗色模式
+        self.collectionBadge.setVisible(False)
+
+        self.cnNameLayout = QHBoxLayout()
+        self.cnNameLayout.setSpacing(6)
+        self.cnNameLayout.setContentsMargins(0, 0, 0, 0)
+        self.cnNameLayout.addWidget(self.collectionBadge)
+        self.cnNameLayout.addWidget(self.cnName)
+
         self.nameLayout = QVBoxLayout()
         self.nameLayout.setSpacing(8)
         self.nameLayout.setContentsMargins(0, 0, 0, 0)
         self.nameLayout.addSpacing(6)
-        self.nameLayout.addWidget(self.cnName)
+        self.nameLayout.addLayout(self.cnNameLayout)
         self.nameLayout.addWidget(self.jpName)
 
         # 2.2 => ID
@@ -188,8 +198,14 @@ class MainWindow(object):
 
         # 操作区域
 
-        self.showLogs = PillPushButton("显示日志", self)
-        self.showLogs.setFixedWidth(100)
+        self.progress = ProgressRing(self)
+        self.progress.setFixedSize(24, 24)
+        self.progress.setStrokeWidth(4)
+        self.progress.setTextVisible(False)
+        self.progress.setVisible(False)
+
+        self.stateLabel = QLabel("")
+        self.stateLabel.setObjectName("stateLabel")
 
         self.clearButton = PushButton("清空列表", self)
         self.clearButton.setFixedWidth(120)
@@ -205,7 +221,8 @@ class MainWindow(object):
 
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(12)
-        self.buttonLayout.addWidget(self.showLogs)
+        self.buttonLayout.addWidget(self.progress)
+        self.buttonLayout.addWidget(self.stateLabel)
         self.buttonLayout.addStretch(0)
         self.buttonLayout.addWidget(self.clearButton)
         self.buttonLayout.addSpacing(8)
@@ -213,26 +230,6 @@ class MainWindow(object):
         self.buttonLayout.addSpacing(8)
         self.buttonLayout.addWidget(self.analysisButton)
         self.buttonLayout.addWidget(self.renameButton)
-
-        # 日志区域
-
-        self.logs = TextEdit(self)
-        self.logs.setFixedHeight(176)
-        self.logs.setReadOnly(True)
-        self.logs.setContextMenuPolicy(Qt.NoContextMenu)
-        styleSheetManager.deregister(self.logs)  # 禁用皮肤，启用自定义 QSS
-        with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
-            self.logs.setStyleSheet(file.read())
-
-        self.logLayout = QVBoxLayout()
-        self.logLayout.setContentsMargins(0, 0, 0, 0)
-        self.logLayout.addSpacing(24)
-        self.logLayout.addWidget(self.logs)
-
-        self.logFrame = QFrame()
-        self.logFrame.setFixedHeight(200)
-        self.logFrame.setLayout(self.logLayout)
-        self.logFrame.setHidden(True)
 
         # 框架叠叠乐
 
@@ -247,7 +244,6 @@ class MainWindow(object):
         self.layout.addWidget(self.infoFrame)
         self.layout.addSpacing(24)
         self.layout.addLayout(self.buttonLayout)
-        self.layout.addWidget(self.logFrame)
 
         this_window.setCentralWidget(self.centralWidget)
 
