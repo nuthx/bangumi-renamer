@@ -78,15 +78,12 @@ class Analysis(QObject):
         # 所有季度
         self.anime_state.emit([anime["list_id"], f"==> [6/{total}] 列出所有季度"])
         cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
-        if cleaned_search_list:
-            if user_id:
-                self.anime_state.emit([anime["list_id"], f"==> [7/{total}] 获取收藏状态"])
-                anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
-                self.added_progress_count.emit(1)
-            else:
-                anime["result"] = cleaned_search_list
+        if user_id:
+            self.anime_state.emit([anime["list_id"], f"==> [7/{total}] 获取收藏状态"])
+            anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
+            self.added_progress_count.emit(1)
         else:
-            return
+            anime["result"] = cleaned_search_list
         self.added_progress_count.emit(1)
 
         # 主条目收藏状态

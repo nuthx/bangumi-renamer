@@ -356,7 +356,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             self.idLabel.setText("")
 
-        if "result" in this_anime:
+        # if "result" in this_anime:
+        if this_anime["result"]:
             self.searchList.clear()
             for this in this_anime["result"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
@@ -370,6 +371,9 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             self.searchList.clear()
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
+        # else:
+        #     self.searchList.clear()
+        #     self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
         edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
