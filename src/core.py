@@ -560,6 +560,12 @@ class MyMainWindow(QMainWindow, MainWindow):
                 final_name_1 = ""
                 final_name_2 = final_name
 
+            # 排除 Windows 不支持的字符
+            final_name_1 = final_name_1.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
+            final_name_1 = final_name_1.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
+            final_name_2 = final_name_2.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
+            final_name_2 = final_name_2.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
+
             # 更名当前文件夹
             file_path = this_anime["file_path"]
             file_dir = os.path.dirname(file_path)
