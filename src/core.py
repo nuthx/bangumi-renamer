@@ -356,8 +356,8 @@ class MyMainWindow(QMainWindow, MainWindow):
         else:
             self.idLabel.setText("")
 
-        # if "result" in this_anime:
-        if this_anime["result"]:
+        if "result" in this_anime:
+        # if this_anime["result"]:
             self.searchList.clear()
             for this in this_anime["result"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
