@@ -290,7 +290,7 @@ class MyMainWindow(QMainWindow, MainWindow):
         this_anime = self.anime_list[row]
 
         if "collection" in this_anime:
-            if this_anime["collection"] is not "":
+            if this_anime["collection"] != "":
                 collection = this_anime["collection"]
                 self.collectionBadge.setVisible(True)
                 self.collectionBadge.setText(collection)
@@ -357,19 +357,23 @@ class MyMainWindow(QMainWindow, MainWindow):
             self.idLabel.setText("")
 
         if "result" in this_anime:
+        # if this_anime["result"]:
             self.searchList.clear()
             for this in this_anime["result"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
                 cn_name = this["cn_name"]
                 collection = ""
                 if "collection" in this:
-                    if this["collection"] is not "":
+                    if this["collection"] != "":
                         collection = f" [{this['collection']}]"
                 item = f"[{release}]{collection} {cn_name}"
                 self.searchList.addItem(QListWidgetItem(item))
         else:
             self.searchList.clear()
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
+        # else:
+        #     self.searchList.clear()
+        #     self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
         edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
@@ -555,6 +559,12 @@ class MyMainWindow(QMainWindow, MainWindow):
             else:
                 final_name_1 = ""
                 final_name_2 = final_name
+
+            # 排除 Windows 不支持的字符
+            final_name_1 = final_name_1.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
+            final_name_1 = final_name_1.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
+            final_name_2 = final_name_2.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
+            final_name_2 = final_name_2.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
 
             # 更名当前文件夹
             file_path = this_anime["file_path"]

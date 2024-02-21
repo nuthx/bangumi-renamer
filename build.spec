@@ -49,5 +49,5 @@ app = BUNDLE(
     name='BangumiRenamer.app',
     icon='image/icon.icns',
     bundle_identifier=None,
-    version='2.0'
+    version='2.0.1'
 )
