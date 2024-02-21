@@ -1,6 +1,6 @@
 import re
 
-ver = "2.0"
+ver = "2.0.1"
 ver_sp = [num for num in str(ver).split(".")]
 
 if len(ver) == 3:
