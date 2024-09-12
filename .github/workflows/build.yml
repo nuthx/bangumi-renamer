@@ -30,13 +30,18 @@ jobs:
         pip install pyinstaller
 
     - name: Build
+      if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
       run: pyinstaller build.spec
+
+    - name: Build (macOS)
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+      run: pyinstaller build-mac.spec
 
     - name: Zip (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd dist
-        7z a -r BangumiRenamer_windows.zip *.exe
+        7z a -r BangumiRenamer_windows.zip *
 
     - name: Zip (macOS-arm)
       if: matrix.os == 'macos-latest'
