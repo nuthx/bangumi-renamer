@@ -1,6 +1,6 @@
 import re
 
-ver = "2.0.1"
+ver = "2.0.2"
 ver_sp = [num for num in str(ver).split(".")]
 
 if len(ver) == 3:
@@ -29,8 +29,8 @@ def macVersion():
     with open("build.spec", "r") as file:
         lines = file.readlines()
 
-    re1 = re.findall(r'\'(.*?)\'', lines[51])
-    lines[51] = lines[51].replace(re1[0], ver)
+    re1 = re.findall(r'\'(.*?)\'', lines[52])
+    lines[52] = lines[52].replace(re1[0], ver)
 
     with open("build.spec", "w") as file:
         file.writelines(lines)
