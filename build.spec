@@ -11,20 +11,22 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
-    optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='BangumiRenamer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -33,22 +35,4 @@ exe = EXE(
     entitlements_file=None,
     version='version.txt',
     icon=['image\\icon.ico'],
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='BangumiRenamer',
-)
-
-app = BUNDLE(
-    coll,
-    name='BangumiRenamer.app',
-    icon='image/icon.icns',
-    bundle_identifier=None,
-    version='2.0.2',
 )
