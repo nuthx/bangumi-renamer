@@ -8,7 +8,7 @@ def currentVersion():
 
 
 def latestVersion():
-    url = "https://raw.githubusercontent.com/nuthx/bangumi-renamer/main/build.spec"
+    url = "https://raw.githubusercontent.com/nuthx/bangumi-renamer/main/build-mac.spec"
     response = requests.get(url)
     response_text = response.text.split('\n')
 
