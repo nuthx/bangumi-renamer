@@ -1,7 +1,7 @@
-MyMainWindow,
+MyHomeWindow,
 MyAboutWindow,
 MySettingWindow {
-    background: #F5F5F5;
+    background: #F8F9FB;
 }
 
 #titleLabel {

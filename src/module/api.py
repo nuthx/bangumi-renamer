@@ -1,8 +1,7 @@
 import re
-import time
 import requests
 
-from src.function import log
+from src.module.log import log
 
 
 # Anilist
