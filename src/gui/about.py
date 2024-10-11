@@ -46,24 +46,24 @@ class AboutWindow(object):
 
         # 计数
 
-        self.openTimesTitle = QLabel("软件启动")
-        self.openTimes = QLabel("0")
-        self.openTimesCard = self.usageCard(self.openTimesTitle, self.openTimes)
-
-        self.analysisTimesTitle = QLabel("分析动画")
-        self.analysisTimes = QLabel("0")
-        self.analysisTimesCard = self.usageCard(self.analysisTimesTitle, self.analysisTimes)
-
-        self.renameTimesTitle = QLabel("重命名动画")
-        self.renameTimes = QLabel("0")
-        self.renameTimescard = self.usageCard(self.renameTimesTitle, self.renameTimes)
-
-        self.usageCardLayout = QHBoxLayout()
-        self.usageCardLayout.setSpacing(12)
-        self.usageCardLayout.setContentsMargins(0, 0, 0, 0)
-        self.usageCardLayout.addWidget(self.openTimesCard)
-        self.usageCardLayout.addWidget(self.analysisTimesCard)
-        self.usageCardLayout.addWidget(self.renameTimescard)
+        # self.openTimesTitle = QLabel("软件启动")
+        # self.openTimes = QLabel("0")
+        # self.openTimesCard = self.usageCard(self.openTimesTitle, self.openTimes)
+        #
+        # self.analysisTimesTitle = QLabel("分析动画")
+        # self.analysisTimes = QLabel("0")
+        # self.analysisTimesCard = self.usageCard(self.analysisTimesTitle, self.analysisTimes)
+        #
+        # self.renameTimesTitle = QLabel("重命名动画")
+        # self.renameTimes = QLabel("0")
+        # self.renameTimescard = self.usageCard(self.renameTimesTitle, self.renameTimes)
+        #
+        # self.usageCardLayout = QHBoxLayout()
+        # self.usageCardLayout.setSpacing(12)
+        # self.usageCardLayout.setContentsMargins(0, 0, 0, 0)
+        # self.usageCardLayout.addWidget(self.openTimesCard)
+        # self.usageCardLayout.addWidget(self.analysisTimesCard)
+        # self.usageCardLayout.addWidget(self.renameTimescard)
 
         # PING
 
@@ -107,7 +107,7 @@ class AboutWindow(object):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.addLayout(self.titleLayout)
         layout.addSpacing(20)
-        layout.addLayout(self.usageCardLayout)
+        # layout.addLayout(self.usageCardLayout)
         layout.addLayout(self.PingCardLayout)
         layout.addSpacing(24)
         layout.addLayout(self.githubLayout)

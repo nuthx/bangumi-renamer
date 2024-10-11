@@ -5,6 +5,7 @@ import shutil
 import arrow
 import nltk
 import requests
+
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QDialog, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, Signal, QPoint
 from PySide6.QtGui import QDesktopServices
@@ -15,7 +16,7 @@ from src.gui.about import AboutWindow
 from src.gui.setting import SettingWindow
 from src.gui.dialog import NameEditBox
 
-from src.function import log, initList, addTimes, openFolder
+from src.function import log, initList, openFolder
 from src.module.analysis import Analysis, getFinalName
 from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig, oldConfigCheck
 from src.module.version import newVersion
@@ -31,7 +32,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         self.checkVersion()
 
         oldConfigCheck()
-        addTimes("open_times")
         self.config = readConfig()
         self.poster_folder = posterFolder()
 
@@ -229,7 +229,6 @@ class MyMainWindow(QMainWindow, MainWindow):
         log("开始分析动画：")
 
         # 多线程分析
-        addTimes("analysis_times")
         for anime in self.anime_list:
             thread = threading.Thread(target=self.ThreadStandardAnalysis, args=(anime,))
             thread.start()
@@ -588,7 +587,6 @@ class MyMainWindow(QMainWindow, MainWindow):
             log(f"重命名：{file_path} ==> {os.path.join(final_path_1, final_name_2)}")
 
         self.initList()
-        addTimes("rename_times")
         self.showInfo("success", "", "重命名完成")
         log("重命名完成")
 
@@ -615,12 +613,6 @@ class MyAboutWindow(QDialog, AboutWindow):
         self.setupUI(self)
         self.checkPing()
         self.config = readConfig()
-        self.loadConfig()
-
-    def loadConfig(self):
-        self.openTimes.setText(self.config.get("Counter", "open_times"))
-        self.analysisTimes.setText(self.config.get("Counter", "analysis_times"))
-        self.renameTimes.setText(self.config.get("Counter", "rename_times"))
 
     def checkPing(self):
         thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))
