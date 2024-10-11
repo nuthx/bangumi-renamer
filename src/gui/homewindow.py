@@ -5,7 +5,7 @@ from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, 
                             ProgressRing, ListWidget, LineEdit, InfoBadge, InfoBadgePosition)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
-from src.module.version import currentVersion
+from src.module.version import Version
 from src.module.resource import getResource
 from src.module.image import RoundedLabel
 
@@ -22,7 +22,7 @@ class HomeWindow(object):
             style_sheet = file.read()
         this_window.setStyleSheet(style_sheet)
 
-        this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
+        this_window.setWindowTitle(f"BangumiRenamer {Version().current()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
         this_window.resize(1280, 720)
         this_window.setAcceptDrops(True)

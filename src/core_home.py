@@ -21,7 +21,7 @@ from src.module.list import initList
 from src.module.folder import openFolder
 from src.module.analysis import Analysis, getFinalName
 from src.module.config import posterFolder, readConfig, oldConfigCheck
-from src.module.version import newVersion
+from src.module.version import Version
 from src.module.resource import getResource
 
 
@@ -31,7 +31,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.setupUI(self)
         self.initConnect()
         self.initList()
-        self.checkVersion()
+
+        # 检查版本更新
+        self.version = Version()
+        self.version.has_update.connect(self.checkVersion)
+        self.version.check()
 
         oldConfigCheck()
         self.config = readConfig()
@@ -98,15 +102,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         now_count = self.progress.value()
         self.progress.setValue(now_count + count)
 
-    def checkVersion(self):
-        thread = threading.Thread(target=self.ThreadCheckVersion)
-        thread.start()
-        thread.join()
-
-    def ThreadCheckVersion(self):
-        if newVersion():
+    def checkVersion(self, has_update):
+        if has_update:
             self.newVersionButton.setVisible(True)
-            log("发现有新版本")
 
     def openRelease(self):
         url = QUrl("https://github.com/nuthx/bangumi-renamer/releases/latest")
