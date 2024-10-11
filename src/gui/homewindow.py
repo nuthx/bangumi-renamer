@@ -10,7 +10,7 @@ from src.module.resource import getResource
 from src.module.image import RoundedLabel
 
 
-class MainWindow(object):
+class HomeWindow(object):
     def setupUI(self, this_window):
         # 配置主题色与字体
         setThemeColor("#F09199")

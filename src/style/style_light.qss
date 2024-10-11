@@ -1,4 +1,4 @@
-MyMainWindow,
+MyHomeWindow,
 MyAboutWindow,
 MySettingWindow {
     background: #F8F9FB;

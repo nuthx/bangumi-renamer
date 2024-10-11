@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from src.core import MyMainWindow
+from src.core_home import MyHomeWindow
 from src.function import log
 from src.module.version import currentVersion
 
@@ -12,6 +12,6 @@ if __name__ == "__main__":
     log(f"当前版本：{currentVersion()}")
 
     app = QApplication(sys.argv)
-    window = MyMainWindow()
+    window = MyHomeWindow()
     window.show()
     app.exec()
