@@ -44,7 +44,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.worker = Analysis()
         self.worker.main_state.connect(self.showState)
         self.worker.anime_state.connect(self.editTableState)
-        self.worker.added_progress_count.connect(self.addProgressBar)
+        self.worker.added_progress_count.connect(self.increaseProgress)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
     def initConnect(self):
@@ -55,9 +55,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.searchList.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.searchList.customContextMenuRequested.connect(self.showMenu2)
 
-        self.newVersionButton.clicked.connect(self.openRelease)
-        self.aboutButton.clicked.connect(self.openAbout)
-        self.settingButton.clicked.connect(self.openSetting)
+        self.newVersionButton.clicked.connect(self.openReleasePage)
+        self.aboutButton.clicked.connect(self.openAboutWindow)
+        self.settingButton.clicked.connect(self.openSettingWindow)
 
         self.idEdit.clicked.connect(self.editBgmId)
 
@@ -86,38 +86,77 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.image.updateImage(getResource("src/image/empty.png"))
         self.idLabel.setText("")
 
+    def checkVersion(self, has_update):
+        """
+        检查是否存在新版本，并在右上角显示下载新版本的按钮
+        :param has_update: 是否存在新版本
+        """
+        if has_update:
+            self.newVersionButton.setVisible(True)
+
     def showState(self, state):
+        """
+        在程序左下角展示状态文字
+        :param state: 待展示的文字
+        """
         self.stateLabel.setText(state)
 
     def editTableState(self, state):
+        """
+        点击分析后，在表格每一行显示当前动画的分析状态
+        :param state: [坐标id, 状态文字]
+        """
         list_id, anime_state = state
         self.table.setItem(list_id, 2, QTableWidgetItem(anime_state))
 
     def showProgressBar(self):
+        """
+        点击分析后，在左下角显示进度条，同时规定了进度条的最大值
+        """
         self.progress.setVisible(True)
-        step = 6 if self.config.get("Bangumi", "user_id") else 7
+        step = 6 if self.config.get("Bangumi", "user_id") else 7  # 如果设置了用户id，则总进度条+1
         self.progress.setMaximum(len(self.anime_list) * step)
 
-    def addProgressBar(self, count):
+    def increaseProgress(self, count):
+        """
+        调用此函数让左下角的进度+1（或指定数值）
+        :param count: 增加的数量
+        """
         now_count = self.progress.value()
         self.progress.setValue(now_count + count)
 
-    def checkVersion(self, has_update):
-        if has_update:
-            self.newVersionButton.setVisible(True)
-
-    def openRelease(self):
+    @staticmethod
+    def openReleasePage():
+        """
+        打开github release页面
+        """
         url = QUrl("https://github.com/nuthx/bangumi-renamer/releases/latest")
         QDesktopServices.openUrl(url)
 
-    def openAbout(self):
+    @staticmethod
+    def openAboutWindow():
+        """
+        打开关于页面
+        """
         about = MyAboutWindow()
         about.exec()
 
-    def openSetting(self):
+    def openSettingWindow(self):
+        """
+        打开设置页面。若保存了配置，会传递信号执行updateSetting
+        """
         setting = MySettingWindow()
-        setting.save_notice.connect(self.closeSetting)
+        setting.config_saved.connect(self.updateSetting)
         setting.exec()
+
+    def updateSetting(self):
+        """
+        应用保存的配置内容
+        """
+        self.showInfo("success", "配置已保存", "配置修改成功")
+        self.selectTable()  # 刷新UI展示出的内容
+        for anime in self.anime_list:
+            getFinalName(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
 
     def editBgmId(self):
         row = self.RowInTable()
@@ -146,12 +185,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             return
 
         self.correctThisAnime(row, id_want, search_init=True)
-
-    def closeSetting(self, title):
-        for anime in self.anime_list:
-            getFinalName(anime)
-        self.selectTable()
-        self.showInfo("success", title, "配置修改成功")
 
     def RowInTable(self):
         for selected in self.table.selectedRanges():
@@ -258,6 +291,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 使用 final_name 判断是否分析成功
         if "final_name" not in anime:
+            # TODO: 获取失败时进度条增加应>1
             self.table.setItem(anime["list_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 

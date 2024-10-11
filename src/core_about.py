@@ -41,7 +41,7 @@ class MyAboutWindow(QDialog, AboutWindow):
 
 
 class MySettingWindow(QDialog, SettingWindow):
-    save_notice = Signal(str)
+    config_saved = Signal()
 
     def __init__(self):
         super().__init__()
@@ -82,7 +82,7 @@ class MySettingWindow(QDialog, SettingWindow):
         with open(configFile(), "w", encoding="utf-8") as content:
             self.config.write(content)
 
-        self.save_notice.emit("配置已保存")
+        self.config_saved.emit()
         self.close()
 
     def openPosterFolder(self):
