@@ -16,7 +16,9 @@ from src.core_about import MySettingWindow
 from src.gui.homewindow import HomeWindow
 from src.gui.dialog import NameEditBox
 
-from src.function import log, initList, openFolder
+from src.module.log import log
+from src.module.list import initList
+from src.module.folder import openFolder
 from src.module.analysis import Analysis, getFinalName
 from src.module.config import posterFolder, readConfig, oldConfigCheck
 from src.module.version import newVersion

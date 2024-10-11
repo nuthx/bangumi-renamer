@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from src.core_home import MyHomeWindow
-from src.function import log
+from src.module.log import log
 from src.module.version import currentVersion
 
 

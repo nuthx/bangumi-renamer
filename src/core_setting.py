@@ -4,7 +4,7 @@ from qfluentwidgets import Flyout, InfoBarIcon
 
 from src.gui.settingwindow import SettingWindow
 
-from src.function import openFolder
+from src.module.folder import openFolder
 from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig
 
 
