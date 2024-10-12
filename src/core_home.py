@@ -11,15 +11,14 @@ from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
 
 from src.core_about import MyAboutWindow
-from src.core_about import MySettingWindow
+from src.core_setting import MySettingWindow
 
 from src.gui.homewindow import HomeWindow
 from src.gui.dialog import NameEditBox
 
 from src.module.list import createAnimeData
-from src.module.folder import openFolder
 from src.module.analysis import Analysis, getFinalName
-from src.module.config import posterFolder, readConfig, oldConfigCheck
+from src.module.config import openFolder, posterFolder, readConfig, checkConfigVersion
 from src.module.version import Version
 from src.module.resource import getResource
 
@@ -37,9 +36,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.version.has_update.connect(self.checkVersion)
         self.version.check()
 
-        oldConfigCheck()
-        self.config = readConfig()
-        self.poster_folder = posterFolder()
+        # 检查配置文件版本
+        checkConfigVersion()
 
         self.worker = Analysis()
         self.worker.main_state.connect(self.showState)
@@ -120,7 +118,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         在左下角显示进度条，同时规定了进度条的最大值
         """
         self.progress.setVisible(True)
-        step = 6 if self.config.get("Bangumi", "user_id") else 7  # 如果设置了用户id，则总进度条+1
+        step = 6 if readConfig("Bangumi", "user_id") else 7  # 如果设置了用户id，则总进度条+1
         self.progress.setMaximum(len(self.anime_list) * step)
 
     def increaseProgress(self, count):
@@ -364,7 +362,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         if this_anime["poster"] != "":
             poster_name = os.path.basename(this_anime["poster"])
-            poster_path = os.path.join(self.poster_folder, poster_name)
+            poster_path = os.path.join(posterFolder(), poster_name)
             self.image.updateImage(poster_path)
         else:
             self.image.updateImage(getResource("src/image/empty.png"))

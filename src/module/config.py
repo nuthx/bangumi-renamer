@@ -1,17 +1,28 @@
 import os
 import re
 import platform
+import subprocess
 import configparser
 
 
-# 文件夹存在检查
-def newFolder(folder_name):
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
+def openFolder(path):
+    """
+    在不同系统下，以不同方式打开指定文件夹
+    :param path: 文件夹路径
+    """
+    if platform.system() == "Windows":
+        subprocess.call(["explorer", path])
+    elif platform.system() == "Darwin":
+        subprocess.call(["open", path])
+    elif platform.system() == "Linux":
+        subprocess.call(["xdg-open", path])
 
 
-# 配置文件路径
 def configPath():
+    """
+    输出当前系统下配置文件夹的路径
+    :return: 配置文件夹的路径
+    """
     if platform.system() == "Windows":
         sys_path = os.environ["APPDATA"]
     elif platform.system() == "Darwin":
@@ -19,109 +30,124 @@ def configPath():
     elif platform.system() == "Linux":
         sys_path = os.path.expanduser("~/.config")
     else:
-        return "N/A"
+        sys_path = "/"
 
     config_path = os.path.join(sys_path, "BangumiRenamer")
-    newFolder(config_path)
+    if not os.path.exists(config_path):
+        os.makedirs(config_path)
 
     return config_path
 
 
 def configFile():
+    """
+    输出BangumiRenamer配置文件的路径
+    :return: BangumiRenamer配置文件的路径
+    """
     config_file = os.path.join(configPath(), "config.ini")
-
-    # 是否存在该配置文件
     if not os.path.exists(config_file):
-        initConfig(config_file)
+        initConfig(config_file)  # 初始化配置文件
 
     return config_file
 
 
 def posterFolder():
+    """
+    输出缓存海报文件夹的路径
+    :return: 缓存海报文件夹的路径
+    """
     poster_folder = os.path.join(configPath(), "poster")
-    newFolder(poster_folder)
+    if not os.path.exists(poster_folder):
+        os.makedirs(poster_folder)
 
     return poster_folder
 
 
 def logFolder():
+    """
+    输出日志文件夹的路径
+    :return: 日志文件夹的路径
+    """
     log_folder = os.path.join(configPath(), "logs")
-    newFolder(log_folder)
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
 
     return log_folder
 
 
-# 初始化配置
+def readConfig(category, item):
+    """
+    读取配置项的值
+    :param category: 配置类别
+    :param item: 配置项目
+    :return: 指定配置项的值
+    """
+    config = configparser.ConfigParser()
+    config.read(configFile())
+    return config.get(category, item)
+
+
+def writeConfig(category, item, value):
+    """
+    写入配置项的值
+    :param category: 配置类别
+    :param item: 配置项目
+    :param value: 待写入的值
+    """
+    config = configparser.ConfigParser()
+    config.read(configFile())
+    config.set(category, item, value)
+    with open(configFile(), "w", encoding="utf-8") as content:
+        config.write(content)
+
+
 def initConfig(config_file):
+    """
+    初始化配置文件
+    :param config_file: 配置文件路径
+    """
     config = configparser.ConfigParser()
 
     config.add_section("Application")
-    config.set("Application", "version", "2.0")
+    config.set("Application", "version", "2.1")
 
     config.add_section("Format")
-    config.set("Format", "rename_format", "{init_name}/[{score}] [{typecode}] [{release}] {jp_name}")
+    config.set("Format", "rename_format", "{init_name}/[{typecode}] [{release}] {jp_name}")
     config.set("Format", "date_format", "YYMMDD")
 
     config.add_section("Bangumi")
     config.set("Bangumi", "user_id", "")
 
-    config.add_section("Counter")
-    config.set("Counter", "open_times", "0")
-    config.set("Counter", "analysis_times", "0")
-    config.set("Counter", "rename_times", "0")
-
-    # 写入配置内容
     with open(config_file, "w", encoding="utf-8") as content:
         config.write(content)
 
 
-def formatCheck(rename_format):
-    # 花括号内容检查
+def checkNameFormat(name_format):
+    """
+    检查配置文件中，"命名格式"项的合法性
+    :return: 合法或不合法
+    """
+    # 检查花括号内容
     available = ["jp_name", "cn_name", "init_name", "romaji_name",
                  "types", "typecode", "release", "episodes",
                  "score", "bgm_id"]
     pattern = r"\{(.*?)\}"
-    matches = re.findall(pattern, rename_format)
+    matches = re.findall(pattern, name_format)
     for match in matches:
         if match not in available:
             return "检查花括号内的变量拼写"
 
     # 是否有多个斜杠
-    if rename_format.count("/") > 1:
+    if name_format.count("/") > 1:
         return "仅支持一个单斜杠用于文件夹嵌套"
 
     return True
 
 
-# 删除旧版配置文件
-def oldConfigCheck():
-    config = readConfig()
-    current_config_version = config.get("Application", "version")
-
-    # 提取旧版配置计数器
-    open_times = config.get("Counter", "open_times")
-    analysis_times = config.get("Counter", "analysis_times")
-    rename_times = config.get("Counter", "rename_times")
-
-    if current_config_version != "2.0":
-        config_file = configFile()
-        os.remove(config_file)
-        initConfig(config_file)
-
-        # 写入计数器
-        config = readConfig()
-        config.set("Counter", "open_times", open_times)
-        config.set("Counter", "analysis_times", analysis_times)
-        config.set("Counter", "rename_times", rename_times)
-        with open(config_file, "w", encoding="utf-8") as content:
-            config.write(content)
-
-
-# 读取配置
-def readConfig():
-    config = configparser.ConfigParser()
-    config_file = configFile()
-
-    config.read(config_file)
-
-    return config
+def checkConfigVersion():
+    """
+    检测配置文件是否为2.1，如果不是则删除旧版文件，并重新创建配置文件
+    """
+    if readConfig("Application", "version") != "2.1":
+        os.remove(configFile())
+        initConfig(configFile())

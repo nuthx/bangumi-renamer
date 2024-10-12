@@ -19,8 +19,7 @@ class Analysis(QObject):
 
     def standardAnalysis(self, anime):
         # 获取用户预留 ID 判断是否搜索收藏状态
-        config = readConfig()
-        user_id = config.get("Bangumi", "user_id")
+        user_id = readConfig("Bangumi", "user_id")
         total = 7 if user_id else 6
 
         # 罗马名
@@ -107,8 +106,7 @@ class Analysis(QObject):
 
     def singleAnalysis(self, anime, bgm_id, search_init):
         # 获取用户预留 ID 判断是否搜索收藏状态
-        config = readConfig()
-        user_id = config.get("Bangumi", "user_id")
+        user_id = readConfig("Bangumi", "user_id")
 
         # 罗马名
         romaji_name = getRomajiName(anime["file_name"])
@@ -274,9 +272,8 @@ def downloadPoster(poster_url):
 
 
 def getFinalName(anime):
-    config = readConfig()
-    data_format = config.get("Format", "date_format")
-    rename_format = config.get("Format", "rename_format")
+    data_format = readConfig("Format", "date_format")
+    rename_format = readConfig("Format", "rename_format")
 
     jp_name = anime["jp_name"]
     cn_name = anime["cn_name"]

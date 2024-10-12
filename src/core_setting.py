@@ -4,18 +4,16 @@ from qfluentwidgets import Flyout, InfoBarIcon
 
 from src.gui.settingwindow import SettingWindow
 
-from src.module.folder import openFolder
-from src.module.config import configFile, posterFolder, logFolder, formatCheck, readConfig
+from src.module.config import openFolder, posterFolder, logFolder, checkNameFormat, readConfig, writeConfig
 
 
 class MySettingWindow(QDialog, SettingWindow):
-    save_notice = Signal(str)
+    config_saved = Signal(str)
 
     def __init__(self):
         super().__init__()
         self.setupUI(self)
         self.initConnect()
-        self.config = readConfig()
         self.loadConfig()
 
     def initConnect(self):
@@ -25,13 +23,13 @@ class MySettingWindow(QDialog, SettingWindow):
         self.cancelButton.clicked.connect(lambda: self.close())  # 关闭窗口
 
     def loadConfig(self):
-        self.renameType.setText(self.config.get("Format", "rename_format"))
-        self.dateType.setText(self.config.get("Format", "date_format"))
-        self.bgmIdType.setText(self.config.get("Bangumi", "user_id"))
+        self.renameType.setText(readConfig("Format", "rename_format"))
+        self.dateType.setText(readConfig("Format", "date_format"))
+        self.bgmIdType.setText(readConfig("Bangumi", "user_id"))
 
     def saveConfig(self):
         # 命名格式检查
-        result = str(formatCheck(self.renameType.currentText()))
+        result = str(checkNameFormat(self.renameType.currentText()))
         if result != "True":
             Flyout.create(
                 icon=InfoBarIcon.ERROR,
@@ -43,14 +41,11 @@ class MySettingWindow(QDialog, SettingWindow):
             )
             return
 
-        self.config.set("Format", "rename_format", self.renameType.currentText())
-        self.config.set("Format", "date_format", self.dateType.currentText())
-        self.config.set("Bangumi", "user_id", self.bgmIdType.text())
+        writeConfig("Format", "rename_format", self.renameType.currentText())
+        writeConfig("Format", "date_format", self.dateType.currentText())
+        writeConfig("Bangumi", "user_id", self.bgmIdType.text())
 
-        with open(configFile(), "w", encoding="utf-8") as content:
-            self.config.write(content)
-
-        self.save_notice.emit("配置已保存")
+        self.config_saved.emit("配置已保存")
         self.close()
 
     def openPosterFolder(self):
