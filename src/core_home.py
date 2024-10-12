@@ -30,7 +30,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         super().__init__()
         self.setupUI(self)
         self.initConnect()
-        self.initList()
+        self.initData()
+        self.initUI()
 
         # 检查版本更新
         self.version = Version()
@@ -43,7 +44,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         self.worker = Analysis()
         self.worker.main_state.connect(self.showState)
-        self.worker.anime_state.connect(self.editTableState)
+        self.worker.anime_state.connect(self.showStateInTable)
         self.worker.added_progress_count.connect(self.increaseProgress)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
@@ -65,16 +66,22 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.analysisButton.clicked.connect(self.startAnalysis)
         self.renameButton.clicked.connect(self.startRename)
 
-    def initList(self, clean_all=True):
-        if clean_all:
-            self.list_id = 0
-            self.anime_list = []
-            self.table.setRowCount(0)
+    def initData(self):
+        """
+        清空保存的数据
+        """
+        self.list_id = 0  # 重置动画计数器
+        self.anime_list = []  # 清空动画列表
+        self.table.setRowCount(0)  # 重置表格行数
 
-        self.table.clearContents()
-        self.progress.setValue(0)
-        self.searchList.clear()
-        self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
+    def initUI(self):
+        """
+        初始化UI界面显示的内容
+        """
+        self.progress.setValue(0)  # 清空进度条
+        self.table.clearContents()  # 清空表格
+        self.searchList.clear()  # 清空搜索列表
+        self.searchList.addItem(QListWidgetItem("暂无搜索结果"))  # 为搜索列表添加默认提示
 
         self.cnName.setText("暂无动画")
         self.jpName.setText("请先选中一个动画以展示详细信息")
@@ -101,9 +108,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         """
         self.stateLabel.setText(state)
 
-    def editTableState(self, state):
+    def showStateInTable(self, state):
         """
-        点击分析后，在表格每一行显示当前动画的分析状态
+        在表格指定列显示当前动画的分析状态
         :param state: [坐标id, 状态文字]
         """
         list_id, anime_state = state
@@ -111,7 +118,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
     def showProgressBar(self):
         """
-        点击分析后，在左下角显示进度条，同时规定了进度条的最大值
+        在左下角显示进度条，同时规定了进度条的最大值
         """
         self.progress.setVisible(True)
         step = 6 if self.config.get("Bangumi", "user_id") else 7  # 如果设置了用户id，则总进度条+1
@@ -119,7 +126,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
     def increaseProgress(self, count):
         """
-        调用此函数让左下角的进度+1（或指定数值）
+        增加左下角的进度条的值
         :param count: 增加的数量
         """
         now_count = self.progress.value()
@@ -151,15 +158,73 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
     def updateSetting(self):
         """
-        应用保存的配置内容
+        应用保存的配置内容并刷新相关信息
         """
         self.showInfo("success", "配置已保存", "配置修改成功")
         self.selectTable()  # 刷新UI展示出的内容
         for anime in self.anime_list:
             getFinalName(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
 
+    def selectedRowInTable(self):
+        """
+        获取表格选中行的行号，若选中多行，则只显示第一行
+        :return: 选中行的行号
+        """
+        for selected in self.table.selectedRanges():
+            row = selected.topRow()
+            return row
+
+    def cleanTable(self):
+        """
+        若列表不为空，则调用initList初始化列表
+        """
+        if not self.anime_list:
+            self.showInfo("warning", "", "列表为空")
+        else:
+            self.initData()
+            self.initUI()
+            self.showInfo("success", "", "列表已清空")
+
+    def dragEnterEvent(self, event):
+        """
+        处理拖动进入事件，以允许拖放操作
+        :param event: 拖动事件对象，包含拖动数据的相关信息
+        """
+        event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        # 获取并格式化本地路径
+        raw_list = event.mimeData().urls()
+        result = initList(self.list_id, self.anime_list, raw_list)
+
+        self.list_id = result[0]  # 此处的 list_id 已经比实际加了 1
+        self.anime_list = result[1]
+        for anime in self.anime_list:
+            log(anime["file_path"])
+
+        self.showInTable()
+
+    def showInTable(self):
+        self.table.setRowCount(len(self.anime_list))
+
+        for anime in self.anime_list:
+            list_id = anime["list_id"]
+
+            if "list_id" in anime:
+                self.table.setItem(list_id, 0, QTableWidgetItem(str(list_id + 1)))
+
+            if "file_name" in anime:
+                self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
+
+            # 避免没分析完的时候覆盖第三列的进度提示
+            if "cn_name" in anime and "final_name" in anime:
+                self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
+
+            if "init_name" in anime and "final_name" in anime:
+                self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
+
     def editBgmId(self):
-        row = self.RowInTable()
+        row = self.selectedRowInTable()
 
         if row is None:
             self.showInfo("warning", "", "请选择要修改的动画")
@@ -186,57 +251,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         self.correctThisAnime(row, id_want, search_init=True)
 
-    def RowInTable(self):
-        for selected in self.table.selectedRanges():
-            row = selected.topRow()
-            return row
-
-    def cleanTable(self):
-        if not self.anime_list:
-            self.showInfo("warning", "", "列表为空")
-        else:
-            anime_count = len(self.anime_list)
-            self.initList()
-            self.showInfo("success", "", "列表已清空")
-            log("————")
-            log(f"清空了动画列表（{anime_count}个动画）")
-
-    def dragEnterEvent(self, event):
-        event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        # 获取并格式化本地路径
-        raw_list = event.mimeData().urls()
-        result = initList(self.list_id, self.anime_list, raw_list)
-
-        self.list_id = result[0]  # 此处的 list_id 已经比实际加了 1
-        self.anime_list = result[1]
-        log("————")
-        log(f"拖入了{len(self.anime_list)}个动画：")
-        for anime in self.anime_list:
-            log(anime["file_path"])
-
-        self.showInTable()
-
-    def showInTable(self):
-        self.table.setRowCount(len(self.anime_list))
-
-        for anime in self.anime_list:
-            list_id = anime["list_id"]
-
-            if "list_id" in anime:
-                self.table.setItem(list_id, 0, QTableWidgetItem(str(list_id + 1)))
-
-            if "file_name" in anime:
-                self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
-
-            # 避免没分析完的时候覆盖第三列的进度提示
-            if "cn_name" in anime and "final_name" in anime:
-                self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
-
-            if "init_name" in anime and "final_name" in anime:
-                self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
-
     def startAnalysis(self):
         self.start_time = time.time()
 
@@ -251,7 +265,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             anime.pop("cn_name", None)
             anime.pop("init_name", None)
             anime.pop("final_name", None)
-        self.initList(clean_all=False)
+        self.initData()
         self.showInTable()
         self.showProgressBar()
         self.clearButton.setEnabled(False)
@@ -302,7 +316,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.showInTable()
 
     def selectTable(self):
-        row = self.RowInTable()
+        row = self.selectedRowInTable()
 
         # 应对重命名完成后的 initList 操作
         if row is None or "final_name" not in self.anime_list[row]:
@@ -514,7 +528,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             list_row = self.searchList.row(clicked_item)  # 计算行数
 
             # 计算主表格行，不需要考虑选中问题，可直接使用RowInTable函数
-            table_row = self.RowInTable()
+            table_row = self.selectedRowInTable()
 
             # 不出现在默认列表中
             if self.searchList.item(list_row).text() != "暂无搜索结果":
@@ -620,7 +634,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
             log(f"重命名：{file_path} ==> {os.path.join(final_path_1, final_name_2)}")
 
-        self.initList()
+        self.initData()
+        self.initUI()
         self.showInfo("success", "", "重命名完成")
         log("重命名完成")
 
