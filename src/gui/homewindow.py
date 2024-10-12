@@ -66,7 +66,7 @@ class HomeWindow(object):
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)  # 单选模式
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止双击编辑
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["ID", "动画文件夹", "动画名", "首季动画名"])
+        self.table.setHorizontalHeaderLabels(["", "动画文件夹", "动画名", "首季动画名"])
         self.table.setColumnWidth(0, 46)  # 1206
         self.table.setColumnWidth(1, 540)
         self.table.setColumnWidth(2, 320)
