@@ -165,7 +165,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         for anime in self.anime_list:
             getFinalName(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
 
-    def selectedRowInTable(self):
+    def selectedRowInTable(self) -> int:
         """
         获取表格选中行的行号，若选中多行，则只显示第一行
         :return: 选中行的行号
