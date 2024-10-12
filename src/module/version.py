@@ -4,8 +4,6 @@ import threading
 
 from PySide6.QtCore import QObject, Signal
 
-from src.module.log import log
-
 
 class Version(QObject):
     has_update = Signal(bool)
@@ -37,7 +35,6 @@ class Version(QObject):
         latest_version = self.latest()
 
         if current_version != latest_version:
-            log(f"发现新版本：{latest_version}")
             self.has_update.emit(True)
         else:
             self.has_update.emit(False)

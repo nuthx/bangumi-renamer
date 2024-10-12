@@ -16,7 +16,6 @@ from src.core_about import MySettingWindow
 from src.gui.homewindow import HomeWindow
 from src.gui.dialog import NameEditBox
 
-from src.module.log import log
 from src.module.list import createAnimeData
 from src.module.folder import openFolder
 from src.module.analysis import Analysis, getFinalName
@@ -437,8 +436,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     return
                 else:
                     self.anime_list[row]["init_name"] = new_init_name
-                    log("————")
-                    log(f"手动修改了首季动画名：{init_name} ==> {new_init_name}")
                     getFinalName(self.anime_list[row])
                     self.showAnimeInTable()
                     self.selectTable()
@@ -466,9 +463,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         openFolder(parent_path)
 
     def deleteThisAnime(self, row):
-        log("————")
-        log(f"删除了动画：{self.anime_list[row]['file_path']}")
-
         # 删除此行
         self.anime_list.pop(row)
 
@@ -510,13 +504,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     def correctThisAnime(self, row, bgm_id, search_init=False):
         anime = self.anime_list[row]
 
-        # 日志
-        log("————")
-        if search_init:
-            log(f"直接通过Bangumi ID: {bgm_id}搜索动画名")
-        else:
-            log(f"更正当前动画：{anime['cn_name']}")
-
         # 开始分析
         self.worker.singleAnalysis(anime, bgm_id, search_init)
 
@@ -527,9 +514,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 日志
         if search_init:
             self.showState(f"搜索完成：{anime['cn_name']}")
-            log(f"搜索完成：{anime['cn_name']}")
-        else:
-            log(f"更正结果：{anime['cn_name']}")
 
     def startRename(self):
         # anime_list 是否有数据
@@ -561,8 +545,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             return
 
         # 开始命名
-        log("————")
-        log("开始重命名：")
         for order in rename_order_list:
             this_anime = self.anime_list[order]
 
@@ -601,14 +583,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             final_path_1 = os.path.join(file_dir, final_name_1)
             shutil.move(final_path_2, final_path_1)
 
-            log(f"重命名：{file_path} ==> {os.path.join(final_path_1, final_name_2)}")
-
-
         print(self.anime_list)
         self.initData()
         self.initUI()
         self.showToast("success", "", "重命名完成")
-        log("重命名完成")
+
 
     def showToast(self, state, title, content):
         """
