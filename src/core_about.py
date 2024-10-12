@@ -11,19 +11,27 @@ class MyAboutWindow(QDialog, AboutWindow):
     def __init__(self):
         super().__init__()
         self.setupUI(self)
-        self.checkPing()
+        self.ping()
 
-    def checkPing(self):
-        thread1 = threading.Thread(target=self.checkPingThread, args=("anilist.co", self.anilistPing))
-        thread2 = threading.Thread(target=self.checkPingThread, args=("api.bgm.tv", self.bangumiPing))
+    def ping(self):
+        """
+        检查网站是否可访问
+        """
+        thread1 = threading.Thread(target=self._threadPing, args=("http://anilist.co/", self.anilistPing))
+        thread2 = threading.Thread(target=self._threadPing, args=("http://api.bgm.tv/", self.bangumiPing))
         thread1.start()
         thread2.start()
 
-    def checkPingThread(self, url, label):
+    @staticmethod
+    def _threadPing(url, label):
+        """
+        检查网站是否可访问的子线程
+        :param url: 要访问的网址
+        :param label: UI上显示结果的Text标签名
+        """
         for retry in range(3):
             try:
-                response = requests.get(f"http://{url}/")
-                if response.status_code == 200:
+                if requests.get(url).status_code == 200:
                     label.setText("Online")
                     return
             except requests.ConnectionError:
