@@ -212,10 +212,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.table.setItem(anime["id"], 0, QTableWidgetItem(str(anime["id"] + 1)))
             self.table.setItem(anime["id"], 1, QTableWidgetItem(anime["file_name"]))
 
-            if "cn_name" in anime and "final_name" in anime:  # 存在final_name以确保分析已结束
+            # 存在final_name确保分析结束
+            if anime["final_name"] != "":
                 self.table.setItem(anime["id"], 2, QTableWidgetItem(anime["cn_name"]))
-
-            if "init_name" in anime and "final_name" in anime:  # 存在final_name以确保分析已结束
                 self.table.setItem(anime["id"], 3, QTableWidgetItem(anime["init_name"]))
 
     def editBangumiID(self):
@@ -228,30 +227,22 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         if row is None:
             self.showToast("warning", "", "请选择要修改的动画")
-            return
         elif not id_new:
             self.showToast("warning", "", "请输入新的Bangumi ID")
-            return
         elif id_current == id_new:
             self.showToast("warning", "未修改", "新的ID与当前ID一致")
-            return
         else:
             self.correctThisAnime(row, id_new, search_init=True)
 
     def startAnalysis(self):
-        self.start_time = time.time()
-
-        # 是否存在文件
+        """
+        分析全部动画
+        """
         if not self.anime_list:
             self.showToast("warning", "", "请先添加文件夹")
             return
 
-        # 初始化
-        # 清空 anime_list 的关键值
-        for anime in self.anime_list:
-            anime.pop("cn_name", None)
-            anime.pop("init_name", None)
-            anime.pop("final_name", None)
+        # 初始化界面
         self.initUI()
         self.showAnimeInTable()
         self.showProgressBar()
@@ -259,48 +250,46 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.analysisButton.setEnabled(False)
         self.renameButton.setEnabled(False)
         self.showState("正在分析中，请稍后")
-        log("————")
-        log("开始分析动画：")
 
         # 多线程分析
         for anime in self.anime_list:
-            thread = threading.Thread(target=self.ThreadStandardAnalysis, args=(anime,))
+            thread = threading.Thread(target=self._threadAnalysis, args=(anime,))
             thread.start()
 
-        # 检测是否结束并隐藏进度条
-        thread = threading.Thread(target=self.ThreadFinishedCheck)
+        # 检测是否结束并隐藏进度条(与多线程分析处于同时进行状态)
+        thread = threading.Thread(target=self._threadFinishCheck)
         thread.start()
 
-    def ThreadFinishedCheck(self):
+    def _threadAnalysis(self, anime):
+        """
+        创建子线程，分析单个动画
+        :param anime: 要分析的动画
+        """
+        # 开始分析
+        self.worker.standardAnalysis(anime)
+
+        # 通过是否存在final_name值检测分析成功
+        if anime["final_name"] == "":
+            # TODO: 获取失败时进度条增加应>1
+            self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
+        else:
+            self.showAnimeInTable()
+
+    def _threadFinishCheck(self):
+        """
+        每0.5秒检测一次线程数量，判断是否分析成功
+        """
         list_count = len(self.anime_list)
         while True:
-            if threading.active_count() == 2:  # 主线程 + 检查线程
+            if threading.active_count() == 2:  # 因为存在主线程 + 检查线程
                 self.progress.setVisible(False)
                 self.clearButton.setEnabled(True)
                 self.analysisButton.setEnabled(True)
                 self.renameButton.setEnabled(True)
-                used_time = "{:.1f}".format(time.time() - self.start_time)  # 保留一位小数
-                self.showState(f"分析完成，共{list_count}个动画，耗时{used_time}秒")
-                log(f"分析完成，共{list_count}个动画，耗时{used_time}秒")
+                self.showState(f"分析完成，共{list_count}个动画")
                 return
             else:
                 time.sleep(0.5)
-
-    def ThreadStandardAnalysis(self, anime):
-        # 开始分析
-        self.worker.standardAnalysis(anime)
-
-        # 使用 final_name 判断是否分析成功
-        if "final_name" not in anime:
-            # TODO: 获取失败时进度条增加应>1
-            self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
-            return
-
-        # 重新排序 anime_list 列表，避免串行
-        self.anime_list = sorted(self.anime_list, key=lambda x: x["id"])
-
-        # 在列表中显示
-        self.showAnimeInTable()
 
     def selectTable(self):
         row = self.selectedRowInTable()
@@ -323,91 +312,84 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         this_anime = self.anime_list[row]
 
-        if "collection" in this_anime:
-            if this_anime["collection"] != "":
-                collection = this_anime["collection"]
-                self.collectionBadge.setVisible(True)
-                self.collectionBadge.setText(collection)
-            else:
-                self.collectionBadge.setVisible(False)
+        if this_anime["collection"] != "":
+            collection = this_anime["collection"]
+            self.collectionBadge.setVisible(True)
+            self.collectionBadge.setText(collection)
         else:
             self.collectionBadge.setVisible(False)
 
-        if "cn_name" in this_anime:
-            cn_name = this_anime["cn_name"]
-            self.cnName.setText(cn_name)
+        if this_anime["name_cn"] != "":
+            name_cn = this_anime["name_cn"]
+            self.cnName.setText(name_cn)
         else:
             self.cnName.setText("暂无动画")
 
-        if "jp_name" in this_anime:
-            jp_name = this_anime["jp_name"]
-            self.jpName.setText(jp_name)
+        if this_anime["name_jp"] != "":
+            name_jp = this_anime["name_jp"]
+            self.jpName.setText(name_jp)
         else:
             self.jpName.setText("请先选中一个动画以展示详细信息")
 
-        if "types" in this_anime and "typecode" in this_anime:
-            types = this_anime["types"]
+        if this_anime["type"] != "":
+            types = this_anime["type"]
             typecode = this_anime["typecode"]
             self.typeLabel.setText(f"类型：{types} ({typecode})")
         else:
             self.typeLabel.setText("类型：")
 
-        if "release" in this_anime:
+        if this_anime["release"] != "":
             release = this_anime["release"]
             release = arrow.get(release).format("YYYY年M月D日")
             self.dateLabel.setText(f"放送日期：{release}")
         else:
             self.dateLabel.setText("放送日期：")
 
-        if "score" in this_anime:
+        if this_anime["score"] != "":
             score = str(this_anime["score"])
             self.scoreLabel.setText(f"当前评分：{score}")
         else:
             self.scoreLabel.setText("当前评分：")
 
-        if "file_name" in this_anime:
+        if this_anime["file_name"] != "":
             file_name = this_anime["file_name"]
             self.fileName.setText(f"文件名：{file_name}")
         else:
             self.fileName.setText("文件名：")
 
-        if "final_name" in this_anime:
+        if this_anime["final_name"] != "":
             final_name = this_anime["final_name"].replace("/", " / ")
             self.finalName.setText(f"重命名结果：{final_name}")
         else:
             self.finalName.setText("重命名结果：")
 
-        if "poster" in this_anime:
+        if this_anime["poster"] != "":
             poster_name = os.path.basename(this_anime["poster"])
             poster_path = os.path.join(self.poster_folder, poster_name)
             self.image.updateImage(poster_path)
         else:
             self.image.updateImage(getResource("src/image/empty.png"))
 
-        if "bgm_id" in this_anime:
+        if this_anime["bangumi_id"] != "":
             bgm_id = str(this_anime["bgm_id"])
             self.idLabel.setText(bgm_id)
         else:
             self.idLabel.setText("")
 
-        if "result" in this_anime:
-        # if this_anime["result"]:
+        if this_anime["fs_detail"] != "":
             self.searchList.clear()
-            for this in this_anime["result"]:
+            for this in this_anime["fs_detail"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
-                cn_name = this["cn_name"]
+                name_cn = this["name_cn"]
                 collection = ""
                 if "collection" in this:
                     if this["collection"] != "":
                         collection = f" [{this['collection']}]"
-                item = f"[{release}]{collection} {cn_name}"
+                item = f"[{release}]{collection} {name_cn}"
                 self.searchList.addItem(QListWidgetItem(item))
         else:
             self.searchList.clear()
             self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
-        # else:
-        #     self.searchList.clear()
-        #     self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
 
     def showMenu(self, pos):
         edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
