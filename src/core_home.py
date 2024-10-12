@@ -17,7 +17,7 @@ from src.gui.homewindow import HomeWindow
 from src.gui.dialog import NameEditBox
 
 from src.module.log import log
-from src.module.list import initList
+from src.module.list import createAnimeData
 from src.module.folder import openFolder
 from src.module.analysis import Analysis, getFinalName
 from src.module.config import posterFolder, readConfig, oldConfigCheck
@@ -70,7 +70,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         """
         清空保存的数据
         """
-        self.list_id = 0  # 重置动画计数器
+        self.anime_id = 0  # 重置动画计数器
         self.anime_list = []  # 清空动画列表
         self.table.setRowCount(0)  # 重置表格行数
 
@@ -188,29 +188,27 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     def dragEnterEvent(self, event):
         """
         处理拖动进入事件，以允许拖放操作
-        :param event: 拖动事件对象，包含拖动数据的相关信息
+        :param event: 拖入的文件
         """
         event.acceptProposedAction()
 
     def dropEvent(self, event):
-        # 获取并格式化本地路径
-        raw_list = event.mimeData().urls()
-        result = initList(self.list_id, self.anime_list, raw_list)
-
-        self.list_id = result[0]  # 此处的 list_id 已经比实际加了 1
-        self.anime_list = result[1]
-        for anime in self.anime_list:
-            log(anime["file_path"])
-
+        """
+        将拖入的文件写入anime_list，并展示在表格
+        :param event: 拖入的文件
+        """
+        file_list = event.mimeData().urls()
+        anime_data = createAnimeData(self.anime_id, self.anime_list, file_list)
+        self.anime_id, self.anime_list = anime_data
         self.showInTable()
 
     def showInTable(self):
         self.table.setRowCount(len(self.anime_list))
 
         for anime in self.anime_list:
-            list_id = anime["list_id"]
+            list_id = anime["anime_id"]
 
-            if "list_id" in anime:
+            if "anime_id" in anime:
                 self.table.setItem(list_id, 0, QTableWidgetItem(str(list_id + 1)))
 
             if "file_name" in anime:
@@ -265,7 +263,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             anime.pop("cn_name", None)
             anime.pop("init_name", None)
             anime.pop("final_name", None)
-        self.initData()
+        self.initUI()
         self.showInTable()
         self.showProgressBar()
         self.clearButton.setEnabled(False)
@@ -306,11 +304,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 使用 final_name 判断是否分析成功
         if "final_name" not in anime:
             # TODO: 获取失败时进度条增加应>1
-            self.table.setItem(anime["list_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
+            self.table.setItem(anime["anime_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 
         # 重新排序 anime_list 列表，避免串行
-        self.anime_list = sorted(self.anime_list, key=lambda x: x["list_id"])
+        self.anime_list = sorted(self.anime_list, key=lambda x: x["anime_id"])
 
         # 在列表中显示
         self.showInTable()
@@ -503,12 +501,12 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 删除此行
         self.anime_list.pop(row)
 
-        # 此行后面的 list_id 重新排序
+        # 此行后面的 anime_id 重新排序
         for i in range(row, len(self.anime_list)):
-            self.anime_list[i]["list_id"] -= 1
+            self.anime_list[i]["anime_id"] -= 1
 
-        # 全局 list_id 减一
-        self.list_id -= 1
+        # 全局 anime_id 减一
+        self.anime_id -= 1
 
         self.showInTable()
 
