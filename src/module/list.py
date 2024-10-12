@@ -31,7 +31,7 @@ def createAnimeData(anime_id, anime_list, file_list):
             "final_name": "",  # 重命名后的文件名
             "final_dir": "",  # 重命名后的文件目录
             "final_path": "",  # 重命名后的文件路径
-            "bangumi_id": 0,  # Bangumi ID
+            "bangumi_id": "",  # Bangumi ID
             "name_jp": "",  # 日文名称(Bangumi)
             "name_jp_anilist": "",  # 日文名称(AniList)
             "name_romaji": "",  # 罗马音名称
@@ -42,7 +42,7 @@ def createAnimeData(anime_id, anime_list, file_list):
             "release": "",  # 放送开始日期
             "release_end": "",  # 放送结束日期
             "release_week": "",  # 放送星期
-            "episodes": 0,  # 章节数量
+            "episodes": "",  # 章节数量
             "score": "",  # 当前评分
             "collection": "",  # 收藏状态
             "fs_id": "",  # 首季度Bangumi ID

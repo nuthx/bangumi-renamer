@@ -60,7 +60,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.aboutButton.clicked.connect(self.openAboutWindow)
         self.settingButton.clicked.connect(self.openSettingWindow)
 
-        self.idEdit.clicked.connect(self.editBgmId)
+        self.idEdit.clicked.connect(self.editBangumiID)
 
         self.clearButton.clicked.connect(self.cleanTable)
         self.analysisButton.clicked.connect(self.startAnalysis)
@@ -218,33 +218,25 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             if "init_name" in anime and "final_name" in anime:  # 存在final_name以确保分析已结束
                 self.table.setItem(anime["id"], 3, QTableWidgetItem(anime["init_name"]))
 
-    def editBgmId(self):
+    def editBangumiID(self):
+        """
+        手动指定选中动画的Bangumi ID，并重新分析该动画
+        """
         row = self.selectedRowInTable()
+        id_current = self.anime_list[row]["bangumi_id"] if row is not None else ""
+        id_new = self.idLabel.text()
 
         if row is None:
             self.showToast("warning", "", "请选择要修改的动画")
             return
-
-        if not self.idLabel.text():
+        elif not id_new:
             self.showToast("warning", "", "请输入新的Bangumi ID")
             return
-        else:
-            id_want = self.idLabel.text()
-
-        if not id_want.isdigit():
-            self.showToast("warning", "", "ID格式不正确")
-            return
-
-        if not self.anime_list or "bgm_id" not in self.anime_list[row]:
-            id_now = 0
-        else:
-            id_now = self.anime_list[row]["bgm_id"]
-
-        if str(id_now) == str(id_want):
+        elif id_current == id_new:
             self.showToast("warning", "未修改", "新的ID与当前ID一致")
             return
-
-        self.correctThisAnime(row, id_want, search_init=True)
+        else:
+            self.correctThisAnime(row, id_new, search_init=True)
 
     def startAnalysis(self):
         self.start_time = time.time()
@@ -629,6 +621,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
             log(f"重命名：{file_path} ==> {os.path.join(final_path_1, final_name_2)}")
 
+
+        print(self.anime_list)
         self.initData()
         self.initUI()
         self.showToast("success", "", "重命名完成")

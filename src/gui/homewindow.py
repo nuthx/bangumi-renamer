@@ -1,8 +1,8 @@
-from PySide6.QtCore import QMetaObject
-from PySide6.QtGui import QFontDatabase, QFont, QIcon
+from PySide6.QtCore import QMetaObject, QRegularExpression
+from PySide6.QtGui import QFontDatabase, QFont, QIcon, QRegularExpressionValidator
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            ProgressRing, ListWidget, LineEdit, InfoBadge, InfoBadgePosition)
+                            ProgressRing, ListWidget, LineEdit, InfoBadge)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import Version
@@ -118,6 +118,7 @@ class HomeWindow(object):
         self.idLabel = LineEdit(self)
         self.idLabel.setFixedWidth(120)
         self.idLabel.setClearButtonEnabled(False)
+        self.idLabel.setValidator(QRegularExpressionValidator(QRegularExpression(r'^\d+$')))  # 仅支持数字
         styleSheetManager.deregister(self.idLabel)  # 禁用皮肤，启用自定义 QSS
         with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
             self.idLabel.setStyleSheet(file.read())
