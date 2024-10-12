@@ -14,7 +14,7 @@ from src.core_about import MyAboutWindow
 from src.core_setting import MySettingWindow
 
 from src.gui.homewindow import HomeWindow
-from src.gui.dialog import NameEditBox
+from src.gui.components.FsNameEditDialog import FsNameEditDialog
 
 from src.module.list import createAnimeData
 from src.module.analysis import Analysis, getFinalName
@@ -424,7 +424,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     def editInitName(self, row):
         if "init_name" in self.anime_list[row]:
             init_name = self.anime_list[row]["init_name"]
-            w = NameEditBox(self, init_name)
+            w = FsNameEditDialog(self, init_name)
             if w.exec():
                 new_init_name = w.nameEdit.text()
 

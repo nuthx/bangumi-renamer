@@ -7,7 +7,7 @@ from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import Version
 from src.module.resource import getResource
-from src.module.image import RoundedLabel
+from src.gui.components.RoundedImage import RoundedImage
 
 
 class HomeWindow(object):
@@ -85,7 +85,7 @@ class HomeWindow(object):
 
         # 1 => 图片
 
-        self.image = RoundedLabel(getResource("src/image/empty.png"))
+        self.image = RoundedImage(getResource("src/image/empty.png"))
 
         # 2.1 => 标题
 
