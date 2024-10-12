@@ -25,7 +25,7 @@ def createAnimeData(anime_id, anime_list, file_list):
             continue
 
         this_anime_dict = {
-            "anime_id": anime_id, 
+            "id": anime_id,
             "file_name": os.path.basename(file_path),
             "file_path": file_path
         }

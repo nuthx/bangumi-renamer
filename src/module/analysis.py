@@ -1,4 +1,5 @@
 import os
+import time
 import anitopy
 import arrow
 import threading
@@ -23,7 +24,7 @@ class Analysis(QObject):
         total = 7 if user_id else 6
 
         # 罗马名
-        self.anime_state.emit([anime["anime_id"], f"==> [1/{total}] 提取罗马名"])
+        self.anime_state.emit([anime["id"], f"==> [1/{total}] 提取罗马名"])
         romaji_name = getRomajiName(anime["file_name"])
         if romaji_name:
             anime["romaji_name"] = romaji_name
@@ -32,7 +33,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # Anilist 日文名
-        self.anime_state.emit([anime["anime_id"], f"==> [2/{total}] 搜索日文名"])
+        self.anime_state.emit([anime["id"], f"==> [2/{total}] 搜索日文名"])
         jp_name_anilist = getAnilistJpName(anime["romaji_name"])
         if jp_name_anilist:
             anime["jp_name_anilist"] = jp_name_anilist
@@ -41,7 +42,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # Bangumi ID
-        self.anime_state.emit([anime["anime_id"], f"==> [3/{total}] 搜索动画信息"])
+        self.anime_state.emit([anime["id"], f"==> [3/{total}] 搜索动画信息"])
         bgm_id = api_bgmIdSearch(anime["jp_name_anilist"])
         if bgm_id:
             anime["bgm_id"] = bgm_id
@@ -50,7 +51,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 动画条目
-        self.anime_state.emit([anime["anime_id"], f"==> [4/{total}] 写入动画信息"])
+        self.anime_state.emit([anime["id"], f"==> [4/{total}] 写入动画信息"])
         bangumi_subject = api_bgmSubject(anime["bgm_id"])
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
@@ -66,7 +67,7 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 前传
-        self.anime_state.emit([anime["anime_id"], f"==> [5/{total}] 搜索首季信息"])
+        self.anime_state.emit([anime["id"], f"==> [5/{total}] 搜索首季信息"])
         init_info = getInitInfo(anime["bgm_id"], anime["cn_name"])
         if init_info:
             anime["init_id"] = init_info[0]
@@ -76,10 +77,10 @@ class Analysis(QObject):
         self.added_progress_count.emit(1)
 
         # 所有季度
-        self.anime_state.emit([anime["anime_id"], f"==> [6/{total}] 列出所有季度"])
+        self.anime_state.emit([anime["id"], f"==> [6/{total}] 列出所有季度"])
         cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
         if user_id:
-            self.anime_state.emit([anime["anime_id"], f"==> [7/{total}] 获取收藏状态"])
+            self.anime_state.emit([anime["id"], f"==> [7/{total}] 获取收藏状态"])
             anime["result"] = checkAnimeCollection(user_id, cleaned_search_list)
             self.added_progress_count.emit(1)
         else:

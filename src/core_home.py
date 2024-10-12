@@ -200,26 +200,23 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         file_list = event.mimeData().urls()
         anime_data = createAnimeData(self.anime_id, self.anime_list, file_list)
         self.anime_id, self.anime_list = anime_data
-        self.showInTable()
+        self.showAnimeInTable()
 
-    def showInTable(self):
+    def showAnimeInTable(self):
+        """
+        根据anime_list，在表格中展示所有动画条目
+        """
         self.table.setRowCount(len(self.anime_list))
 
         for anime in self.anime_list:
-            list_id = anime["anime_id"]
+            self.table.setItem(anime["id"], 0, QTableWidgetItem(str(anime["id"] + 1)))
+            self.table.setItem(anime["id"], 1, QTableWidgetItem(anime["file_name"]))
 
-            if "anime_id" in anime:
-                self.table.setItem(list_id, 0, QTableWidgetItem(str(list_id + 1)))
+            if "cn_name" in anime and "final_name" in anime:  # 存在final_name以确保分析已结束
+                self.table.setItem(anime["id"], 2, QTableWidgetItem(anime["cn_name"]))
 
-            if "file_name" in anime:
-                self.table.setItem(list_id, 1, QTableWidgetItem(anime["file_name"]))
-
-            # 避免没分析完的时候覆盖第三列的进度提示
-            if "cn_name" in anime and "final_name" in anime:
-                self.table.setItem(list_id, 2, QTableWidgetItem(anime["cn_name"]))
-
-            if "init_name" in anime and "final_name" in anime:
-                self.table.setItem(list_id, 3, QTableWidgetItem(anime["init_name"]))
+            if "init_name" in anime and "final_name" in anime:  # 存在final_name以确保分析已结束
+                self.table.setItem(anime["id"], 3, QTableWidgetItem(anime["init_name"]))
 
     def editBgmId(self):
         row = self.selectedRowInTable()
@@ -264,7 +261,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             anime.pop("init_name", None)
             anime.pop("final_name", None)
         self.initUI()
-        self.showInTable()
+        self.showAnimeInTable()
         self.showProgressBar()
         self.clearButton.setEnabled(False)
         self.analysisButton.setEnabled(False)
@@ -304,14 +301,14 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 使用 final_name 判断是否分析成功
         if "final_name" not in anime:
             # TODO: 获取失败时进度条增加应>1
-            self.table.setItem(anime["anime_id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
+            self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
             return
 
         # 重新排序 anime_list 列表，避免串行
-        self.anime_list = sorted(self.anime_list, key=lambda x: x["anime_id"])
+        self.anime_list = sorted(self.anime_list, key=lambda x: x["id"])
 
         # 在列表中显示
-        self.showInTable()
+        self.showAnimeInTable()
 
     def selectTable(self):
         row = self.selectedRowInTable()
@@ -469,7 +466,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     log("————")
                     log(f"手动修改了首季动画名：{init_name} ==> {new_init_name}")
                     getFinalName(self.anime_list[row])
-                    self.showInTable()
+                    self.showAnimeInTable()
                     self.selectTable()
 
         else:
@@ -503,12 +500,12 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 此行后面的 anime_id 重新排序
         for i in range(row, len(self.anime_list)):
-            self.anime_list[i]["anime_id"] -= 1
+            self.anime_list[i]["id"] -= 1
 
         # 全局 anime_id 减一
         self.anime_id -= 1
 
-        self.showInTable()
+        self.showAnimeInTable()
 
     def showMenu2(self, pos):
         instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
@@ -550,7 +547,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.worker.singleAnalysis(anime, bgm_id, search_init)
 
         # 在列表中显示
-        self.showInTable()
+        self.showAnimeInTable()
         self.selectTable()
 
         # 日志
