@@ -6,7 +6,7 @@ from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, 
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
 from src.module.version import Version
-from src.module.resource import getResource
+from src.module.utils import getResource
 from src.gui.components.RoundedImage import RoundedImage
 
 

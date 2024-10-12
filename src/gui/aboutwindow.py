@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtGui import QFontDatabase, QFont, QIcon, QPixmap
 
-from src.module.resource import getResource
+from src.module.utils import getResource
 from src.module.version import Version
 
 

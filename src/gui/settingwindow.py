@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtGui import QIcon
 from qfluentwidgets import LineEdit, PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
 
-from src.module.resource import getResource
+from src.module.utils import getResource
 from src.module.config import posterFolder, logFolder
 
 

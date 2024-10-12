@@ -16,11 +16,11 @@ from src.core_setting import MySettingWindow
 from src.gui.homewindow import HomeWindow
 from src.gui.components.FsNameEditDialog import FsNameEditDialog
 
-from src.module.list import createAnimeData
+from src.module.data import createAnimeData
 from src.module.analysis import Analysis, getFinalName
 from src.module.config import openFolder, posterFolder, readConfig, checkConfigVersion
 from src.module.version import Version
-from src.module.resource import getResource
+from src.module.utils import getResource
 
 
 class MyHomeWindow(QMainWindow, HomeWindow):

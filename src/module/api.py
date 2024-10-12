@@ -1,7 +1,7 @@
 import re
 import requests
 
-from src.module.log import log
+from src.module.utils import log
 
 
 # Anilist
