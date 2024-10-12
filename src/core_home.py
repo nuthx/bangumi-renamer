@@ -160,7 +160,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         """
         应用保存的配置内容并刷新相关信息
         """
-        self.showInfo("success", "配置已保存", "配置修改成功")
+        self.showToast("success", "", "配置修改成功")
         self.selectTable()  # 刷新UI展示出的内容
         for anime in self.anime_list:
             getFinalName(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
@@ -179,11 +179,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         若列表不为空，则调用initList初始化列表
         """
         if not self.anime_list:
-            self.showInfo("warning", "", "列表为空")
+            self.showToast("warning", "", "列表为空")
         else:
             self.initData()
             self.initUI()
-            self.showInfo("success", "", "列表已清空")
+            self.showToast("success", "", "列表已清空")
 
     def dragEnterEvent(self, event):
         """
@@ -222,17 +222,17 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         row = self.selectedRowInTable()
 
         if row is None:
-            self.showInfo("warning", "", "请选择要修改的动画")
+            self.showToast("warning", "", "请选择要修改的动画")
             return
 
         if not self.idLabel.text():
-            self.showInfo("warning", "", "请输入新的Bangumi ID")
+            self.showToast("warning", "", "请输入新的Bangumi ID")
             return
         else:
             id_want = self.idLabel.text()
 
         if not id_want.isdigit():
-            self.showInfo("warning", "", "ID格式不正确")
+            self.showToast("warning", "", "ID格式不正确")
             return
 
         if not self.anime_list or "bgm_id" not in self.anime_list[row]:
@@ -241,7 +241,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             id_now = self.anime_list[row]["bgm_id"]
 
         if str(id_now) == str(id_want):
-            self.showInfo("warning", "未修改", "新的ID与当前ID一致")
+            self.showToast("warning", "未修改", "新的ID与当前ID一致")
             return
 
         self.correctThisAnime(row, id_want, search_init=True)
@@ -251,7 +251,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 是否存在文件
         if not self.anime_list:
-            self.showInfo("warning", "", "请先添加文件夹")
+            self.showToast("warning", "", "请先添加文件夹")
             return
 
         # 初始化
@@ -459,7 +459,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
                 # 是否修改了名称
                 if new_init_name == init_name:
-                    self.showInfo("warning", "", "首季动画名未修改")
+                    self.showToast("warning", "", "首季动画名未修改")
                     return
                 else:
                     self.anime_list[row]["init_name"] = new_init_name
@@ -470,7 +470,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     self.selectTable()
 
         else:
-            self.showInfo("warning", "无法修改", "请先进行动画分析")
+            self.showToast("warning", "无法修改", "请先进行动画分析")
             return
 
     def openBgmUrl(self, row):
@@ -479,7 +479,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             url = QUrl("https://bgm.tv/subject/" + bgm_id)
             QDesktopServices.openUrl(url)
         else:
-            self.showInfo("warning", "链接无效", "请先进行动画分析")
+            self.showToast("warning", "链接无效", "请先进行动画分析")
             return
 
     def openThisFolder(self, row):
@@ -560,12 +560,12 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     def startRename(self):
         # anime_list 是否有数据
         if not self.anime_list:
-            self.showInfo("warning", "", "请先添加动画")
+            self.showToast("warning", "", "请先添加动画")
             return
 
         # 是否开始过分析
         if self.table.item(0, 2) is None:
-            self.showInfo("warning", "", "请先开始分析")
+            self.showToast("warning", "", "请先开始分析")
             return
 
         # 列出 anime_list 中有 final_name 的索引
@@ -578,12 +578,12 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 检查重命名的结果是否相同
         if len(set(final_name_check)) == 1 and len(final_name_check) != 1:
-            self.showInfo("warning", "", "存在重复的重命名结果")
+            self.showToast("warning", "", "存在重复的重命名结果")
             return
 
         # 是否有需要命名的动画
         if not rename_order_list:
-            self.showInfo("warning", "", "没有可以命名的动画")
+            self.showToast("warning", "", "没有可以命名的动画")
             return
 
         # 开始命名
@@ -631,10 +631,16 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         self.initData()
         self.initUI()
-        self.showInfo("success", "", "重命名完成")
+        self.showToast("success", "", "重命名完成")
         log("重命名完成")
 
-    def showInfo(self, state, title, content):
+    def showToast(self, state, title, content):
+        """
+        显示Toast通知
+        :param state: 通知等级
+        :param title: 标题
+        :param content: 内容
+        """
         info_state = {
             "info": InfoBar.info,
             "success": InfoBar.success,
@@ -644,8 +650,10 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         if state in info_state:
             info_state[state](
-                title=title, content=content,
-                orient=Qt.Horizontal, isClosable=True,
+                title=title,
+                content=content,
+                isClosable=True,
                 position=InfoBarPosition.TOP,
-                duration=2000, parent=self
+                duration=2000,
+                parent=self
             )
