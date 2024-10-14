@@ -9,6 +9,7 @@ from nltk.corpus import words
 from PySide6.QtCore import QObject, Signal
 
 from src.module.apis import *
+from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
 
 
@@ -79,45 +80,50 @@ class Analysis(QObject):
             self.added_progress_count.emit(self.total_process - 4)
             return
 
-        # 5. 搜索首季信息
-        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索首季信息"])
-        init_info = getFsInfo(anime["bangumi_id"], anime["cn_name"])
+        # 5. 搜索关联条目
+        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索关联条目"])
+        relate = getRelate(anime["bangumi_id"])
 
-        if init_info:
-            anime["fs_id"] = init_info[0]
-            anime["fs_name_cn"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
-        else:
-            return
-        self.added_progress_count.emit(1)
-
-        # 6. 搜索关联条目
-        self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 搜索关联条目"])
-        cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
-        if self.user_id:
-            self.anime_state.emit([anime["id"], f"==> [7/{self.total_process}] 获取收藏状态"])
-            anime["result"] = checkAnimeCollection(self.user_id, cleaned_search_list)
+        if relate:
+            anime["fs_id"] = relate[0]
+            anime["fs_name_cn"] = relate[1]
+            anime["relate"] = relate[2]
             self.added_progress_count.emit(1)
         else:
-            anime["result"] = cleaned_search_list
-        self.added_progress_count.emit(1)
+            self.added_progress_count.emit(self.total_process - 5)
+            return
 
-        # 主条目收藏状态
+        # 6. 获取收藏状态
         if self.user_id:
-            # 如果存在所有季度中，则直接获取
-            for item in anime["result"]:
-                if item["bangumi_id"] == anime["bangumi_id"]:
-                    anime["collection"] = item["collection"]
-                    break
+            self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 获取收藏状态"])
+            getCollection(self.user_id, anime)
 
-            # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
-            if "collection" not in anime:
-                anime["collection"] = api_collectionCheck(self.user_id, anime["bangumi_id"])
+            print(anime)
 
-        # 下载图片
+
+
+
+
+
+        # self.added_progress_count.emit(1)
+        #
+        # # 主条目收藏状态
+        # if self.user_id:
+        #     # 如果存在所有季度中，则直接获取
+        #     for item in anime["result"]:
+        #         if item["bangumi_id"] == anime["bangumi_id"]:
+        #             anime["collection"] = item["collection"]
+        #             break
+        #
+        #     # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
+        #     if "collection" not in anime:
+        #         anime["collection"] = api_collectionCheck(self.user_id, anime["bangumi_id"])
+
+        # 下载海报
         downloadPoster(anime["poster"])
 
-        # 写入重命名
-        getFinalName(anime)
+        # 写入重命名结果
+        # getFinalName(anime)
 
     def singleAnalysis(self, anime, bangumi_id, search_init):
         # 获取用户预留 ID 判断是否搜索收藏状态
@@ -151,7 +157,7 @@ class Analysis(QObject):
 
         # 前传（可选）
         if search_init:
-            init_info = getFsInfo(anime["bangumi_id"], anime["cn_name"])
+            init_info = getRelate(anime["bangumi_id"])
             if init_info:
                 anime["init_id"] = init_info[0]
                 anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
@@ -211,18 +217,23 @@ def getAnilistName(name_romaji):
         return
 
 
-def getFsInfo(bangumi_id, cn_name):
-    bangumi_previous = api_bangumiInit(bangumi_id, cn_name)
-    prev_id = bangumi_previous[0]
-    prev_name = bangumi_previous[1]
+def getRelate(bangumi_id):
+    """
+    使用bangumi link获取动画首季的信息
+    :param bangumi_id: Bangumi ID
+    :return: [首季id, 首季名称(中)]
+    """
+    result = bangumiLink(bangumi_id)
 
-    while bangumi_id != prev_id:  # 如果 ID 不同，说明有前传
-        bangumi_id = prev_id
-        bangumi_previous = api_bangumiInit(bangumi_id, prev_name)
-        prev_id = bangumi_previous[0]
-        prev_name = bangumi_previous[1]
+    if result:
+        result_anime = [item for item in result if item["type"] == 2]  # 只保留动画，移除小说、游戏等类别
+        result_anime = [item for item in result_anime if item["platform"] != "WEB"]  # 移除web类别
+        result_fs = next((item for item in result_anime if item["platform"] == "TV"), None)  # 搜索首季动画
+        return result_fs["id"], result_fs["nameCN"], result_anime
+    else:
+        return
 
-    return prev_id, prev_name
+
 
 
 def isEnglish(name):
@@ -238,33 +249,16 @@ def isEnglish(name):
     return True
 
 
-def removeUnrelated(init_name, search_list):
-    if not search_list:
-        return
 
-    # 获取全部列表
-    init_name = init_name.lower()
-    name_list = [item["cn_name"].lower() for item in search_list]
-
-    # fuzzywuzzy 模糊匹配
-    name_list_related = []
-    for name in name_list:
-        if fuzz.partial_ratio(init_name, name) > 90:
-            name_list_related.append(name)
-
-    # 在 search_list 中删除排除的动画
-    search_list_related = []
-    for item in search_list:
-        if item["cn_name"].lower() in name_list_related:
-            search_list_related.append(item)
-
-    return search_list_related
-
-
-def checkAnimeCollection(user_id, anime_list):
+def getCollection(user_id, anime):
+    """
+    获取动画的收藏状态
+    :param user_id: 用户id
+    :param anime: 动画列表
+    """
     threads = []
-    for anime in anime_list:
-        thread = threading.Thread(target=ThreadCheckAnimeCollection, args=(anime, user_id,))
+    for this_anime in anime["relate"]:
+        thread = threading.Thread(target=threadGetCollection, args=(user_id, this_anime))
         thread.start()
         threads.append(thread)
 
@@ -272,11 +266,18 @@ def checkAnimeCollection(user_id, anime_list):
     for thread in threads:
         thread.join()
 
-    return anime_list
+    # 为当前条目写入收藏状态
+    for item in anime["relate"]:
+        if item["id"] == anime["bangumi_id"]:
+            anime["collection"] = item["collection"]
+            break
 
 
-def ThreadCheckAnimeCollection(anime, user_id):
-    anime["collection"] = api_collectionCheck(user_id, anime["bangumi_id"])
+def threadGetCollection(user_id, anime):
+    anime["collection"] = api_collectionCheck(user_id, anime["id"])
+
+
+
 
 
 def downloadPoster(poster_url):

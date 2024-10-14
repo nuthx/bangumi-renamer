@@ -100,6 +100,8 @@
 
 [[Bangumi API]](https://github.com/bangumi/api) 官方接口，用于获取核心数据
 
+[[Bangumi Link]](https://github.com/ekibot/bangumi-link) 用于获取条目关联数据
+
 [[ChatGPT]](https://chat.openai.com/) 为我解答了诸多困惑
 
 ## 免责
