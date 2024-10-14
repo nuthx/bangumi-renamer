@@ -47,7 +47,7 @@ def createAnimeData(anime_id, anime_list, file_list):
             "collection": "",  # 收藏状态
             "fs_id": "",  # 首季度Bangumi ID
             "fs_name_cn": "",  # 首季度中文名称动画
-            "fs_detail": []  # 首季度动画信息
+            "relate": []  # 关联动画信息
         }
 
         anime_list.append(this_anime_dict)

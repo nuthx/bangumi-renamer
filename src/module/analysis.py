@@ -8,7 +8,7 @@ from nltk.corpus import words
 
 from PySide6.QtCore import QObject, Signal
 
-from src.module.api import *
+from src.module.apis import *
 from src.module.config import posterFolder, readConfig
 
 
@@ -22,7 +22,7 @@ class Analysis(QObject):
         self.user_id = readConfig("Bangumi", "user_id")
         self.total_process = 7 if self.user_id else 6  # 根据id存在情况，判断是否搜索用户收藏状态
 
-    def standardAnalysis(self, anime):
+    def start(self, anime):
         """
         完整分析动画的详细信息，下载海报图片，并根据配置项生成重命名结果
         :param anime: 动画信息字典
@@ -30,7 +30,7 @@ class Analysis(QObject):
         """
         # 1. 提取罗马名
         self.anime_state.emit([anime["id"], f"==> [1/{self.total_process}] 提取罗马名"])
-        name_romaji = getNameRomaji(anime["file_name"])
+        name_romaji = getRomaji(anime["file_name"])
 
         if name_romaji:
             anime["name_romaji"] = name_romaji
@@ -41,7 +41,7 @@ class Analysis(QObject):
 
         # 2. 使用anilist搜索日文名
         self.anime_state.emit([anime["id"], f"==> [2/{self.total_process}] 搜索日文名"])
-        name_jp_anilist = getNameJPAnilist(anime["name_romaji"])
+        name_jp_anilist = getAnilistName(anime["name_romaji"])
 
         if name_jp_anilist:
             anime["name_jp_anilist"] = name_jp_anilist
@@ -79,19 +79,19 @@ class Analysis(QObject):
             self.added_progress_count.emit(self.total_process - 4)
             return
 
-        # 5. 搜索前传与续集
-        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索关联条目"])
-        init_info = getInitInfo(anime["bangumi_id"], anime["cn_name"])
+        # 5. 搜索首季信息
+        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索首季信息"])
+        init_info = getFsInfo(anime["bangumi_id"], anime["cn_name"])
 
         if init_info:
-            anime["init_id"] = init_info[0]
-            anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
+            anime["fs_id"] = init_info[0]
+            anime["fs_name_cn"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
         else:
             return
         self.added_progress_count.emit(1)
 
-        # 所有季度
-        self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 列出所有季度"])
+        # 6. 搜索关联条目
+        self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 搜索关联条目"])
         cleaned_search_list = removeUnrelated(anime["init_name"], api_bgmRelated(anime["init_name"]))
         if self.user_id:
             self.anime_state.emit([anime["id"], f"==> [7/{self.total_process}] 获取收藏状态"])
@@ -124,7 +124,7 @@ class Analysis(QObject):
         user_id = readConfig("Bangumi", "user_id")
 
         # 罗马名
-        romaji_name = getNameRomaji(anime["file_name"])
+        romaji_name = getRomaji(anime["file_name"])
         if romaji_name:
             anime["romaji_name"] = romaji_name
         else:
@@ -151,7 +151,7 @@ class Analysis(QObject):
 
         # 前传（可选）
         if search_init:
-            init_info = getInitInfo(anime["bangumi_id"], anime["cn_name"])
+            init_info = getFsInfo(anime["bangumi_id"], anime["cn_name"])
             if init_info:
                 anime["init_id"] = init_info[0]
                 anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
@@ -180,7 +180,7 @@ class Analysis(QObject):
         getFinalName(anime)
 
 
-def getNameRomaji(file_name):
+def getRomaji(file_name):
     """
     根据文件名，使用anitopy提取动画名
     :param file_name: 完整的文件名
@@ -200,8 +200,8 @@ def getNameRomaji(file_name):
         return
 
 
-def getNameJPAnilist(name_romaji):
-    if isPureEnglish(name_romaji):
+def getAnilistName(name_romaji):
+    if isEnglish(name_romaji):
         return name_romaji
 
     jp_name_anilist = api_anilist(name_romaji)
@@ -211,7 +211,7 @@ def getNameJPAnilist(name_romaji):
         return
 
 
-def getInitInfo(bangumi_id, cn_name):
+def getFsInfo(bangumi_id, cn_name):
     bangumi_previous = api_bangumiInit(bangumi_id, cn_name)
     prev_id = bangumi_previous[0]
     prev_name = bangumi_previous[1]
@@ -225,7 +225,7 @@ def getInitInfo(bangumi_id, cn_name):
     return prev_id, prev_name
 
 
-def isPureEnglish(name):
+def isEnglish(name):
     name = name.replace(".", " ")
     try:
         for word in name.split():
@@ -234,7 +234,7 @@ def isPureEnglish(name):
     except Exception as e:
         # print(f"nltk异常，即将重试 ({e})")
         time.sleep(0.2)
-        return isPureEnglish(name)
+        return isEnglish(name)
     return True
 
 

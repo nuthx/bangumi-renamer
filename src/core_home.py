@@ -39,10 +39,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 检查配置文件版本
         checkConfigVersion()
 
-        self.worker = Analysis()
-        self.worker.main_state.connect(self.showState)
-        self.worker.anime_state.connect(self.showStateInTable)
-        self.worker.added_progress_count.connect(self.increaseProgress)
+        # 加载动画分析类
+        self.analysis = Analysis()
+        self.analysis.main_state.connect(self.showState)
+        self.analysis.anime_state.connect(self.showStateInTable)
+        self.analysis.added_progress_count.connect(self.increaseProgress)
         nltk.data.path.append(getResource("lib/nltk_data"))
 
     def initConnect(self):
@@ -263,7 +264,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         :param anime: 要分析的动画
         """
         # 开始分析
-        self.worker.standardAnalysis(anime)
+        self.analysis.start(anime)
 
         # 通过是否存在final_name值检测分析成功
         if anime["final_name"] == "":
@@ -502,7 +503,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         anime = self.anime_list[row]
 
         # 开始分析
-        self.worker.singleAnalysis(anime, bgm_id, search_init)
+        self.analysis.singleAnalysis(anime, bgm_id, search_init)
 
         # 在列表中显示
         self.showAnimeInTable()
