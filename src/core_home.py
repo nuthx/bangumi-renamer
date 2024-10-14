@@ -267,7 +267,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 通过是否存在final_name值检测分析成功
         if anime["final_name"] == "":
-            # TODO: 获取失败时进度条增加应>1
             self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
         else:
             self.showAnimeInTable()
