@@ -9,6 +9,7 @@ from nltk.corpus import words
 from PySide6.QtCore import QObject, Signal
 
 from src.module.apis import *
+from src.module.api.anilist import anilist
 from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
 
@@ -21,7 +22,7 @@ class Analysis(QObject):
     def __init__(self):
         super().__init__()
         self.user_id = readConfig("Bangumi", "user_id")
-        self.total_process = 7 if self.user_id else 6  # 根据id存在情况，判断是否搜索用户收藏状态
+        self.total_process = 6 if self.user_id else 5  # 根据id存在情况，判断是否搜索用户收藏状态
 
     def start(self, anime):
         """
@@ -42,7 +43,7 @@ class Analysis(QObject):
 
         # 2. 使用anilist搜索日文名
         self.anime_state.emit([anime["id"], f"==> [2/{self.total_process}] 搜索日文名"])
-        name_jp_anilist = getAnilistName(anime["name_romaji"])
+        name_jp_anilist = anilist(anime["name_romaji"])
 
         if name_jp_anilist:
             anime["name_jp_anilist"] = name_jp_anilist
@@ -93,6 +94,7 @@ class Analysis(QObject):
             self.added_progress_count.emit(self.total_process - 5)
             return
 
+
         # 6. 获取收藏状态
         if self.user_id:
             self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 获取收藏状态"])
@@ -101,23 +103,6 @@ class Analysis(QObject):
             print(anime)
 
 
-
-
-
-
-        # self.added_progress_count.emit(1)
-        #
-        # # 主条目收藏状态
-        # if self.user_id:
-        #     # 如果存在所有季度中，则直接获取
-        #     for item in anime["result"]:
-        #         if item["bangumi_id"] == anime["bangumi_id"]:
-        #             anime["collection"] = item["collection"]
-        #             break
-        #
-        #     # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
-        #     if "collection" not in anime:
-        #         anime["collection"] = api_collectionCheck(self.user_id, anime["bangumi_id"])
 
         # 下载海报
         downloadPoster(anime["poster"])
@@ -206,17 +191,6 @@ def getRomaji(file_name):
         return
 
 
-def getAnilistName(name_romaji):
-    if isEnglish(name_romaji):
-        return name_romaji
-
-    jp_name_anilist = api_anilist(name_romaji)
-    if jp_name_anilist:
-        return jp_name_anilist
-    else:
-        return
-
-
 def getRelate(bangumi_id):
     """
     使用bangumi link获取动画首季的信息
@@ -232,22 +206,6 @@ def getRelate(bangumi_id):
         return result_fs["id"], result_fs["nameCN"], result_anime
     else:
         return
-
-
-
-
-def isEnglish(name):
-    name = name.replace(".", " ")
-    try:
-        for word in name.split():
-            if word.lower() not in words.words():
-                return False
-    except Exception as e:
-        # print(f"nltk异常，即将重试 ({e})")
-        time.sleep(0.2)
-        return isEnglish(name)
-    return True
-
 
 
 def getCollection(user_id, anime):
