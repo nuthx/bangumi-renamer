@@ -1,11 +1,13 @@
 import os
+import re
 import arrow
 import anitopy
+import requests
 
 from PySide6.QtCore import QObject, Signal
 
-from src.module.apis import *
 from src.module.api.anilist import anilistSearch
+from src.module.api.bangumi import bangumiIDSearch, bangumiSubject
 from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
 
@@ -19,6 +21,7 @@ class Analysis(QObject):
         super().__init__()
         self.total_process = 6
 
+    # TODO: 整合singleAnalysis
     def start(self, anime):
         """
         完整分析动画的详细信息，下载海报图片，并根据配置项生成重命名结果
@@ -49,7 +52,7 @@ class Analysis(QObject):
 
         # 3. 搜索bangumi id
         self.anime_state.emit([anime["id"], f"==> [3/{self.total_process}] 搜索动画条目"])
-        bangumi_id = api_bgmIdSearch(anime["name_jp_anilist"])
+        bangumi_id = bangumiIDSearch(anime["name_jp_anilist"])
 
         if bangumi_id:
             anime["bangumi_id"] = bangumi_id
@@ -59,19 +62,20 @@ class Analysis(QObject):
             return
 
         # 4. 搜索动画详细信息
-        # TODO: 优化api
         self.anime_state.emit([anime["id"], f"==> [4/{self.total_process}] 搜索动画信息"])
-        bangumi_subject = api_bgmSubject(anime["bangumi_id"])
+        bangumi_subject = bangumiSubject(anime["bangumi_id"])
 
         if bangumi_subject:
-            anime["poster"] = bangumi_subject[0]
-            anime["name_jp"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
-            anime["name_cn"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
-            anime["type"] = bangumi_subject[3]
-            anime["typecode"] = bangumi_subject[4]
-            anime["release_raw"] = bangumi_subject[5]
-            anime["episodes"] = bangumi_subject[6]
-            anime["score"] = bangumi_subject[7]
+            anime["name_jp"] = bangumi_subject["name_jp"].replace("/", " ")  # 移除结果中的斜杠
+            anime["name_cn"] = bangumi_subject["name_cn"].replace("/", " ")  # 移除结果中的斜杠
+            anime["poster"] = bangumi_subject["poster"]
+            anime["type"] = bangumi_subject["type"]
+            anime["typecode"] = bangumi_subject["typecode"]
+            anime["release_raw"] = bangumi_subject["release_raw"]
+            anime["release_end_raw"] = bangumi_subject["release_end_raw"]
+            anime["release_week"] = bangumi_subject["release_week"]
+            anime["episodes"] = bangumi_subject["episodes"]
+            anime["score"] = bangumi_subject["score"]
             self.added_progress_count.emit(1)
         else:
             self.added_progress_count.emit(self.total_process - 4)
@@ -98,65 +102,65 @@ class Analysis(QObject):
         # 7. 写入重命名(由于在其他位置调用，因此直接在函数内写入内容到anime)
         getFinal(anime)
 
-    def singleAnalysis(self, anime, bangumi_id, search_init):
-        # 获取用户预留 ID 判断是否搜索收藏状态
-        user_id = readConfig("Bangumi", "user_id")
-
-        # 罗马名
-        romaji_name = getRomaji(anime["file_name"])
-        if romaji_name:
-            anime["romaji_name"] = romaji_name
-        else:
-            return
-
-        # 跳过：Anilist 日文名
-
-        # Bangumi ID
-        anime["bangumi_id"] = bangumi_id
-
-        # 动画条目
-        bangumi_subject = api_bgmSubject(bangumi_id)
-        if bangumi_subject:
-            anime["poster"] = bangumi_subject[0]
-            anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
-            anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
-            anime["types"] = bangumi_subject[3]
-            anime["typecode"] = bangumi_subject[4]
-            anime["release"] = bangumi_subject[5]
-            anime["episodes"] = bangumi_subject[6]
-            anime["score"] = bangumi_subject[7]
-        else:
-            return
-
-        # 前传（可选）
-        # if search_init:
-        #     init_info = getRelate(anime["bangumi_id"])
-        #     if init_info:
-        #         anime["init_id"] = init_info[0]
-        #         anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
-        #     else:
-        #         return
-
-        # 跳过：所有季度
-
-        # 主条目收藏状态
-        if user_id:
-            # 如果存在所有季度中，则直接获取
-            if "result" in anime:
-                for item in anime["result"]:
-                    if item["bangumi_id"] == anime["bangumi_id"]:
-                        anime["collection"] = item["collection"]
-                        break
-
-            # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
-            if "collection" not in anime:
-                anime["collection"] = api_collectionCheck(user_id, anime["bangumi_id"])
-
-        # 下载图片
-        downloadPoster(anime["poster"])
-
-        # 写入重命名(由于在其他位置调用，因此直接在函数内写入内容到anime)
-        getFinal(anime)
+    # def singleAnalysis(self, anime, bangumi_id, search_init):
+    #     # 获取用户预留 ID 判断是否搜索收藏状态
+    #     user_id = readConfig("Bangumi", "user_id")
+    #
+    #     # 罗马名
+    #     romaji_name = getRomaji(anime["file_name"])
+    #     if romaji_name:
+    #         anime["romaji_name"] = romaji_name
+    #     else:
+    #         return
+    #
+    #     # 跳过：Anilist 日文名
+    #
+    #     # Bangumi ID
+    #     anime["bangumi_id"] = bangumi_id
+    #
+    #     # 动画条目
+    #     bangumi_subject = api_bgmSubject(bangumi_id)
+    #     if bangumi_subject:
+    #         anime["poster"] = bangumi_subject[0]
+    #         anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
+    #         anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
+    #         anime["types"] = bangumi_subject[3]
+    #         anime["typecode"] = bangumi_subject[4]
+    #         anime["release"] = bangumi_subject[5]
+    #         anime["episodes"] = bangumi_subject[6]
+    #         anime["score"] = bangumi_subject[7]
+    #     else:
+    #         return
+    #
+    #     # 前传（可选）
+    #     # if search_init:
+    #     #     init_info = getRelate(anime["bangumi_id"])
+    #     #     if init_info:
+    #     #         anime["init_id"] = init_info[0]
+    #     #         anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
+    #     #     else:
+    #     #         return
+    #
+    #     # 跳过：所有季度
+    #
+    #     # 主条目收藏状态
+    #     if user_id:
+    #         # 如果存在所有季度中，则直接获取
+    #         if "result" in anime:
+    #             for item in anime["result"]:
+    #                 if item["bangumi_id"] == anime["bangumi_id"]:
+    #                     anime["collection"] = item["collection"]
+    #                     break
+    #
+    #         # 少数情况动画名与首季差异较大，被所有季度排除了，则重新获取收藏状态
+    #         if "collection" not in anime:
+    #             anime["collection"] = api_collectionCheck(user_id, anime["bangumi_id"])
+    #
+    #     # 下载图片
+    #     downloadPoster(anime["poster"])
+    #
+    #     # 写入重命名(由于在其他位置调用，因此直接在函数内写入内容到anime)
+    #     getFinal(anime)
 
 
 def getRomaji(file_name):
