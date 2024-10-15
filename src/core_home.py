@@ -29,7 +29,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.setupUI(self)
         self.initConnect()
         self.initData()
-        self.initUI()
+        self.initContent()
 
         # 检查版本更新
         self.version = Version()
@@ -72,12 +72,14 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.anime_list = []  # 清空动画列表
         self.table.setRowCount(0)  # 重置表格行数
 
-    def initUI(self):
+    def initContent(self, clear_table=True):
         """
         初始化UI界面显示的内容
         """
+        if clear_table:
+            self.table.setRowCount(0)  # 清空动画列表
+
         self.progress.setValue(0)  # 清空进度条
-        self.table.clearContents()  # 清空表格
         self.searchList.clear()  # 清空搜索列表
         self.searchList.addItem(QListWidgetItem("暂无搜索结果"))  # 为搜索列表添加默认提示
 
@@ -181,7 +183,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.showToast("warning", "", "列表为空")
         else:
             self.initData()
-            self.initUI()
+            self.initContent()
             self.showToast("success", "", "列表已清空")
 
     def dragEnterEvent(self, event):
@@ -242,7 +244,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             return
 
         # 初始化界面
-        self.initUI()
+        self.initContent()
         self.showAnimeInTable()
         self.showProgressBar()
         self.clearButton.setEnabled(False)
@@ -285,6 +287,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
         else:
             self.showAnimeInTable()
+            self.table.selectRow(0)  # 分析完成后自动选中第一行
 
     def _threadFinishCheck(self):
         """
@@ -303,93 +306,30 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                 time.sleep(0.5)
 
     def showAnimeInDetail(self):
+        """
+        在detail中展示表格选中的动画内容
+        """
         row = self.selectedRowInTable()
 
-        # 应对重命名完成后的 initList 操作
-        if row is None or "final_name" not in self.anime_list[row]:
-            self.cnName.setText("暂无动画")
-            self.jpName.setText("请先选中一个动画以展示详细信息")
-            self.typeLabel.setText("类型：")
-            self.dateLabel.setText("放送日期：")
-            self.scoreLabel.setText("当前评分：")
-            self.fileName.setText("文件名：")
-            self.finalName.setText("重命名结果：")
-            self.image.updateImage(getResource("src/image/empty.png"))
-            self.idLabel.setText("")
+        if row is None or self.anime_list[row]["final_name"] == "":
+            self.initContent(clear_table=False)
+        else:
+            anime = self.anime_list[row]
+            self.cnName.setText(anime["name_cn"])
+            self.jpName.setText(anime["name_jp"])
+            self.typeLabel.setText(f"类型：{anime['type']}")
+            self.dateLabel.setText(f"放送日期：{anime['release_raw']}")
+            self.scoreLabel.setText(f"当前评分：{anime['score']}")
+            self.fileName.setText(f"文件名：{anime['file_name']}")
+            self.finalName.setText(f"重命名结果：{anime['final_name'].replace('/', ' / ')}")
+            self.image.updateImage(os.path.join(posterFolder(), os.path.basename(anime["poster"])))
+            self.idLabel.setText(anime["bangumi_id"])
             self.searchList.clear()
-            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
-            return
-
-        this_anime = self.anime_list[row]
-
-        if this_anime["name_cn"] != "":
-            name_cn = this_anime["name_cn"]
-            self.cnName.setText(name_cn)
-        else:
-            self.cnName.setText("暂无动画")
-
-        if this_anime["name_jp"] != "":
-            name_jp = this_anime["name_jp"]
-            self.jpName.setText(name_jp)
-        else:
-            self.jpName.setText("请先选中一个动画以展示详细信息")
-
-        if this_anime["type"] != "":
-            types = this_anime["type"]
-            typecode = this_anime["typecode"]
-            self.typeLabel.setText(f"类型：{types} ({typecode})")
-        else:
-            self.typeLabel.setText("类型：")
-
-        if this_anime["release_raw"] != "":
-            release = arrow.get(this_anime["release_raw"]).format("YYYY年MM月DD日")
-            self.dateLabel.setText(f"放送日期：{release}")
-        else:
-            self.dateLabel.setText("放送日期：")
-
-        if this_anime["score"] != "":
-            score = str(this_anime["score"])
-            self.scoreLabel.setText(f"当前评分：{score}")
-        else:
-            self.scoreLabel.setText("当前评分：")
-
-        if this_anime["file_name"] != "":
-            file_name = this_anime["file_name"]
-            self.fileName.setText(f"文件名：{file_name}")
-        else:
-            self.fileName.setText("文件名：")
-
-        if this_anime["final_name"] != "":
-            final_name = this_anime["final_name"].replace("/", " / ")
-            self.finalName.setText(f"重命名结果：{final_name}")
-        else:
-            self.finalName.setText("重命名结果：")
-
-        if this_anime["poster"] != "":
-            poster_name = os.path.basename(this_anime["poster"])
-            poster_path = os.path.join(posterFolder(), poster_name)
-            self.image.updateImage(poster_path)
-        else:
-            self.image.updateImage(getResource("src/image/empty.png"))
-
-        if this_anime["bangumi_id"] != "":
-            bgm_id = str(this_anime["bangumi_id"])
-            self.idLabel.setText(bgm_id)
-        else:
-            self.idLabel.setText("")
-
-        print(this_anime)
-
-        if this_anime["fs_detail"] != "":
-            self.searchList.clear()
-            for this in this_anime["fs_detail"]:
-                release = arrow.get(this["release"]).format("YY-MM-DD")
+            for this in anime["relate"]:
+                release = arrow.get(this["date"]).format("YY-MM-DD")
                 name_cn = this["nameCN"]
-                item = f"[{release}] {name_cn}"
-                self.searchList.addItem(QListWidgetItem(item))
-        else:
-            self.searchList.clear()
-            self.searchList.addItem(QListWidgetItem("暂无搜索结果"))
+                self.searchList.addItem(QListWidgetItem(f"[{release}] {name_cn}"))
+
 
     def showMenu(self, pos):
         edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
@@ -572,7 +512,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         print(self.anime_list)
         self.initData()
-        self.initUI()
+        self.initContent()
         self.showToast("success", "", "重命名完成")
 
     def showToast(self, state, title, content):

@@ -26,6 +26,7 @@ def bangumiLink(anime):
         node = [{
             "id": anime["bangumi_id"],
             "nameCN": anime["name_cn"],
+            "date": anime["release_raw"],
             "type": 2,
             "platform": anime["type"]
         }]
