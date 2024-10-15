@@ -16,7 +16,6 @@ def bangumiLinkRelate(anime):
         map_ids = str(int(map_id) // 1000)
         result = requests.get(f"https://cdn.jsdelivr.net/gh/ekibot/bangumi-link/map/{map_ids}/{map_id}.json").json()
 
-        print(result["node"])
         return result["node"]
 
     except ValueError as e:
@@ -26,6 +25,7 @@ def bangumiLinkRelate(anime):
             "type": 2,
             "platform": anime["type"]
         }]
+
         return node
 
     except Exception as e:
