@@ -49,7 +49,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.table.customContextMenuRequested.connect(self.showMenu)
-        self.table.itemSelectionChanged.connect(self.selectTable)
+        self.table.itemSelectionChanged.connect(self.showAnimeInDetail)
 
         self.searchList.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
         self.searchList.customContextMenuRequested.connect(self.showMenu2)
@@ -150,17 +150,19 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         打开设置页面。若保存了配置，会传递信号执行updateSetting
         """
         setting = MySettingWindow()
-        setting.config_saved.connect(self.updateSetting)
+        setting.config_saved.connect(self.saveSetting)
         setting.exec()
 
-    def updateSetting(self):
+    def saveSetting(self):
         """
         应用保存的配置内容并刷新相关信息
         """
-        self.showToast("success", "", "配置修改成功")
-        self.selectTable()  # 刷新UI展示出的内容
+        # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
         for anime in self.anime_list:
-            getFinal(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
+            getFinal(anime)
+
+        self.showToast("success", "", "配置修改成功")
+        self.showAnimeInDetail()
 
     def selectedRowInTable(self) -> int:
         """
@@ -211,8 +213,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
             # 存在final_name确保分析结束
             if anime["final_name"] != "":
-                self.table.setItem(anime["id"], 2, QTableWidgetItem(anime["cn_name"]))
-                self.table.setItem(anime["id"], 3, QTableWidgetItem(anime["init_name"]))
+                self.table.setItem(anime["id"], 2, QTableWidgetItem(anime["name_cn"]))
+                self.table.setItem(anime["id"], 3, QTableWidgetItem(anime["fs_name_cn"]))
 
     def editBangumiID(self):
         """
@@ -268,7 +270,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 在列表中显示
         self.showAnimeInTable()
-        self.selectTable()
+        self.showAnimeInDetail()
 
     def _threadAnalysis(self, anime):
         """
@@ -300,7 +302,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             else:
                 time.sleep(0.5)
 
-    def selectTable(self):
+    def showAnimeInDetail(self):
         row = self.selectedRowInTable()
 
         # 应对重命名完成后的 initList 操作
@@ -339,9 +341,8 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         else:
             self.typeLabel.setText("类型：")
 
-        if this_anime["release"] != "":
-            release = this_anime["release"]
-            release = arrow.get(release).format("YYYY年M月D日")
+        if this_anime["release_raw"] != "":
+            release = arrow.get(this_anime["release_raw"]).format("YYYY年MM月DD日")
             self.dateLabel.setText(f"放送日期：{release}")
         else:
             self.dateLabel.setText("放送日期：")
@@ -372,21 +373,19 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.image.updateImage(getResource("src/image/empty.png"))
 
         if this_anime["bangumi_id"] != "":
-            bgm_id = str(this_anime["bgm_id"])
+            bgm_id = str(this_anime["bangumi_id"])
             self.idLabel.setText(bgm_id)
         else:
             self.idLabel.setText("")
+
+        print(this_anime)
 
         if this_anime["fs_detail"] != "":
             self.searchList.clear()
             for this in this_anime["fs_detail"]:
                 release = arrow.get(this["release"]).format("YY-MM-DD")
-                name_cn = this["name_cn"]
-                collection = ""
-                if "collection" in this:
-                    if this["collection"] != "":
-                        collection = f" [{this['collection']}]"
-                item = f"[{release}]{collection} {name_cn}"
+                name_cn = this["nameCN"]
+                item = f"[{release}] {name_cn}"
                 self.searchList.addItem(QListWidgetItem(item))
         else:
             self.searchList.clear()
@@ -440,7 +439,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     self.anime_list[row]["init_name"] = new_init_name
                     getFinal(self.anime_list[row])
                     self.showAnimeInTable()
-                    self.selectTable()
+                    self.showAnimeInDetail()
 
         else:
             self.showToast("warning", "无法修改", "请先进行动画分析")
@@ -575,7 +574,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.initData()
         self.initUI()
         self.showToast("success", "", "重命名完成")
-
 
     def showToast(self, state, title, content):
         """
