@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Signal
 
 from src.module.apis import *
 from src.module.api.anilist import anilistSearch
-from src.module.api.bangumi_link import bangumiLinkRelate
+from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
 
 
@@ -59,6 +59,7 @@ class Analysis(QObject):
             return
 
         # 4. 搜索动画详细信息
+        # TODO: 优化api
         self.anime_state.emit([anime["id"], f"==> [4/{self.total_process}] 搜索动画信息"])
         bangumi_subject = api_bgmSubject(anime["bangumi_id"])
 
@@ -78,12 +79,14 @@ class Analysis(QObject):
 
         # 5. 搜索关联条目
         self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索关联条目"])
-        relate = getRelate(anime)
+        relate_anime = bangumiLink(anime)
 
-        if relate:
-            anime["fs_id"] = relate[0]
-            anime["fs_name_cn"] = relate[1]
-            anime["relate"] = relate[2]
+        if relate_anime:
+            # 搜索首季TV，如果没有则返回第一个项目(如剧场版)
+            fs_anime = next((item for item in relate_anime if item["platform"] == "TV"), relate_anime[0])
+            anime["fs_id"] = fs_anime["id"]
+            anime["fs_name_cn"] = fs_anime["nameCN"]
+            anime["relate"] = relate_anime
             self.added_progress_count.emit(1)
         else:
             self.added_progress_count.emit(self.total_process - 5)
@@ -126,13 +129,13 @@ class Analysis(QObject):
             return
 
         # 前传（可选）
-        if search_init:
-            init_info = getRelate(anime["bangumi_id"])
-            if init_info:
-                anime["init_id"] = init_info[0]
-                anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
-            else:
-                return
+        # if search_init:
+        #     init_info = getRelate(anime["bangumi_id"])
+        #     if init_info:
+        #         anime["init_id"] = init_info[0]
+        #         anime["init_name"] = init_info[1].replace("/", " ")  # 移除结果中的斜杠
+        #     else:
+        #         return
 
         # 跳过：所有季度
 
@@ -172,23 +175,6 @@ def getRomaji(file_name):
 
     if "anime_title" in romaji_name:
         return romaji_name["anime_title"]
-    else:
-        return
-
-
-def getRelate(anime):
-    """
-    使用bangumi link获取动画首季的信息
-    :param anime: 动画数据(除了id外，若没有关联条目，需要从数据中获取值并写入)
-    :return: [首季id, 首季名称(中), 关联条目数据(数组)]
-    """
-    result = bangumiLinkRelate(anime)
-
-    if result:
-        result_anime = [item for item in result if item["type"] == 2]  # 只保留动画，移除小说、游戏等类别
-        result_anime = [item for item in result_anime if item["platform"] != "WEB"]  # 移除web类别
-        result_fs = next((item for item in result_anime if item["platform"] == "TV"), result_anime[0])  # 搜索首季TV，如果没有则返回第一个项目(如剧场版)
-        return result_fs["id"], result_fs["nameCN"], result_anime
     else:
         return
 
