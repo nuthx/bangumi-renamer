@@ -94,23 +94,11 @@ class HomeWindow(object):
         self.jpName = QLabel("请先选中一个动画以展示详细信息")
         self.jpName.setObjectName("jpName")
 
-        self.collectionBadge = InfoBadge()
-        self.collectionBadge.setFixedSize(34, 20)
-        self.collectionBadge.setText("")
-        self.collectionBadge.setCustomBackgroundColor("#333", "#333")  # 浅色/暗色模式
-        self.collectionBadge.setVisible(False)
-
-        self.cnNameLayout = QHBoxLayout()
-        self.cnNameLayout.setSpacing(6)
-        self.cnNameLayout.setContentsMargins(0, 0, 0, 0)
-        self.cnNameLayout.addWidget(self.collectionBadge)
-        self.cnNameLayout.addWidget(self.cnName)
-
         self.nameLayout = QVBoxLayout()
         self.nameLayout.setSpacing(8)
         self.nameLayout.setContentsMargins(0, 0, 0, 0)
         self.nameLayout.addSpacing(6)
-        self.nameLayout.addLayout(self.cnNameLayout)
+        self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
         # 2.2 => ID

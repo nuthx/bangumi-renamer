@@ -115,9 +115,6 @@ def initConfig(config_file):
     config.set("Format", "rename_format", "{init_name}/[{typecode}] [{release}] {jp_name}")
     config.set("Format", "date_format", "YYMMDD")
 
-    config.add_section("Bangumi")
-    config.set("Bangumi", "user_id", "")
-
     with open(config_file, "w", encoding="utf-8") as content:
         config.write(content)
 

@@ -44,7 +44,6 @@ def createAnimeData(anime_id, anime_list, file_list):
             "release_week": "",  # 放送星期
             "episodes": "",  # 章节数量
             "score": "",  # 当前评分
-            "collection": "",  # 收藏状态
             "fs_id": "",  # 首季度Bangumi ID
             "fs_name_cn": "",  # 首季度中文名称动画
             "relate": []  # 关联动画信息

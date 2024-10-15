@@ -18,7 +18,7 @@ from src.gui.components.FsNameEditDialog import FsNameEditDialog
 
 from src.module.data import createAnimeData
 from src.module.analysis import Analysis, getFinalName
-from src.module.config import openFolder, posterFolder, readConfig, checkConfigVersion
+from src.module.config import openFolder, posterFolder, checkConfigVersion
 from src.module.version import Version
 from src.module.utils import getResource
 
@@ -119,8 +119,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         在左下角显示进度条，同时规定了进度条的最大值
         """
         self.progress.setVisible(True)
-        step = 6 if readConfig("Bangumi", "user_id") else 7  # 如果设置了用户id，则总进度条+1
-        self.progress.setMaximum(len(self.anime_list) * step)
+        self.progress.setMaximum(len(self.anime_list) * 6)
 
     def increaseProgress(self, count):
         """
@@ -293,7 +292,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 应对重命名完成后的 initList 操作
         if row is None or "final_name" not in self.anime_list[row]:
-            self.collectionBadge.setVisible(False)
             self.cnName.setText("暂无动画")
             self.jpName.setText("请先选中一个动画以展示详细信息")
             self.typeLabel.setText("类型：")
@@ -308,13 +306,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             return
 
         this_anime = self.anime_list[row]
-
-        if this_anime["collection"] != "":
-            collection = this_anime["collection"]
-            self.collectionBadge.setVisible(True)
-            self.collectionBadge.setText(collection)
-        else:
-            self.collectionBadge.setVisible(False)
 
         if this_anime["name_cn"] != "":
             name_cn = this_anime["name_cn"]

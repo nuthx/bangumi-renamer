@@ -28,7 +28,6 @@ class MySettingWindow(QDialog, SettingWindow):
         """
         self.renameType.setText(readConfig("Format", "rename_format"))
         self.dateType.setText(readConfig("Format", "date_format"))
-        self.bgmIdType.setText(readConfig("Bangumi", "user_id"))
 
     @staticmethod
     def openPosterFolder():
@@ -54,7 +53,6 @@ class MySettingWindow(QDialog, SettingWindow):
         else:
             writeConfig("Format", "rename_format", self.renameType.currentText())
             writeConfig("Format", "date_format", self.dateType.currentText())
-            writeConfig("Bangumi", "user_id", self.bgmIdType.text())
             self.config_saved.emit("配置已保存")
             self.close()
 

@@ -21,8 +21,7 @@ class Analysis(QObject):
 
     def __init__(self):
         super().__init__()
-        self.user_id = readConfig("Bangumi", "user_id")
-        self.total_process = 6 if self.user_id else 5  # 根据id存在情况，判断是否搜索用户收藏状态
+        self.total_process = 6
 
     def start(self, anime):
         """
@@ -55,7 +54,7 @@ class Analysis(QObject):
         # 3. 搜索bangumi id
         self.anime_state.emit([anime["id"], f"==> [3/{self.total_process}] 搜索动画条目"])
         bangumi_id = api_bgmIdSearch(anime["name_jp_anilist"])
-        
+
         if bangumi_id:
             anime["bangumi_id"] = bangumi_id
             self.added_progress_count.emit(1)
@@ -94,20 +93,10 @@ class Analysis(QObject):
             self.added_progress_count.emit(self.total_process - 5)
             return
 
-
-        # 6. 获取收藏状态
-        if self.user_id:
-            self.anime_state.emit([anime["id"], f"==> [6/{self.total_process}] 获取收藏状态"])
-            getCollection(self.user_id, anime)
-
-            print(anime)
-
-
-
-        # 下载海报
+        # 6. 下载海报
         downloadPoster(anime["poster"])
 
-        # 写入重命名结果
+        # 7. 写入重命名结果
         # getFinalName(anime)
 
     def singleAnalysis(self, anime, bangumi_id, search_init):
@@ -206,36 +195,6 @@ def getRelate(bangumi_id):
         return result_fs["id"], result_fs["nameCN"], result_anime
     else:
         return
-
-
-def getCollection(user_id, anime):
-    """
-    获取动画的收藏状态
-    :param user_id: 用户id
-    :param anime: 动画列表
-    """
-    threads = []
-    for this_anime in anime["relate"]:
-        thread = threading.Thread(target=threadGetCollection, args=(user_id, this_anime))
-        thread.start()
-        threads.append(thread)
-
-    # 等待线程完成
-    for thread in threads:
-        thread.join()
-
-    # 为当前条目写入收藏状态
-    for item in anime["relate"]:
-        if item["id"] == anime["bangumi_id"]:
-            anime["collection"] = item["collection"]
-            break
-
-
-def threadGetCollection(user_id, anime):
-    anime["collection"] = api_collectionCheck(user_id, anime["id"])
-
-
-
 
 
 def downloadPoster(poster_url):
