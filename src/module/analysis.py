@@ -68,9 +68,9 @@ class Analysis(QObject):
 
         if bangumi_subject:
             anime["poster"] = bangumi_subject[0]
-            anime["jp_name"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
-            anime["cn_name"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
-            anime["types"] = bangumi_subject[3]
+            anime["name_jp"] = bangumi_subject[1].replace("/", " ")  # 移除结果中的斜杠
+            anime["name_cn"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
+            anime["type"] = bangumi_subject[3]
             anime["typecode"] = bangumi_subject[4]
             anime["release"] = bangumi_subject[5]
             anime["episodes"] = bangumi_subject[6]
@@ -82,7 +82,7 @@ class Analysis(QObject):
 
         # 5. 搜索关联条目
         self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索关联条目"])
-        relate = getRelate(anime["bangumi_id"])
+        relate = getRelate(anime)
 
         if relate:
             anime["fs_id"] = relate[0]
@@ -180,18 +180,18 @@ def getRomaji(file_name):
         return
 
 
-def getRelate(bangumi_id):
+def getRelate(anime):
     """
     使用bangumi link获取动画首季的信息
-    :param bangumi_id: Bangumi ID
-    :return: [首季id, 首季名称(中)]
+    :param anime: 动画数据(除了id外，若没有关联条目，需要从数据中获取值并写入)
+    :return: [首季id, 首季名称(中), 关联条目数据(数组)]
     """
-    result = bangumiLinkRelate(bangumi_id)
+    result = bangumiLinkRelate(anime)
 
     if result:
         result_anime = [item for item in result if item["type"] == 2]  # 只保留动画，移除小说、游戏等类别
         result_anime = [item for item in result_anime if item["platform"] != "WEB"]  # 移除web类别
-        result_fs = next((item for item in result_anime if item["platform"] == "TV"), None)  # 搜索首季动画
+        result_fs = next((item for item in result_anime if item["platform"] == "TV"), result_anime[0])  # 搜索首季TV，如果没有则返回第一个项目(如剧场版)
         return result_fs["id"], result_fs["nameCN"], result_anime
     else:
         return
