@@ -95,7 +95,7 @@ class Analysis(QObject):
         # 6. 下载海报
         downloadPoster(anime["poster"])
 
-        # 7. 写入重命名结果
+        # 7. 写入重命名(由于在其他位置调用，因此直接在函数内写入内容到anime)
         getFinal(anime)
 
     def singleAnalysis(self, anime, bangumi_id, search_init):
@@ -155,7 +155,7 @@ class Analysis(QObject):
         # 下载图片
         downloadPoster(anime["poster"])
 
-        # 写入重命名
+        # 写入重命名(由于在其他位置调用，因此直接在函数内写入内容到anime)
         getFinal(anime)
 
 
@@ -196,7 +196,7 @@ def downloadPoster(poster_url):
 
 def getFinal(anime):
     """
-    根据配置文件，导出文件的最终名称
+    根据配置文件，导出文件的最终名称，直接将新值写入anime
     :param anime: 动画详情
     """
     data_format = readConfig("Format", "date_format")
