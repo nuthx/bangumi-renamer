@@ -38,5 +38,12 @@ def log(content):
 
 
 def sanitizeName(filename):
-    invalid = r'[<>:"/\\|?*]'  # windows 不允许的字符
-    return re.sub(invalid, '', filename)
+    filename.replace("<", " ").replace(">", " ")
+    filename = filename.replace(":", " ")
+    filename = filename.replace("\"", "")
+    filename = filename.replace("/", " ")
+    filename = filename.replace("\\", " ")
+    filename = filename.replace("|", " ")
+    filename = filename.replace("*", " ")
+    filename = filename.replace("?", "")
+    return filename
