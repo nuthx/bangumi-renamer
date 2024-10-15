@@ -229,7 +229,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         elif id_current == id_new:
             self.showToast("warning", "未修改", "新的ID与当前ID一致")
         else:
-            self.correctThisAnime(row, id_new, search_init=True)
+            self.startAnalysisByID(row, id_new)
 
     def startAnalysis(self):
         """
@@ -256,6 +256,19 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         # 检测是否结束并隐藏进度条(与多线程分析处于同时进行状态)
         thread = threading.Thread(target=self._threadFinishCheck)
         thread.start()
+
+    def startAnalysisByID(self, row, bangumi_id):
+        """
+        根据bangumi id，强制刷新动画信息
+        :param row: 重新分析的动画序号
+        :param bangumi_id: 手动指定的bangumi id
+        """
+        self.analysis.start(self.anime_list[row], bangumi_id)
+        self.showState(f"搜索完成：{self.anime_list[row]['name_cn']}")
+
+        # 在列表中显示
+        self.showAnimeInTable()
+        self.selectTable()
 
     def _threadAnalysis(self, anime):
         """
@@ -425,7 +438,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     return
                 else:
                     self.anime_list[row]["init_name"] = new_init_name
-                    getFinalName(self.anime_list[row])
+                    getFinal(self.anime_list[row])
                     self.showAnimeInTable()
                     self.selectTable()
 
@@ -486,23 +499,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             if self.searchList.item(list_row).text() != "暂无搜索结果":
                 menu.exec(self.searchList.mapToGlobal(pos), ani=True)
 
-                bgm_id = self.anime_list[table_row]["result"][list_row]["bgm_id"]
-                instead_this_anime.triggered.connect(lambda: self.correctThisAnime(table_row, bgm_id))
+                bangumi_id = self.anime_list[table_row]["result"][list_row]["bgm_id"]
+                instead_this_anime.triggered.connect(lambda: self.startAnalysisByID(table_row, bangumi_id))
                 view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
-
-    def correctThisAnime(self, row, bgm_id, search_init=False):
-        anime = self.anime_list[row]
-
-        # 开始分析
-        self.analysis.singleAnalysis(anime, bgm_id, search_init)
-
-        # 在列表中显示
-        self.showAnimeInTable()
-        self.selectTable()
-
-        # 日志
-        if search_init:
-            self.showState(f"搜索完成：{anime['cn_name']}")
 
     def startRename(self):
         # anime_list 是否有数据
