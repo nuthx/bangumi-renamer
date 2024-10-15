@@ -17,7 +17,7 @@ from src.gui.homewindow import HomeWindow
 from src.gui.components.FsNameEditDialog import FsNameEditDialog
 
 from src.module.data import createAnimeData
-from src.module.analysis import Analysis, getFinalName
+from src.module.analysis import Analysis, getFinal
 from src.module.config import openFolder, posterFolder, checkConfigVersion
 from src.module.version import Version
 from src.module.utils import getResource
@@ -160,7 +160,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.showToast("success", "", "配置修改成功")
         self.selectTable()  # 刷新UI展示出的内容
         for anime in self.anime_list:
-            getFinalName(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
+            getFinal(anime)  # 刷新所有文件的重命名信息，确保应用了设置中的命名格式
 
     def selectedRowInTable(self) -> int:
         """

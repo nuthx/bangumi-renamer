@@ -1,10 +1,6 @@
 import os
-import time
-import anitopy
 import arrow
-import threading
-from fuzzywuzzy import fuzz
-from nltk.corpus import words
+import anitopy
 
 from PySide6.QtCore import QObject, Signal
 
@@ -97,7 +93,7 @@ class Analysis(QObject):
         downloadPoster(anime["poster"])
 
         # 7. 写入重命名结果
-        # getFinalName(anime)
+        getFinal(anime)
 
     def singleAnalysis(self, anime, bangumi_id, search_init):
         # 获取用户预留 ID 判断是否搜索收藏状态
@@ -157,7 +153,7 @@ class Analysis(QObject):
         downloadPoster(anime["poster"])
 
         # 写入重命名
-        getFinalName(anime)
+        getFinal(anime)
 
 
 def getRomaji(file_name):
@@ -198,6 +194,10 @@ def getRelate(anime):
 
 
 def downloadPoster(poster_url):
+    """
+    下载海报，保存到指定地址
+    :param poster_url: 海报图片地址
+    """
     poster_path = os.path.join(posterFolder(), os.path.basename(poster_url))
 
     # 如果存在这张海报则不下载
@@ -208,23 +208,28 @@ def downloadPoster(poster_url):
         file.write(requests.get(poster_url).content)
 
 
-def getFinalName(anime):
+def getFinal(anime):
+    """
+    根据配置文件，导出文件的最终名称
+    :param anime: 动画详情
+    """
     data_format = readConfig("Format", "date_format")
     rename_format = readConfig("Format", "rename_format")
 
-    jp_name = anime["jp_name"]
-    cn_name = anime["cn_name"]
-    init_name = anime["init_name"]
-    romaji_name = anime["romaji_name"]
+    # 特殊处理：日期格式化
+    anime["release"] = arrow.get(anime["release"]).format(data_format)
 
-    types = anime["types"]
-    typecode = anime["typecode"]
-    release = arrow.get(anime["release"]).format(data_format)
-    episodes = anime["episodes"]
-
-    score = anime["score"]
-    bangumi_id = anime["bangumi_id"]
-
-    # 保留 string 输出
-    final_name = eval(f'f"{rename_format}"')
+    # 写入final_name到字典
+    rename_format_final = rename_format.format(**anime)  # 替换为anime字典中对应值
+    final_name = eval(f'f"{rename_format_final}"')
     anime["final_name"] = final_name
+
+    # 写入final_name到字典
+    final_dir = os.path.dirname(anime["file_path"])
+    anime["final_dir"] = final_dir
+
+    # 写入final_path到字典
+    final_path = os.path.join(final_dir, os.path.normpath(final_name))  # 保证路径在windows下合法化
+    anime["final_path"] = final_path
+
+    print(anime)
