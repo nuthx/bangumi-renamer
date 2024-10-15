@@ -124,19 +124,14 @@ def checkNameFormat(name_format):
     检查配置文件中，"命名格式"项的合法性
     :return: 不合法则返回检查结果；若合法则无返回
     """
-    # 检查花括号内容
-    available = ["jp_name", "cn_name", "init_name", "romaji_name",
-                 "types", "typecode", "release", "episodes",
-                 "score", "bgm_id"]
+    available = ["name_jp", "name_cn", "fs_name_cn", "name_romaji",
+                 "type", "typecode", "episodes", "score",
+                 "bangumi_id", "release", "release_end", "release_week"]
     pattern = r"\{(.*?)\}"
     matches = re.findall(pattern, name_format)
-    for match in matches:
-        if match not in available:
-            return "检查花括号内的变量拼写"
-
-    # 是否有多个斜杠
-    if name_format.count("/") > 1:
-        return "仅支持一个单斜杠用于文件夹嵌套"
+    invalid_vars = [match for match in matches if match not in available]
+    if invalid_vars:
+        return "检查花括号内的变量拼写"
 
 
 def checkConfigVersion():
