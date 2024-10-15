@@ -20,6 +20,11 @@ def bangumiLink(anime):
         result = [item for item in result["node"] if item["type"] == 2]  # 只保留动画，移除小说、游戏等类别
         result = [item for item in result if item["platform"] != "WEB"]  # 移除web类别
 
+        # 没有中文名字的数据，用原始名称代替
+        for item in result:
+            if not item["nameCN"]:
+                item["nameCN"] = item["name"]
+
         return result
 
     except ValueError as e:
