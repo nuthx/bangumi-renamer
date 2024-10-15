@@ -3,7 +3,7 @@ import requests
 
 
 # https://anilist.github.io/ApiV2-GraphQL-Docs
-def anilist(romaji_name):
+def anilistSearch(romaji_name):
     """
     在anilist搜索动画名
     :param romaji_name: 动画罗马音文件名

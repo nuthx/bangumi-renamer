@@ -2,7 +2,7 @@ import requests
 
 
 # https://github.com/ekibot/bangumi-link
-def bangumiLink(bangumi_id):
+def bangumiLinkRelate(bangumi_id):
     """
     搜索动画的关联信息
     :param bangumi_id: Bangumi ID

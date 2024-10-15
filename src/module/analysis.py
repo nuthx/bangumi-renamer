@@ -9,8 +9,8 @@ from nltk.corpus import words
 from PySide6.QtCore import QObject, Signal
 
 from src.module.apis import *
-from src.module.api.anilist import anilist
-from src.module.api.bangumi_link import bangumiLink
+from src.module.api.anilist import anilistSearch
+from src.module.api.bangumi_link import bangumiLinkRelate
 from src.module.config import posterFolder, readConfig
 
 
@@ -43,7 +43,7 @@ class Analysis(QObject):
 
         # 2. 使用anilist搜索日文名
         self.anime_state.emit([anime["id"], f"==> [2/{self.total_process}] 搜索日文名"])
-        name_jp_anilist = anilist(anime["name_romaji"])
+        name_jp_anilist = anilistSearch(anime["name_romaji"])
 
         if name_jp_anilist:
             anime["name_jp_anilist"] = name_jp_anilist
@@ -197,7 +197,7 @@ def getRelate(bangumi_id):
     :param bangumi_id: Bangumi ID
     :return: [首季id, 首季名称(中)]
     """
-    result = bangumiLink(bangumi_id)
+    result = bangumiLinkRelate(bangumi_id)
 
     if result:
         result_anime = [item for item in result if item["type"] == 2]  # 只保留动画，移除小说、游戏等类别
