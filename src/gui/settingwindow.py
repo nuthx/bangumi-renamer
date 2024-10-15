@@ -39,7 +39,7 @@ class SettingWindow(object):
         self.t1 = self.tutorialCard("name_jp", "日文名")
         self.t2 = self.tutorialCard("name_cn", "中文名")
         self.t3 = self.tutorialCard("fs_name_cn", "首季中文名")
-        self.t4 = self.tutorialCard("name_romaji", "罗马名")
+        self.t4 = self.tutorialCard("bangumi_id", "Bangumi ID")
 
         self.f1 = QHBoxLayout()
         self.f1.setSpacing(12)
@@ -62,9 +62,9 @@ class SettingWindow(object):
         self.f2.addWidget(self.t7)
         self.f2.addWidget(self.t8)
 
-        self.t9 = self.tutorialCard("bangumi_id", "Bangumi ID")
-        self.t10 = self.tutorialCard("release", "放送开始日期")
-        self.t11 = self.tutorialCard("release_end", "放送结束日期")
+        self.t9 = self.tutorialCard("release", "放送开始日期")
+        self.t10 = self.tutorialCard("release_end", "放送结束日期")
+        self.t11 = self.tutorialCard("release_week", "放送星期")
         self.t12 = self.tutorialCard("release_week", "放送星期")
 
         self.f3 = QHBoxLayout()
@@ -73,8 +73,8 @@ class SettingWindow(object):
         self.f3.addWidget(self.t9)
         self.f3.addWidget(self.t10)
         self.f3.addWidget(self.t11)
-        self.f3.addWidget(self.t12)
-        # self.f3.addStretch(0)
+        # self.f3.addWidget(self.t12)
+        self.f3.addStretch(0)
 
         self.renameTutorialLayout = QVBoxLayout()
         self.renameTutorialLayout.setSpacing(12)
