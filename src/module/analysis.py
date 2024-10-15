@@ -10,6 +10,7 @@ from src.module.api.anilist import anilistSearch
 from src.module.api.bangumi import bangumiIDSearch, bangumiSubject
 from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
+from src.module.utils import sanitizeName
 
 
 class Analysis(QObject):
@@ -72,8 +73,8 @@ class Analysis(QObject):
         bangumi_subject = bangumiSubject(bangumi_id)
 
         if bangumi_subject:
-            anime["name_jp"] = bangumi_subject["name_jp"].replace("/", " ")  # 移除结果中的斜杠
-            anime["name_cn"] = bangumi_subject["name_cn"].replace("/", " ")  # 移除结果中的斜杠
+            anime["name_jp"] = sanitizeName(bangumi_subject["name_jp"])
+            anime["name_cn"] = sanitizeName(bangumi_subject["name_cn"])
             anime["poster"] = bangumi_subject["poster"]
             anime["type"] = bangumi_subject["type"]
             anime["typecode"] = bangumi_subject["typecode"]
@@ -95,7 +96,7 @@ class Analysis(QObject):
             # 搜索首季TV，如果没有则返回第一个项目(如剧场版)
             fs_anime = next((item for item in relate_anime if item["platform"] == "TV"), relate_anime[0])
             anime["fs_id"] = fs_anime["id"]
-            anime["fs_name_cn"] = fs_anime["nameCN"]
+            anime["fs_name_cn"] = sanitizeName(fs_anime["nameCN"])
             anime["relate"] = relate_anime
             self.added_progress_count.emit(1)
         else:
@@ -166,5 +167,5 @@ def getFinal(anime):
     anime["final_dir"] = final_dir
 
     # 写入final_path到字典
-    final_path = os.path.join(final_dir, os.path.normpath(final_name))  # 保证路径在windows下合法化
+    final_path = os.path.join(final_dir, os.path.normpath(final_name))  # 保证斜杠分隔符在windows下正确
     anime["final_path"] = final_path

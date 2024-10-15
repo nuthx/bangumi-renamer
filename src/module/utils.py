@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import logging
@@ -34,3 +35,8 @@ def log(content):
     logging.info(f"[{time}] {content}")
 
     print(f"[{time}] {content}")
+
+
+def sanitizeName(filename):
+    invalid = r'[<>:"/\\|?*]'  # windows 不允许的字符
+    return re.sub(invalid, '', filename)

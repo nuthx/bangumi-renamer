@@ -1,9 +1,8 @@
 import os
 import time
-import threading
-import shutil
 import arrow
-import nltk
+import threading
+import nltk  # TODO
 
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, QPoint
@@ -19,6 +18,7 @@ from src.gui.components.FsNameEditDialog import FsNameEditDialog
 from src.module.data import createAnimeData
 from src.module.analysis import Analysis, getFinal
 from src.module.config import openFolder, posterFolder, checkConfigVersion
+from src.module.rename import Rename
 from src.module.version import Version
 from src.module.utils import getResource
 
@@ -47,7 +47,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.analysis.main_state.connect(self.showState)
         self.analysis.anime_state.connect(self.showStateInTable)
         self.analysis.added_progress_count.connect(self.increaseProgress)
-        nltk.data.path.append(getResource("lib/nltk_data"))
+        nltk.data.path.append(getResource("lib/nltk_data"))  # TODO
 
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
@@ -381,77 +381,28 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
     # TODO
     def startRename(self):
-        # anime_list 是否有数据
-        if not self.anime_list:
-            self.showToast("warning", "", "请先添加动画")
+        """
+        重命名函数
+        """
+        rename = Rename()
+        error = rename.check(self.anime_list)
+
+        # 检查是否满足重命名条件
+        if error:
+            self.showToast("warning", "", error)
             return
 
-        # 是否开始过分析
-        if self.table.item(0, 2) is None:
-            self.showToast("warning", "", "请先开始分析")
-            return
+        # 尝试重命名
+        try:
+            rename.start(self.anime_list)
+            self.initData()
+            self.initContent()
+            self.showToast("success", "", "重命名完成")
 
-        # 列出 anime_list 中有 final_name 的索引
-        rename_order_list = []
-        final_name_check = []
-        for index, dictionary in enumerate(self.anime_list):
-            if "final_name" in dictionary:
-                rename_order_list.append(index)
-                final_name_check.append(dictionary["final_name"])
-
-        # 检查重命名的结果是否相同
-        if len(set(final_name_check)) == 1 and len(final_name_check) != 1:
-            self.showToast("warning", "", "存在重复的重命名结果")
-            return
-
-        # 是否有需要命名的动画
-        if not rename_order_list:
-            self.showToast("warning", "", "没有可以命名的动画")
-            return
-
-        # 开始命名
-        for order in rename_order_list:
-            this_anime = self.anime_list[order]
-
-            # 拆分 final_name 文件夹结构
-            final_name = this_anime["final_name"]
-            if '/' in final_name:
-                final_name_list = final_name.split('/')
-                final_name_1 = final_name_list[0]
-                final_name_2 = final_name_list[1]
-            else:
-                final_name_1 = ""
-                final_name_2 = final_name
-
-            # 排除 Windows 不支持的字符
-            final_name_1 = final_name_1.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
-            final_name_1 = final_name_1.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
-            final_name_2 = final_name_2.replace("\\", " ").replace("/", " ").replace(":", " ").replace("?", " ").replace("\"", " ")
-            final_name_2 = final_name_2.replace("\"", " ").replace("<", " ").replace(">", " ").replace("|", " ")
-
-            # 更名当前文件夹
-            file_path = this_anime["file_path"]
-            file_dir = os.path.dirname(file_path)
-            final_path_2 = os.path.join(file_dir, final_name_2)
-            os.rename(file_path, final_path_2)
-
-            # 是否有父文件夹
-            if final_name_1 == "":
-                return
-
-            # 创建父文件夹
-            final_path_1 = os.path.join(file_dir, final_name_1)
-            if not os.path.exists(final_path_1):
-                os.makedirs(final_path_1)
-
-            # 移动至父文件夹
-            final_path_1 = os.path.join(file_dir, final_name_1)
-            shutil.move(final_path_2, final_path_1)
-
-        print(self.anime_list)
-        self.initData()
-        self.initContent()
-        self.showToast("success", "", "重命名完成")
+        # 失败则返回错误信息
+        except Exception as e:
+            print("startRename:", e)
+            self.showToast("warning", "", str(e))
 
     def showTableMenu(self, pos):
         edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")

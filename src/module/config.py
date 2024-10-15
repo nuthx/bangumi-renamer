@@ -124,7 +124,7 @@ def checkNameFormat(name_format):
     检查配置文件中，"命名格式"项的合法性
     :return: 不合法则返回检查结果；若合法则无返回
     """
-    available = ["name_jp", "name_cn", "fs_name_cn", "name_init",
+    available = ["name_jp", "name_cn", "fs_name_cn", "name_romaji",
                  "type", "typecode", "episodes", "score",
                  "bangumi_id", "release", "release_end", "release_week"]
     pattern = r"\{(.*?)\}"
