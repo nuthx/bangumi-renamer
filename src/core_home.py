@@ -2,7 +2,6 @@ import os
 import time
 import arrow
 import threading
-import nltk  # TODO
 
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, QPoint
@@ -47,7 +46,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.analysis.main_state.connect(self.showState)
         self.analysis.anime_state.connect(self.showStateInTable)
         self.analysis.added_progress_count.connect(self.increaseProgress)
-        nltk.data.path.append(getResource("lib/nltk_data"))  # TODO
 
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
