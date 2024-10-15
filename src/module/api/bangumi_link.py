@@ -25,6 +25,11 @@ def bangumiLink(anime):
             if not item["nameCN"]:
                 item["nameCN"] = item["name"]
 
+        # 没有日期的数据，用1000-01-01代替
+        for item in result:
+            if "date" not in item:
+                item["date"] = "1000-01-01"
+
         return result
 
     except ValueError as e:
