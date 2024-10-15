@@ -112,7 +112,7 @@ def initConfig(config_file):
     config.set("Application", "version", "2.1")
 
     config.add_section("Format")
-    config.set("Format", "rename_format", "{init_name}/[{typecode}] [{release}] {jp_name}")
+    config.set("Format", "rename_format", "{fs_name_cn}/[{typecode}] [{release}] {name_jp}")
     config.set("Format", "date_format", "YYMMDD")
 
     with open(config_file, "w", encoding="utf-8") as content:
@@ -124,7 +124,7 @@ def checkNameFormat(name_format):
     检查配置文件中，"命名格式"项的合法性
     :return: 不合法则返回检查结果；若合法则无返回
     """
-    available = ["name_jp", "name_cn", "fs_name_cn", "name_romaji",
+    available = ["name_jp", "name_cn", "fs_name_cn", "name_init",
                  "type", "typecode", "episodes", "score",
                  "bangumi_id", "release", "release_end", "release_week"]
     pattern = r"\{(.*?)\}"

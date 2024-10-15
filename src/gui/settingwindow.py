@@ -27,19 +27,19 @@ class SettingWindow(object):
         self.renameType = EditableComboBox(self)
         self.renameType.setMinimumWidth(480)
         self.renameType.setMaximumWidth(400)
-        self.renameType.addItems(["{init_name}/[{score}] [{typecode}] [{release}] {jp_name}",
-                                  "{init_name}/[{typecode}] [{release}] {jp_name}",
-                                  "{types}/{cn_name} ({jp_name})",
-                                  "[{release}] {cn_name} ({episodes})"])
+        self.renameType.addItems(["{fs_name_cn}/[{typecode}] [{release}] {name_jp}",
+                                  "{fs_name_cn}/[{score}] [{typecode}] [{release}] {name_jp}",
+                                  "{type}/{name} ({name_jp})",
+                                  "[{release}] {name_cn} ({release_week})"])
 
         self.renameTypeCard = self.settingCard(self.renameTypeTitle, self.renameTypeInfo, self.renameType, "half")
 
         # 命名说明
 
-        self.t1 = self.tutorialCard("jp_name", "日文名")
-        self.t2 = self.tutorialCard("cn_name", "中文名")
-        self.t3 = self.tutorialCard("init_name", "首季中文名")
-        self.t4 = self.tutorialCard("romaji_name", "罗马名")
+        self.t1 = self.tutorialCard("name_jp", "日文名")
+        self.t2 = self.tutorialCard("name_cn", "中文名")
+        self.t3 = self.tutorialCard("fs_name_cn", "首季中文名")
+        self.t4 = self.tutorialCard("name_romaji", "罗马名")
 
         self.f1 = QHBoxLayout()
         self.f1.setSpacing(12)
@@ -49,10 +49,10 @@ class SettingWindow(object):
         self.f1.addWidget(self.t3)
         self.f1.addWidget(self.t4)
 
-        self.t5 = self.tutorialCard("types", "动画类型")
+        self.t5 = self.tutorialCard("type", "动画类型")
         self.t6 = self.tutorialCard("typecode", "类型编号")
-        self.t7 = self.tutorialCard("release", "放送日期")
-        self.t8 = self.tutorialCard("episodes", "章节数量")
+        self.t7 = self.tutorialCard("episodes", "当前评分")
+        self.t8 = self.tutorialCard("score", "章节数量")
 
         self.f2 = QHBoxLayout()
         self.f2.setSpacing(12)
@@ -62,19 +62,19 @@ class SettingWindow(object):
         self.f2.addWidget(self.t7)
         self.f2.addWidget(self.t8)
 
-        self.t9 = self.tutorialCard("score", "当前评分")
-        self.t10 = self.tutorialCard("bgm_id", "Bangumi ID")
-        # self.t11 = self.tutorialCard("", "")
-        # self.t12 = self.tutorialCard("", "")
+        self.t9 = self.tutorialCard("bangumi_id", "Bangumi ID")
+        self.t10 = self.tutorialCard("release", "放送开始日期")
+        self.t11 = self.tutorialCard("release_end", "放送结束日期")
+        self.t12 = self.tutorialCard("release_week", "放送星期")
 
         self.f3 = QHBoxLayout()
         self.f3.setSpacing(12)
         self.f3.setContentsMargins(0, 0, 0, 0)
         self.f3.addWidget(self.t9)
         self.f3.addWidget(self.t10)
-        # self.f3.addWidget(self.t11)
-        # self.f3.addWidget(self.t12)
-        self.f3.addStretch(0)
+        self.f3.addWidget(self.t11)
+        self.f3.addWidget(self.t12)
+        # self.f3.addStretch(0)
 
         self.renameTutorialLayout = QVBoxLayout()
         self.renameTutorialLayout.setSpacing(12)
