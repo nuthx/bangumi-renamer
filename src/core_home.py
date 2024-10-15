@@ -31,6 +31,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.initData()
         self.initContent()
 
+        self.anime_id = 0
+        self.anime_list = []
+
         # 检查版本更新
         self.version = Version()
         self.version.has_update.connect(self.checkVersion)
@@ -48,11 +51,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
     def initConnect(self):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
-        self.table.customContextMenuRequested.connect(self.showMenu)
-        self.table.itemSelectionChanged.connect(self.showAnimeInDetail)
+        self.table.customContextMenuRequested.connect(self.showTableMenu)
+        self.table.itemSelectionChanged.connect(self.showAnimeInDetail)  # 点击显示动画信息
 
         self.searchList.setContextMenuPolicy(Qt.CustomContextMenu)  # 自定义右键菜单
-        self.searchList.customContextMenuRequested.connect(self.showMenu2)
+        self.searchList.customContextMenuRequested.connect(self.showListMenu)
 
         self.newVersionButton.clicked.connect(self.openReleasePage)
         self.aboutButton.clicked.connect(self.openAboutWindow)
@@ -330,43 +333,10 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                 name_cn = this["nameCN"]
                 self.searchList.addItem(QListWidgetItem(f"[{release}] {name_cn}"))
 
-
-    def showMenu(self, pos):
-        edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
-        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
-        open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
-        open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
-        delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
-
-        menu = RoundMenu(parent=self)
-        menu.addAction(edit_init_name)
-        menu.addSeparator()
-        menu.addAction(view_on_bangumi)
-        menu.addSeparator()
-        menu.addAction(open_this_folder)
-        menu.addAction(open_parent_folder)
-        menu.addSeparator()
-        menu.addAction(delete_this_anime)
-
-        # 必须选中单元格才会显示
-        if self.table.itemAt(pos) is not None:
-            menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)  # 在微调菜单位置
-
-            # 不使用RowInTable函数，使用当前pos点位计算行数
-            # 目的是避免点击右键时，当前行若未选中，会报错
-            # row = self.RowInTable()
-            clicked_item = self.table.itemAt(pos)  # 计算坐标
-            row = self.table.row(clicked_item)  # 计算行数
-
-            edit_init_name.triggered.connect(lambda: self.editInitName(row))
-            view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(row))
-            open_this_folder.triggered.connect(lambda: self.openThisFolder(row))
-            open_parent_folder.triggered.connect(lambda: self.openParentFolder(row))
-            delete_this_anime.triggered.connect(lambda: self.deleteThisAnime(row))
-
+    # TODO
     def editInitName(self, row):
-        if "init_name" in self.anime_list[row]:
-            init_name = self.anime_list[row]["init_name"]
+        if "fs_name_cn" in self.anime_list[row]:
+            init_name = self.anime_list[row]["fs_name_cn"]
             w = FsNameEditDialog(self, init_name)
             if w.exec():
                 new_init_name = w.nameEdit.text()
@@ -376,7 +346,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                     self.showToast("warning", "", "首季动画名未修改")
                     return
                 else:
-                    self.anime_list[row]["init_name"] = new_init_name
+                    self.anime_list[row]["fs_name_cn"] = new_init_name
                     getFinal(self.anime_list[row])
                     self.showAnimeInTable()
                     self.showAnimeInDetail()
@@ -385,63 +355,31 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.showToast("warning", "无法修改", "请先进行动画分析")
             return
 
-    def openBgmUrl(self, row):
-        if "bgm_id" in self.anime_list[row]:
-            bgm_id = str(self.anime_list[row]["bgm_id"])
-            url = QUrl("https://bgm.tv/subject/" + bgm_id)
-            QDesktopServices.openUrl(url)
+    def openBangumiURL(self, bangumi_id):
+        """
+        打开此动画的bangumi页面
+        :param bangumi_id: 动Bangumi ID
+        """
+        if bangumi_id != "":
+            QDesktopServices.openUrl(QUrl("https://bgm.tv/subject/" + bangumi_id))
         else:
             self.showToast("warning", "链接无效", "请先进行动画分析")
-            return
 
-    def openThisFolder(self, row):
-        path = self.anime_list[row]["file_path"]
-        openFolder(path)
-
-    def openParentFolder(self, row):
-        this_path = self.anime_list[row]["file_path"]
-        parent_path = os.path.dirname(this_path)
-        openFolder(parent_path)
-
-    def deleteThisAnime(self, row):
-        # 删除此行
+    def removeAnime(self, row):
+        """
+        移除动画
+        :param row: 要移除的动画所在的行
+        """
         self.anime_list.pop(row)
 
         # 此行后面的 anime_id 重新排序
         for i in range(row, len(self.anime_list)):
             self.anime_list[i]["id"] -= 1
 
-        # 全局 anime_id 减一
-        self.anime_id -= 1
-
+        self.anime_id -= 1  # 全局 anime_id 减一
         self.showAnimeInTable()
 
-    def showMenu2(self, pos):
-        instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
-        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
-
-        menu = RoundMenu(parent=self)
-        menu.addAction(instead_this_anime)
-        menu.addSeparator()
-        menu.addAction(view_on_bangumi)
-
-        # 必须选中才会显示
-        if self.searchList.itemAt(pos) is not None:
-            # 计算子表格行
-            clicked_item = self.searchList.itemAt(pos)  # 计算坐标
-            list_row = self.searchList.row(clicked_item)  # 计算行数
-
-            # 计算主表格行，不需要考虑选中问题，可直接使用RowInTable函数
-            table_row = self.selectedRowInTable()
-
-            # 不出现在默认列表中
-            if self.searchList.item(list_row).text() != "暂无搜索结果":
-                menu.exec(self.searchList.mapToGlobal(pos), ani=True)
-
-                bangumi_id = self.anime_list[table_row]["result"][list_row]["bgm_id"]
-                instead_this_anime.triggered.connect(lambda: self.startAnalysisByID(table_row, bangumi_id))
-                view_on_bangumi.triggered.connect(lambda: self.openBgmUrl(table_row))
-
+    # TODO
     def startRename(self):
         # anime_list 是否有数据
         if not self.anime_list:
@@ -514,6 +452,59 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         self.initData()
         self.initContent()
         self.showToast("success", "", "重命名完成")
+
+    def showTableMenu(self, pos):
+        edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
+        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
+        open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
+        open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
+        delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
+
+        menu = RoundMenu(parent=self)
+        menu.addAction(edit_init_name)
+        menu.addSeparator()
+        menu.addAction(view_on_bangumi)
+        menu.addSeparator()
+        menu.addAction(open_this_folder)
+        menu.addAction(open_parent_folder)
+        menu.addSeparator()
+        menu.addAction(delete_this_anime)
+
+        # 必须选中单元格才会显示
+        if self.table.itemAt(pos) is not None:
+            # 不使用selectedRowInTable函数，使用当前pos点位计算行数
+            # 避免点击右键时，当前行若未选中，会报错
+            row = self.table.row(self.table.itemAt(pos))  # 表格行数
+
+            # 微调菜单位置并显示菜单
+            menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)
+            edit_init_name.triggered.connect(lambda: self.editInitName(row))
+            view_on_bangumi.triggered.connect(lambda: self.openBangumiURL(self.anime_list[row]["bangumi_id"]))
+            open_this_folder.triggered.connect(lambda: openFolder(self.anime_list[row]["file_path"]))
+            open_parent_folder.triggered.connect(lambda: openFolder(os.path.dirname(self.anime_list[row]["file_path"])))
+            delete_this_anime.triggered.connect(lambda: self.removeAnime(row))
+
+    def showListMenu(self, pos):
+        instead_this_anime = Action(FluentIcon.LABEL, "更正为这个动画")
+        view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
+
+        menu = RoundMenu(parent=self)
+        menu.addAction(instead_this_anime)
+        menu.addSeparator()
+        menu.addAction(view_on_bangumi)
+
+        # 必须选中才会显示
+        if self.searchList.itemAt(pos) is not None:
+            table_row = self.selectedRowInTable()  # 表格行数
+            list_row = self.searchList.row(self.searchList.itemAt(pos))  # 列表行数
+
+            # 没有搜索结果时不显示右键菜单
+            if self.searchList.item(list_row).text() != "暂无搜索结果":
+                # 显示菜单(无需微调位置)
+                menu.exec(self.searchList.mapToGlobal(pos), ani=True)
+                bangumi_id = str(self.anime_list[table_row]["relate"][list_row]["id"])
+                instead_this_anime.triggered.connect(lambda: self.startAnalysisByID(table_row, bangumi_id))
+                view_on_bangumi.triggered.connect(lambda: self.openBangumiURL(bangumi_id))
 
     def showToast(self, state, title, content):
         """
