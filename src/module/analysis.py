@@ -68,7 +68,7 @@ class Analysis(QObject):
             anime["name_cn"] = bangumi_subject[2].replace("/", " ")  # 移除结果中的斜杠
             anime["type"] = bangumi_subject[3]
             anime["typecode"] = bangumi_subject[4]
-            anime["release"] = bangumi_subject[5]
+            anime["release_raw"] = bangumi_subject[5]
             anime["episodes"] = bangumi_subject[6]
             anime["score"] = bangumi_subject[7]
             self.added_progress_count.emit(1)
@@ -216,20 +216,19 @@ def getFinal(anime):
     data_format = readConfig("Format", "date_format")
     rename_format = readConfig("Format", "rename_format")
 
-    # 特殊处理：日期格式化
-    anime["release"] = arrow.get(anime["release"]).format(data_format)
+    # 格式化release日期到字典
+    anime["release"] = arrow.get(anime["release_raw"]).format(data_format)
+    anime["release_end"] = arrow.get(anime["release_end_raw"]).format(data_format)
 
     # 写入final_name到字典
     rename_format_final = rename_format.format(**anime)  # 替换为anime字典中对应值
     final_name = eval(f'f"{rename_format_final}"')
     anime["final_name"] = final_name
 
-    # 写入final_name到字典
+    # 写入final_dir到字典
     final_dir = os.path.dirname(anime["file_path"])
     anime["final_dir"] = final_dir
 
     # 写入final_path到字典
     final_path = os.path.join(final_dir, os.path.normpath(final_name))  # 保证路径在windows下合法化
     anime["final_path"] = final_path
-
-    print(anime)

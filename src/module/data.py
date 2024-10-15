@@ -40,7 +40,9 @@ def createAnimeData(anime_id, anime_list, file_list):
             "type": "",  # 放送类型
             "typecode": "",  # 放送类型代码(01: TV版, 02: 剧场版, 03: OVA与OAD, XBD: 其他)
             "release": "",  # 放送开始日期
+            "release_raw": "",  # 放送开始日期(原始)
             "release_end": "",  # 放送结束日期
+            "release_end_raw": "",  # 放送结束日期(原始)
             "release_week": "",  # 放送星期
             "episodes": "",  # 章节数量
             "score": "",  # 当前评分
