@@ -288,8 +288,6 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.table.setItem(anime["id"], 3, QTableWidgetItem("==> 动画获取失败（逃"))
         else:
             self.showAnimeInTable()
-            # TODO: 有时候失效
-            self.table.selectRow(0)  # 分析完成后自动选中第一行
 
     def _threadFinishCheck(self):
         """
@@ -302,10 +300,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                 self.clearButton.setEnabled(True)
                 self.analysisButton.setEnabled(True)
                 self.renameButton.setEnabled(True)
+                self.table.selectRow(0)  # 分析完成后自动选中第一行
                 self.showState(f"分析完成，共{list_count}个动画")
                 return
             else:
-                time.sleep(0.5)
+                time.sleep(0.2)
 
     def showAnimeInDetail(self):
         """
