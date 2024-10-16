@@ -2,7 +2,7 @@ from PySide6.QtCore import QUrl
 from qfluentwidgets import MessageBoxBase, SubtitleLabel, LineEdit
 
 
-class NameEditBox(MessageBoxBase):
+class FsNameEditDialog(MessageBoxBase):
     def __init__(self, parent, init_name):
         super().__init__(parent)
         self.widget.setMinimumWidth(350)

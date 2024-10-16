@@ -1,8 +1,5 @@
-PySide6==6.4.2
-PySide6-Fluent-Widgets>=1.4.3
+pyside6==6.7.3
+PySide6-Fluent-Widgets==1.6.6
 requests
 arrow
 anitopy
-jieba
-fuzzywuzzy
-nltk

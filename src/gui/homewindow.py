@@ -1,16 +1,16 @@
-from PySide6.QtCore import QMetaObject
-from PySide6.QtGui import QFontDatabase, QFont, QIcon
+from PySide6.QtCore import QMetaObject, QRegularExpression
+from PySide6.QtGui import QFontDatabase, QFont, QIcon, QRegularExpressionValidator
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QAbstractItemView
 from qfluentwidgets import (setThemeColor, PushButton, ToolButton, TableWidget, PrimaryPushButton, FluentIcon,
-                            ProgressRing, ListWidget, LineEdit, InfoBadge, InfoBadgePosition)
+                            ProgressRing, ListWidget, LineEdit, InfoBadge)
 from qfluentwidgets.common.style_sheet import styleSheetManager
 
-from src.module.version import currentVersion
-from src.module.resource import getResource
-from src.module.image import RoundedLabel
+from src.module.version import Version
+from src.module.utils import getResource
+from src.gui.components.RoundedImage import RoundedImage
 
 
-class MainWindow(object):
+class HomeWindow(object):
     def setupUI(self, this_window):
         # 配置主题色与字体
         setThemeColor("#F09199")
@@ -22,7 +22,7 @@ class MainWindow(object):
             style_sheet = file.read()
         this_window.setStyleSheet(style_sheet)
 
-        this_window.setWindowTitle(f"BangumiRenamer {currentVersion()}")
+        this_window.setWindowTitle(f"BangumiRenamer {Version().current()}")
         this_window.setWindowIcon(QIcon(getResource("src/image/icon_win.png")))
         this_window.resize(1280, 720)
         this_window.setAcceptDrops(True)
@@ -66,7 +66,7 @@ class MainWindow(object):
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)  # 单选模式
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止双击编辑
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["ID", "动画文件夹", "动画名", "首季动画名"])
+        self.table.setHorizontalHeaderLabels(["", "动画文件夹", "动画名", "首季动画名"])
         self.table.setColumnWidth(0, 46)  # 1206
         self.table.setColumnWidth(1, 540)
         self.table.setColumnWidth(2, 320)
@@ -85,7 +85,7 @@ class MainWindow(object):
 
         # 1 => 图片
 
-        self.image = RoundedLabel(getResource("src/image/empty.png"))
+        self.image = RoundedImage(getResource("src/image/empty.png"))
 
         # 2.1 => 标题
 
@@ -94,23 +94,11 @@ class MainWindow(object):
         self.jpName = QLabel("请先选中一个动画以展示详细信息")
         self.jpName.setObjectName("jpName")
 
-        self.collectionBadge = InfoBadge()
-        self.collectionBadge.setFixedSize(34, 20)
-        self.collectionBadge.setText("")
-        self.collectionBadge.setCustomBackgroundColor("#333", "#333")  # 浅色/暗色模式
-        self.collectionBadge.setVisible(False)
-
-        self.cnNameLayout = QHBoxLayout()
-        self.cnNameLayout.setSpacing(6)
-        self.cnNameLayout.setContentsMargins(0, 0, 0, 0)
-        self.cnNameLayout.addWidget(self.collectionBadge)
-        self.cnNameLayout.addWidget(self.cnName)
-
         self.nameLayout = QVBoxLayout()
         self.nameLayout.setSpacing(8)
         self.nameLayout.setContentsMargins(0, 0, 0, 0)
         self.nameLayout.addSpacing(6)
-        self.nameLayout.addLayout(self.cnNameLayout)
+        self.nameLayout.addWidget(self.cnName)
         self.nameLayout.addWidget(self.jpName)
 
         # 2.2 => ID
@@ -118,6 +106,7 @@ class MainWindow(object):
         self.idLabel = LineEdit(self)
         self.idLabel.setFixedWidth(120)
         self.idLabel.setClearButtonEnabled(False)
+        self.idLabel.setValidator(QRegularExpressionValidator(QRegularExpression(r'^\d+$')))  # 仅支持数字
         styleSheetManager.deregister(self.idLabel)  # 禁用皮肤，启用自定义 QSS
         with open(getResource("src/style/line_edit.qss"), encoding="utf-8") as file:
             self.idLabel.setStyleSheet(file.read())
