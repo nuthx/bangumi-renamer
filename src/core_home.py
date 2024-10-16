@@ -332,27 +332,27 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                 name_cn = this["nameCN"]
                 self.searchList.addItem(QListWidgetItem(f"[{release}] {name_cn}"))
 
-    # TODO
-    def editInitName(self, row):
-        if "fs_name_cn" in self.anime_list[row]:
-            init_name = self.anime_list[row]["fs_name_cn"]
-            w = FsNameEditDialog(self, init_name)
-            if w.exec():
-                new_init_name = w.nameEdit.text()
-
-                # 是否修改了名称
-                if new_init_name == init_name:
-                    self.showToast("warning", "", "首季动画名未修改")
-                    return
-                else:
-                    self.anime_list[row]["fs_name_cn"] = new_init_name
-                    getFinal(self.anime_list[row])
-                    self.showAnimeInTable()
-                    self.showAnimeInDetail()
-
-        else:
-            self.showToast("warning", "无法修改", "请先进行动画分析")
-            return
+    # TODO: 加入所有属性的修改支持
+    # def editInitName(self, row):
+    #     if "fs_name_cn" in self.anime_list[row]:
+    #         init_name = self.anime_list[row]["fs_name_cn"]
+    #         w = FsNameEditDialog(self, init_name)
+    #         if w.exec():
+    #             new_init_name = w.nameEdit.text()
+    #
+    #             # 是否修改了名称
+    #             if new_init_name == init_name:
+    #                 self.showToast("warning", "", "首季动画名未修改")
+    #                 return
+    #             else:
+    #                 self.anime_list[row]["fs_name_cn"] = new_init_name
+    #                 getFinal(self.anime_list[row])
+    #                 self.showAnimeInTable()
+    #                 self.showAnimeInDetail()
+    #
+    #     else:
+    #         self.showToast("warning", "无法修改", "请先进行动画分析")
+    #         return
 
     def openBangumiURL(self, bangumi_id):
         """
@@ -403,15 +403,15 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             self.showToast("warning", "", str(e))
 
     def showTableMenu(self, pos):
-        edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
+        # edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
         view_on_bangumi = Action(FluentIcon.LINK, "在 Bangumi 中查看")
         open_this_folder = Action(FluentIcon.FOLDER, "打开此文件夹")
         open_parent_folder = Action(FluentIcon.FOLDER, "打开上级文件夹")
         delete_this_anime = Action(FluentIcon.DELETE, "删除此动画")
 
         menu = RoundMenu(parent=self)
-        menu.addAction(edit_init_name)
-        menu.addSeparator()
+        # menu.addAction(edit_init_name)
+        # menu.addSeparator()
         menu.addAction(view_on_bangumi)
         menu.addSeparator()
         menu.addAction(open_this_folder)
@@ -427,7 +427,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
             # 微调菜单位置并显示菜单
             menu.exec(self.table.mapToGlobal(pos) + QPoint(0, 30), ani=True)
-            edit_init_name.triggered.connect(lambda: self.editInitName(row))
+            # edit_init_name.triggered.connect(lambda: self.editInitName(row))
             view_on_bangumi.triggered.connect(lambda: self.openBangumiURL(self.anime_list[row]["bangumi_id"]))
             open_this_folder.triggered.connect(lambda: openFolder(self.anime_list[row]["file_path"]))
             open_parent_folder.triggered.connect(lambda: openFolder(os.path.dirname(self.anime_list[row]["file_path"])))
