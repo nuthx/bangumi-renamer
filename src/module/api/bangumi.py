@@ -1,10 +1,12 @@
+import time
+import json
 import requests
 
 
 # https://bangumi.github.io/api
 def bangumiIDSearch(name_jp):
     """
-    使用name_jp搜索Bangumi ID
+    使用name_jp搜索Bangumi ID，容易触发DDOS 503保护，因此重试三次。其他API目前无此问题
     :param name_jp: 动画日文名称
     :return: Bangumi ID
     """
@@ -12,14 +14,25 @@ def bangumiIDSearch(name_jp):
     headers = {"accept": "application/json", "User-Agent": "nuthx/bangumi-renamer"}
     url = "https://api.bgm.tv/search/subject/" + name_jp + "?type=2&responseGroup=large&max_results=25"
 
-    try:
-        result = requests.post(url, headers=headers).json()
-        bangumi_id = result["list"][0]["id"]
-        return str(bangumi_id)
+    for attempt in range(3):
+        try:
+            result = requests.get(url, headers=headers).json()
+            bangumi_id = result["list"][0]["id"]
+            return str(bangumi_id)
 
-    except Exception as e:
-        print("bangumiIDSearch:", e)
-        return
+        except json.JSONDecodeError:
+            if attempt < 2:
+                print(f"bangumiIDSearch - {name_jp}: 503 重试中 ({attempt + 1}/3)")
+                time.sleep(0.2)
+                continue
+            else:
+                break
+
+        except Exception as e:
+            print(f"bangumiIDSearch - {name_jp}: e")
+            break
+
+    return None
 
 
 def bangumiSubject(bangumi_id):
@@ -69,5 +82,5 @@ def bangumiSubject(bangumi_id):
         return anime_info
 
     except Exception as e:
-        print("bangumiSubject:", e)
+        print(f"bangumiSubject - {bangumi_id}: e")
         return
