@@ -23,5 +23,5 @@ def anilistSearch(romaji_name):
         return name_jp_anilist
 
     except Exception as e:
-        print(e)
+        print(f"anilistSearch - {romaji_name}: {e}")
         return

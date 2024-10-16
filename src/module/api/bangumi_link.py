@@ -44,5 +44,5 @@ def bangumiLink(anime):
         return node
 
     except Exception as e:
-        print(e)
+        print(f"bangumiLink - {anime['name_jp']}: {e}")
         return
