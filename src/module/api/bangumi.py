@@ -35,7 +35,7 @@ class Bangumi:
                     break
 
             except Exception as e:
-                print(f"bangumiIDSearch - {name_jp}: e")
+                print(f"Bangumi.SearchID - {name_jp}: {e}")
                 break
 
         return None
@@ -84,5 +84,5 @@ class Bangumi:
             return anime_info
 
         except Exception as e:
-            print(f"bangumiSubject - {bangumi_id}: e")
+            print(f"Bangumi.GetDetail - {bangumi_id}: {e}")
             return

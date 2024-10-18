@@ -32,7 +32,7 @@ def bangumiLink(anime):
 
         return result
 
-    except ValueError as e:
+    except ValueError:
         node = [{
             "id": anime["bangumi_id"],
             "nameCN": anime["name_cn"],
