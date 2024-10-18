@@ -17,10 +17,12 @@ class MySettingWindow(QDialog, SettingWindow):
         self.loadConfig()
 
     def initConnect(self):
-        self.posterFolderButton.clicked.connect(self.openPosterFolder)
-        self.logFolderButton.clicked.connect(self.openLogFolder)
+        self.posterFolderButton.clicked.connect(lambda: openFolder(posterFolder()))
+        self.logFolderButton.clicked.connect(lambda: openFolder(logFolder()))
         self.applyButton.clicked.connect(self.saveConfig)
         self.cancelButton.clicked.connect(lambda: self.close())
+
+        # self.ai_setting.test.clicked.connect(lambda: print("00"))
 
     def loadConfig(self):
         """
@@ -29,19 +31,10 @@ class MySettingWindow(QDialog, SettingWindow):
         self.renameType.setText(readConfig("Format", "rename_format"))
         self.dateType.setText(readConfig("Format", "date_format"))
 
-    @staticmethod
-    def openPosterFolder():
-        """
-        打开海报文件夹
-        """
-        openFolder(posterFolder())
-
-    @staticmethod
-    def openLogFolder():
-        """
-        打开日志文件夹
-        """
-        openFolder(logFolder())
+        self.ai_setting.usage.setCurrentIndex(int(readConfig("AI", "usage")))
+        self.ai_setting.url.setText(readConfig("AI", "url"))
+        self.ai_setting.token.setText(readConfig("AI", "token"))
+        self.ai_setting.model.setText(readConfig("AI", "model"))
 
     def saveConfig(self):
         """
@@ -53,6 +46,12 @@ class MySettingWindow(QDialog, SettingWindow):
         else:
             writeConfig("Format", "rename_format", self.renameType.currentText())
             writeConfig("Format", "date_format", self.dateType.currentText())
+
+            writeConfig("AI", "usage", str(self.ai_setting.usage.currentIndex()))
+            writeConfig("AI", "url", self.ai_setting.url.text())
+            writeConfig("AI", "token", self.ai_setting.token.text())
+            writeConfig("AI", "model", self.ai_setting.model.text())
+
             self.config_saved.emit("配置已保存")
             self.close()
 

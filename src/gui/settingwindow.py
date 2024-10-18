@@ -1,7 +1,9 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame
 from PySide6.QtGui import QIcon
-from qfluentwidgets import PushButton, FluentIcon, PrimaryPushButton, EditableComboBox
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame, QMainWindow, QWidget
+from qfluentwidgets import PushButton, FluentIcon, PrimaryPushButton, EditableComboBox, SingleDirectionScrollArea, \
+    SettingCard, GroupHeaderCardWidget, SearchLineEdit, ComboBox, IconWidget, InfoBarIcon, BodyLabel, CardWidget, \
+    CaptionLabel, TransparentToolButton, SwitchButton, IndicatorPosition, ExpandGroupSettingCard, LineEdit
 
 from src.module.utils import getResource
 from src.module.config import posterFolder, logFolder
@@ -152,8 +154,8 @@ class SettingWindow(object):
         self.buttonLayout.addStretch(0)
 
         # 叠叠乐
-
-        layout = QVBoxLayout(this_window)
+        layout = QVBoxLayout()
+        # layout = QVBoxLayout(this_window)
         layout.setSpacing(14)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.addWidget(self.renameTypeCard)
@@ -162,8 +164,13 @@ class SettingWindow(object):
         layout.addWidget(self.dateTypeCard)
         layout.addWidget(self.posterFolderCard)
         layout.addWidget(self.logFolderCard)
+
+        self.ai_setting = AISetting()
+        layout.addWidget(self.ai_setting)
         layout.addSpacing(12)
         layout.addLayout(self.buttonLayout)
+
+        this_window.setLayout(layout)
 
     def settingCard(self, card_title, card_info, card_func, size):
         card_title.setObjectName("cardTitleLabel")
@@ -210,3 +217,35 @@ class SettingWindow(object):
         self.card.setLayout(self.tutorialLayout)
 
         return self.card
+
+
+class AISetting(GroupHeaderCardWidget):
+    def __init__(self):
+        super().__init__()
+        # TODO: 重写边框样式、副标题尺寸(尝试大改)
+        self.setTitle("AI 设置")
+        self.setBorderRadius(8)
+
+        self.usage = ComboBox()
+        self.usage.setFixedWidth(320)
+        self.usage.addItems(["不使用", "优先本地分析，失败时尝试 AI 分析", "优先 AI 分析，失败时尝试本地分析", "始终使用 AI 分析"])
+        self.addGroup(InfoBarIcon.INFORMATION, "启用 AI", "使用 AI 提取动画罗马名，获取更准确（或更离谱）的结果", self.usage)
+
+        self.url = LineEdit()
+        self.url.setFixedWidth(320)
+        # self.url.setPlaceholderText("https://")
+        self.addGroup(InfoBarIcon.INFORMATION, "自定义域名", "输入 AI 服务器的完整域名", self.url)
+
+        self.token = LineEdit()
+        self.token.setFixedWidth(320)
+        # self.token.setPlaceholderText("sk-")
+        self.addGroup(InfoBarIcon.INFORMATION, "API Key", "输入用于连接 AI 服务器的授权 Token，通常以 sk 开头", self.token)
+
+        self.model = EditableComboBox()
+        self.model.setFixedWidth(320)
+        self.model.addItems(["", "gpt-3.5-turbo", "gpt-4o", "gpt-4o-mini", "qwen2-1.5b-instruct", "hunyuan-lite"])
+        self.addGroup(InfoBarIcon.INFORMATION, "AI 模型", "选择你想使用的 AI 模型", self.model)
+
+        self.test = PushButton("开始测试", self)
+        self.test.setFixedWidth(100)
+        self.addGroup(InfoBarIcon.INFORMATION, "连接测试", "通过发送简短的请求，测试填写的 AI 服务器是否可用", self.test)

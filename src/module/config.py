@@ -109,11 +109,17 @@ def initConfig(config_file):
     config = configparser.ConfigParser()
 
     config.add_section("Application")
-    config.set("Application", "version", "2.1")
+    config.set("Application", "version", "2.1.1")
 
     config.add_section("Format")
     config.set("Format", "rename_format", "{fs_name_cn}/[{typecode}] [{release}] {name_jp}")
     config.set("Format", "date_format", "YYMMDD")
+
+    config.add_section("AI")
+    config.set("AI", "usage", "0")
+    config.set("AI", "url", "")
+    config.set("AI", "token", "")
+    config.set("AI", "model", "")
 
     with open(config_file, "w", encoding="utf-8") as content:
         config.write(content)
@@ -136,8 +142,8 @@ def checkNameFormat(name_format):
 
 def checkConfigVersion():
     """
-    检测配置文件是否为2.1，如果不是则删除旧版文件，并重新创建配置文件
+    检测配置文件是否为2.1.1，如果不是则删除旧版文件，并重新创建配置文件
     """
-    if readConfig("Application", "version") != "2.1":
+    if readConfig("Application", "version") != "2.1.1":
         os.remove(configFile())
         initConfig(configFile())
