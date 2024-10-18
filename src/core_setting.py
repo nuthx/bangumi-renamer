@@ -21,7 +21,7 @@ class MySettingWindow(QDialog, SettingWindow):
     def initConnect(self):
         self.posterFolderButton.clicked.connect(lambda: openFolder(posterFolder()))
         self.logFolderButton.clicked.connect(lambda: openFolder(logFolder()))
-        self.ai_setting.test.clicked.connect(self.testConnect)
+        self.ai_setting.test.clicked.connect(self.testConnection)
         self.applyButton.clicked.connect(self.saveConfig)
         self.cancelButton.clicked.connect(lambda: self.close())
 
@@ -56,7 +56,7 @@ class MySettingWindow(QDialog, SettingWindow):
             self.config_saved.emit("配置已保存")
             self.close()
 
-    def testConnect(self):
+    def testConnection(self):
         url = self.ai_setting.url.text()
         token = self.ai_setting.token.text()
         model = self.ai_setting.model.text()
