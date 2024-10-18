@@ -8,7 +8,7 @@ from PySide6.QtCore import QObject, Signal
 
 from src.module.api.anilist import anilistSearch
 from src.module.api.openai import OpenAI
-from src.module.api.bangumi import bangumiIDSearch, bangumiSubject
+from src.module.api.bangumi import Bangumi
 from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
 from src.module.utils import sanitizeName
@@ -22,6 +22,7 @@ class Analysis(QObject):
     def __init__(self):
         super().__init__()
         self.total_process = 5
+        self.bangumi = Bangumi()
 
     def start(self, anime, manual_id=""):
         """
@@ -66,7 +67,7 @@ class Analysis(QObject):
         # 3. 搜索bangumi id
         if not manual_id:
             self.anime_state.emit([anime["id"], f"==> [3/{self.total_process}] 搜索 {anime['name_jp_anilist']}"])
-            bangumi_id = bangumiIDSearch(anime["name_jp_anilist"])
+            bangumi_id = self.bangumi.searchID(anime["name_jp_anilist"])
 
             if bangumi_id:
                 anime["bangumi_id"] = bangumi_id
@@ -80,7 +81,7 @@ class Analysis(QObject):
 
         # 4. 搜索动画详细信息
         self.anime_state.emit([anime["id"], f"==> [4/{self.total_process}] 获取条目信息"])
-        bangumi_subject = bangumiSubject(bangumi_id)
+        bangumi_subject = self.bangumi.getDetail(bangumi_id)
 
         if bangumi_subject:
             anime["name_jp"] = sanitizeName(bangumi_subject["name_jp"])
