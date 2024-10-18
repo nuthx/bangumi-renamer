@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialog
 from PySide6.QtCore import Signal
-from qfluentwidgets import Flyout, InfoBarIcon
 
+from src.gui.components.Toast import Toast
 from src.gui.settingwindow import SettingWindow
 
 from src.module.api.openai import OpenAI
@@ -16,6 +16,7 @@ class MySettingWindow(QDialog, SettingWindow):
         self.setupUI(self)
         self.initConnect()
         self.loadConfig()
+        self.toast = Toast(parent=self)
 
     def initConnect(self):
         self.posterFolderButton.clicked.connect(lambda: openFolder(posterFolder()))
@@ -42,7 +43,7 @@ class MySettingWindow(QDialog, SettingWindow):
         """
         error = checkNameFormat(self.renameType.currentText())  # 检查"命名格式"的合法性
         if error:
-            self.showFlyout(error)
+            self.toast.show("error", "命名格式错误", error)
         else:
             writeConfig("Format", "rename_format", self.renameType.currentText())
             writeConfig("Format", "date_format", self.dateType.currentText())
@@ -61,22 +62,8 @@ class MySettingWindow(QDialog, SettingWindow):
         model = self.ai_setting.model.text()
 
         if not url or not token or not model:
-            print("请完整填写服务器信息")
+            self.toast.show("warning", "", "请完整填写服务器信息")
         elif not (url.startswith("http://") or url.startswith("https://")):
-            print("服务器地址需以 http:// 或 https:// 开头")
+            self.toast.show("warning", "", "服务器地址需以 http:// 或 https:// 开头")
         else:
-            OpenAI().test(url, token, model)
-
-    def showFlyout(self, content):
-        """
-        显示Flyout通知
-        :param content: 内容
-        """
-        Flyout.create(
-            icon=InfoBarIcon.ERROR,
-            title="",
-            content=content,
-            target=self.renameType,
-            parent=self,
-            isClosable=False
-        )
+            OpenAI().test(self.toast, url, token, model)

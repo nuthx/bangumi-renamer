@@ -6,12 +6,13 @@ import threading
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QListWidgetItem
 from PySide6.QtCore import Qt, QUrl, QPoint
 from PySide6.QtGui import QDesktopServices
-from qfluentwidgets import InfoBar, InfoBarPosition, RoundMenu, Action, FluentIcon
+from qfluentwidgets import RoundMenu, Action, FluentIcon
 
 from src.core_about import MyAboutWindow
 from src.core_setting import MySettingWindow
 
 from src.gui.homewindow import HomeWindow
+from src.gui.components.Toast import Toast
 from src.gui.components.FsNameEditDialog import FsNameEditDialog
 
 from src.module.data import createAnimeData
@@ -32,6 +33,9 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         self.anime_id = 0
         self.anime_list = []
+
+        # 加载toast组件
+        self.toast = Toast(parent=self)
 
         # 检查版本更新
         self.version = Version()
@@ -164,7 +168,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         for anime in self.anime_list:
             getFinal(anime)
 
-        self.showToast("success", "", "配置修改成功")
+        self.toast.show("success", "", "配置修改成功")
         self.showAnimeInDetail()
 
     def selectedRowInTable(self) -> int:
@@ -181,11 +185,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         若列表不为空，则调用initList初始化列表
         """
         if not self.anime_list:
-            self.showToast("warning", "", "列表为空")
+            self.toast.show("warning", "", "列表为空")
         else:
             self.initData()
             self.initContent()
-            self.showToast("success", "", "列表已清空")
+            self.toast.show("success", "", "列表已清空")
 
     def dragEnterEvent(self, event):
         """
@@ -228,11 +232,11 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         id_new = self.idLabel.text()
 
         if row is None:
-            self.showToast("warning", "", "请选择要修改的动画")
+            self.toast.show("warning", "", "请选择要修改的动画")
         elif not id_new:
-            self.showToast("warning", "", "请输入新的Bangumi ID")
+            self.toast.show("warning", "", "请输入新的Bangumi ID")
         elif id_current == id_new:
-            self.showToast("warning", "未修改", "新的ID与当前ID一致")
+            self.toast.show("warning", "未修改", "新的ID与当前ID一致")
         else:
             self.startAnalysisByID(row, id_new)
 
@@ -241,7 +245,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         分析全部动画
         """
         if not self.anime_list:
-            self.showToast("warning", "", "请先添加文件夹")
+            self.toast.show("warning", "", "请先添加文件夹")
             return
 
         # 初始化界面
@@ -341,7 +345,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     #
     #             # 是否修改了名称
     #             if new_init_name == init_name:
-    #                 self.showToast("warning", "", "首季动画名未修改")
+    #                 self.toast.show("warning", "", "首季动画名未修改")
     #                 return
     #             else:
     #                 self.anime_list[row]["fs_name_cn"] = new_init_name
@@ -350,7 +354,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
     #                 self.showAnimeInDetail()
     #
     #     else:
-    #         self.showToast("warning", "无法修改", "请先进行动画分析")
+    #         self.toast.show("warning", "无法修改", "请先进行动画分析")
     #         return
 
     def openBangumiURL(self, bangumi_id):
@@ -361,7 +365,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
         if bangumi_id != "":
             QDesktopServices.openUrl(QUrl("https://bgm.tv/subject/" + bangumi_id))
         else:
-            self.showToast("warning", "链接无效", "请先进行动画分析")
+            self.toast.show("warning", "链接无效", "请先进行动画分析")
 
     def removeAnime(self, row):
         """
@@ -386,7 +390,7 @@ class MyHomeWindow(QMainWindow, HomeWindow):
 
         # 检查是否满足重命名条件
         if error:
-            self.showToast("warning", "", error)
+            self.toast.show("warning", "", error)
             return
 
         # 尝试重命名
@@ -394,12 +398,12 @@ class MyHomeWindow(QMainWindow, HomeWindow):
             rename.start(self.anime_list)
             self.initData()
             self.initContent()
-            self.showToast("success", "", "重命名完成")
+            self.toast.show("success", "", "重命名完成")
 
         # 失败则返回错误信息
         except Exception as e:
             print("startRename:", e)
-            self.showToast("warning", "", str(e))
+            self.toast.show("warning", "", str(e))
 
     def showTableMenu(self, pos):
         # edit_init_name = Action(FluentIcon.EDIT, "修改首季动画名")
@@ -453,27 +457,3 @@ class MyHomeWindow(QMainWindow, HomeWindow):
                 bangumi_id = str(self.anime_list[table_row]["relate"][list_row]["id"])
                 instead_this_anime.triggered.connect(lambda: self.startAnalysisByID(table_row, bangumi_id))
                 view_on_bangumi.triggered.connect(lambda: self.openBangumiURL(bangumi_id))
-
-    def showToast(self, state, title, content):
-        """
-        显示Toast通知
-        :param state: 通知等级
-        :param title: 标题
-        :param content: 内容
-        """
-        info_state = {
-            "info": InfoBar.info,
-            "success": InfoBar.success,
-            "warning": InfoBar.warning,
-            "error": InfoBar.error
-        }
-
-        if state in info_state:
-            info_state[state](
-                title=title,
-                content=content,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self
-            )
