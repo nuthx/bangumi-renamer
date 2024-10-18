@@ -4,6 +4,7 @@ from qfluentwidgets import Flyout, InfoBarIcon
 
 from src.gui.settingwindow import SettingWindow
 
+from src.module.api.openai import OpenAI
 from src.module.config import openFolder, posterFolder, logFolder, checkNameFormat, readConfig, writeConfig
 
 
@@ -19,10 +20,9 @@ class MySettingWindow(QDialog, SettingWindow):
     def initConnect(self):
         self.posterFolderButton.clicked.connect(lambda: openFolder(posterFolder()))
         self.logFolderButton.clicked.connect(lambda: openFolder(logFolder()))
+        self.ai_setting.test.clicked.connect(self.testConnect)
         self.applyButton.clicked.connect(self.saveConfig)
         self.cancelButton.clicked.connect(lambda: self.close())
-
-        # self.ai_setting.test.clicked.connect(lambda: print("00"))
 
     def loadConfig(self):
         """
@@ -54,6 +54,18 @@ class MySettingWindow(QDialog, SettingWindow):
 
             self.config_saved.emit("配置已保存")
             self.close()
+
+    def testConnect(self):
+        url = self.ai_setting.url.text()
+        token = self.ai_setting.token.text()
+        model = self.ai_setting.model.text()
+
+        if not url or not token or not model:
+            print("请完整填写服务器信息")
+        elif not (url.startswith("http://") or url.startswith("https://")):
+            print("服务器地址需以 http:// 或 https:// 开头")
+        else:
+            OpenAI().test(url, token, model)
 
     def showFlyout(self, content):
         """
