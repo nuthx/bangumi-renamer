@@ -10,7 +10,14 @@ class OpenAI:
         self.model = readConfig("AI", "model")
 
     @staticmethod
-    def test(url, token, model):
+    def test(toast, url, token, model):
+        """
+        测试用户输入的AI服务器是否可用
+        :param toast: toast通知组件，直接在此函数中调用
+        :param url: 当前输入的url
+        :param token: 当前输入的token
+        :param model: 当前输入的model
+        """
         url = url.rstrip('/') + "/v1/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
         body = {"model": model, "messages": [{"role": "user", "content": "hello"}]}
@@ -18,9 +25,9 @@ class OpenAI:
         try:
             response = requests.post(url, json=body, headers=headers).json()
             if "error" in response:
-                print(response["error"]["message"])
+                toast.show("error", "", response["error"]["message"])
             else:
-                print("测试成功")
+                toast.show("success", "", "测试成功")
 
         except Exception as e:
-            print(f"连接失败：{e}")
+            toast.show("error", "", f"连接失败：{e}")
