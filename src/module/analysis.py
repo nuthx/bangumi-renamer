@@ -53,7 +53,7 @@ class Analysis(QObject):
 
         # 2. 使用anilist搜索日文名
         if not manual_id:
-            self.anime_state.emit([anime["id"], f"==> [2/{self.total_process}] 搜索日文名"])
+            self.anime_state.emit([anime["id"], f"==> [2/{self.total_process}] 搜索 {anime['name_romaji']}"])
             name_jp_anilist = anilistSearch(anime["name_romaji"])
 
             if name_jp_anilist:
@@ -65,7 +65,7 @@ class Analysis(QObject):
 
         # 3. 搜索bangumi id
         if not manual_id:
-            self.anime_state.emit([anime["id"], f"==> [3/{self.total_process}] 搜索动画条目"])
+            self.anime_state.emit([anime["id"], f"==> [3/{self.total_process}] 搜索 {anime['name_jp_anilist']}"])
             bangumi_id = bangumiIDSearch(anime["name_jp_anilist"])
 
             if bangumi_id:
@@ -79,7 +79,7 @@ class Analysis(QObject):
             anime["bangumi_id"] = bangumi_id
 
         # 4. 搜索动画详细信息
-        self.anime_state.emit([anime["id"], f"==> [4/{self.total_process}] 搜索动画信息"])
+        self.anime_state.emit([anime["id"], f"==> [4/{self.total_process}] 获取条目信息"])
         bangumi_subject = bangumiSubject(bangumi_id)
 
         if bangumi_subject:
@@ -99,7 +99,7 @@ class Analysis(QObject):
             return
 
         # 5. 搜索关联条目
-        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 搜索关联条目"])
+        self.anime_state.emit([anime["id"], f"==> [5/{self.total_process}] 获取关联条目"])
         relate_anime = bangumiLink(anime)
 
         if relate_anime:
