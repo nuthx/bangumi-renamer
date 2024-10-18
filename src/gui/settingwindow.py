@@ -234,7 +234,7 @@ class AISetting(GroupHeaderCardWidget):
         self.url = LineEdit()
         self.url.setFixedWidth(320)
         # self.url.setPlaceholderText("https://")
-        self.addGroup(InfoBarIcon.INFORMATION, "自定义域名", "输入 AI 服务器的完整域名", self.url)
+        self.addGroup(InfoBarIcon.INFORMATION, "服务器地址", "输入 AI 服务器的域名地址", self.url)
 
         self.token = LineEdit()
         self.token.setFixedWidth(320)
