@@ -7,6 +7,7 @@ import requests
 from PySide6.QtCore import QObject, Signal
 
 from src.module.api.anilist import anilistSearch
+from src.module.api.openai import OpenAI
 from src.module.api.bangumi import bangumiIDSearch, bangumiSubject
 from src.module.api.bangumi_link import bangumiLink
 from src.module.config import posterFolder, readConfig
@@ -32,7 +33,16 @@ class Analysis(QObject):
         # 1. 提取罗马名
         if not manual_id:
             self.anime_state.emit([anime["id"], f"==> [1/{self.total_process}] 提取罗马名"])
-            name_romaji = getRomaji(anime["file_name"])
+            romaji_usage = int(readConfig("AI", "usage"))
+
+            if romaji_usage == 0:
+                name_romaji = getRomajiByLocal(anime["file_name"])
+            elif romaji_usage == 1:
+                name_romaji = getRomajiByLocal(anime["file_name"]) or getRomajiByAI(anime["file_name"])
+            elif romaji_usage == 2:
+                name_romaji = getRomajiByAI(anime["file_name"]) or getRomajiByLocal(anime["file_name"])
+            else:
+                name_romaji = getRomajiByAI(anime["file_name"])
 
             if name_romaji:
                 anime["name_romaji"] = name_romaji
@@ -110,7 +120,7 @@ class Analysis(QObject):
         getFinal(anime)
 
 
-def getRomaji(file_name):
+def getRomajiByLocal(file_name):
     """
     根据文件名，使用anitopy提取动画名
     :param file_name: 完整的文件名
@@ -126,6 +136,20 @@ def getRomaji(file_name):
 
     if "anime_title" in romaji_name:
         return romaji_name["anime_title"]
+    else:
+        return
+
+
+def getRomajiByAI(file_name):
+    """
+    根据文件名，使用GPT提取动画名
+    :param file_name: 完整的文件名
+    :return: 动画罗马名，若无法识别则返回None
+    """
+    romaji_name = OpenAI().getRomaji(file_name)
+
+    if romaji_name:
+        return romaji_name
     else:
         return
 
