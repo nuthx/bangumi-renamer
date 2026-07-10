@@ -4,94 +4,124 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build:
-    name: Build App
-    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ windows-latest, macos-latest, macos-13, ubuntu-latest ]
+        include:
+          - name: macOS (Apple Silicon)
+            os: macos-latest
+            target: aarch64-apple-darwin
+            args: --bundles dmg
+            artifact: bangumi-renamer_${{ github.ref_name }}_macos_aarch64.dmg
+
+          - name: macOS (Intel)
+            os: macos-latest
+            target: x86_64-apple-darwin
+            args: --bundles dmg
+            artifact: bangumi-renamer_${{ github.ref_name }}_macos_x64.dmg
+
+          - name: Windows (x64)
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: --no-bundle
+            artifact: bangumi-renamer_${{ github.ref_name }}_windows_x64.zip
+            exeName: Bangumi Renamer.exe
+
+          - name: Windows (ARM64)
+            os: windows-latest
+            target: aarch64-pc-windows-msvc
+            args: --no-bundle
+            artifact: bangumi-renamer_${{ github.ref_name }}_windows_arm64.zip
+            exeName: Bangumi Renamer.exe
+
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Check out
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pyinstaller
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
 
-    - name: Build
-      if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
-      run: pyinstaller build.spec
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-    - name: Build (macOS)
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
-      run: pyinstaller build-mac.spec
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ./src -> target
 
-    - name: Zip (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        cd dist
-        7z a -r BangumiRenamer_windows.zip *
+      - name: Install frontend dependencies
+        run: pnpm install
 
-    - name: Zip (macOS-arm)
-      if: matrix.os == 'macos-latest'
-      run: |
-        cd dist
-        zip -9 -r BangumiRenamer_mac_arm.zip ./BangumiRenamer.app
+      - name: Build Tauri app
+        run: pnpm tauri build --target ${{ matrix.target }} ${{ matrix.args }}
+        env:
+          CI: ${{ matrix.os == 'macos-latest' && 'false' || 'true' }}
 
-    - name: Zip (macOS-x86)
-      if: matrix.os == 'macos-13'
-      run: |
-        cd dist
-        zip -9 -r BangumiRenamer_mac_x86.zip ./BangumiRenamer.app
+      - name: Prepare macOS artifact
+        if: matrix.os == 'macos-latest'
+        run: |
+          DMG=$(find src/target/${{ matrix.target }}/release/bundle/dmg -name "*.dmg" | head -1)
+          cp "$DMG" "${{ matrix.artifact }}"
 
-    - name: Zip (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        cd dist
-        zip -9 -r BangumiRenamer_linux.zip ./*       
+      - name: Prepare Windows artifact
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $exe = Get-ChildItem src\target\${{ matrix.target }}\release\*.exe
+          Copy-Item $exe.FullName "${{ matrix.exeName }}"
+          Compress-Archive -Path "${{ matrix.exeName }}" -DestinationPath ${{ matrix.artifact }}
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        path: dist/*.zip
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ matrix.artifact }}
 
   release:
+    name: Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
-      - name: Download
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: asset
+          merge-multiple: true
 
-      - name: Dist
-        run: |
-          mkdir dist
-          cp -r asset/artifact/* dist
-          cd dist && ls
-
-      - name: Release
+      - name: Create release
         uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: tag
-          draft: true
-          files: dist/*
-          name: 🎉
+          tag_name: ${{ github.ref_name }}
+          name: 🎉 ${{ github.ref_name }}
           body: |
             ## 新增
             - 新增内容
-            
+
             ## 优化
             - 优化内容
+
+            ## 修复
+            - 修复内容
+          draft: true
+          files: |
+            *.dmg
+            *.zip

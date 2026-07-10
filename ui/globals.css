@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  --app-color-primary: hsl(0 0 20);
+  --app-color-secondary: hsl(0 0 20 / 0.6);
+  --app-color-muted: hsl(0 0 20 / 0.24);
+
+  --app-color-border: hsl(0 0 0 / 0.1);
+  --app-color-background: hsl(0 0 100);
+  --app-color-background-dark: hsl(0 0 96);
+
+  --app-color-accent: #f09199;
+  --app-color-error: #fb2c37;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-color-primary: hsl(0 0 90);
+    --app-color-secondary: hsl(0 0 90 / 0.5);
+    --app-color-muted: hsl(0 0 90 / 0.2);
+
+    --app-color-border: hsl(0 0 100 / 0.1);
+    --app-color-background: hsl(0 0 12);
+    --app-color-background-dark: hsl(0 0 20);
+
+    --app-color-error: #ff6467;
+  }
+}
+
+@theme inline {
+  --color-primary: var(--app-color-primary);
+  --color-secondary: var(--app-color-secondary);
+  --color-muted: var(--app-color-muted);
+
+  --color-border: var(--app-color-border);
+  --color-background: var(--app-color-background);
+  --color-background-dark: var(--app-color-background-dark);
+
+  --color-accent: var(--app-color-accent);
+  --color-error: var(--app-color-error);
+}
+
+@layer base {
+  * {
+    @apply border-border box-border focus:outline-none;
+  }
+
+  body {
+    @apply text-sm text-primary antialiased select-none overflow-hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  p,
+  img {
+    @apply cursor-default;
+  }
+
+  input {
+    @apply select-text cursor-text;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+}
+
+@layer components {
+  .markdown-content h1 {
+    @apply text-lg font-semibold pt-2 first:pt-0;
+  }
+
+  .markdown-content h2 {
+    @apply text-base font-semibold pt-2 first:pt-0;
+  }
+
+  .markdown-content h3 {
+    @apply text-sm font-semibold pt-2 first:pt-0;
+  }
+
+  .markdown-content ul {
+    @apply list-disc pl-5;
+  }
+
+  .markdown-content ol {
+    @apply list-decimal pl-5;
+  }
+
+  .markdown-content li {
+    @apply my-1;
+  }
+}
+
+@layer utilities {
+  @keyframes orbit {
+    from {
+      transform: rotate(0deg) translateX(5px) rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg) translateX(5px) rotate(-360deg);
+    }
+  }
+
+  .orbit-icon {
+    transform-origin: center;
+    animation: orbit 1.5s linear infinite;
+  }
+}

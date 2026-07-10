@@ -1,0 +1,35 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [160, 240],
+  "editor.colorDecorators": false,
+  "tailwindCSS.colorDecorators": false,
+  "javascript.autoClosingTags": false,
+  "rust-analyzer.inlayHints.chainingHints.enable": false,
+  "rust-analyzer.inlayHints.closingBraceHints.enable": false,
+  "rust-analyzer.inlayHints.typeHints.enable": false,
+  "rust-analyzer.inlayHints.parameterHints.enable": false,
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "files.exclude": {
+    "node_modules": true,
+    "dist": true,
+    "gen": true
+  },
+  "search.exclude": {
+    ".gitignore": true,
+    "node_modules": true,
+    "eslint.config.js": true,
+    "package.json": true,
+    "pnpm-lock.yaml": true,
+    "pnpm-workspace.yaml": true,
+    "README.md": true
+  },
+  "[rust]": {
+    "editor.tabSize": 4
+  }
+}
